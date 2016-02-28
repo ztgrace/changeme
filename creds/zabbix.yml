@@ -1,0 +1,25 @@
+---
+
+name: Zabbix
+category: web
+credentials:
+  - username: Admin
+    password: zabbix
+fingerprint:
+  - http_status: 200
+  - http_body: by Zabbix SIA
+path:
+  - /zabbix/index.php
+default_port: 80
+type: post
+post:
+  - username: name
+    password: password
+  - request: ""
+  - autologin: 1
+  - enter: Sign in
+sessionid: zbx_sessionid
+ssl: false
+success:
+  - http_status: 200
+  - http_body: Logout</a>

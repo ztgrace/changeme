@@ -1,0 +1,23 @@
+category: web
+credentials:
+- password: admin
+  username: admin
+csrf: javax.faces.ViewState
+default_port: 8180
+fingerprint:
+- http_status: 200
+- http_body: Welcome to the JBoss AS 6 Admin Console
+form:
+- username: login_form:name
+- password: login_form:password
+- login_form: login_form
+- login_form:submit: Login
+- login_form:passowrd: admin
+name: JBoss AS 6
+path: /admin-console/login.seam
+sessionid: JSESSIONID
+ssl: false
+success:
+- http_status: 200
+- http_body: Logout</a>
+type: form
