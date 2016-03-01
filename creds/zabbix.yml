@@ -11,8 +11,8 @@ fingerprint:
 path:
   - /zabbix/index.php
 default_port: 80
-type: post
-post:
+type: form
+form:
   - username: name
     password: password
   - request: ""

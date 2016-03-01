@@ -1,0 +1,7 @@
+yaml
+logutils
+netaddr
+requests
+responses
+nose.tools
+re

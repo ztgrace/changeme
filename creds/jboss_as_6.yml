@@ -3,7 +3,7 @@ credentials:
 - password: admin
   username: admin
 csrf: javax.faces.ViewState
-default_port: 8180
+default_port: 8080
 fingerprint:
 - http_status: 200
 - http_body: Welcome to the JBoss AS 6 Admin Console
