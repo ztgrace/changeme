@@ -20,12 +20,18 @@ requests.packages.urllib3.disable_warnings()
 
 logger = None
 banner = """
-################################################################################
-#                                                                              #
-# Default Credential Scanner v%s                                              #
-#                                                                              #
-################################################################################
+  ##################################################### 
+ #       _                                             #
+ #   ___| |__   __ _ _ __   __ _  ___ _ __ ___   ___   #
+ #  / __| '_ \ / _` | '_ \ / _` |/ _ \ '_ ` _ \ / _ \\  #
+ # | (__| | | | (_| | | | | (_| |  __/ | | | | |  __/  #
+ #  \___|_| |_|\__,_|_| |_|\__, |\___|_| |_| |_|\___|  #
+ #                         |___/                       #
+ #  v%s                                               #
+ #  Default Credential Scanner                         #
+  ##################################################### 
 """ % __version__
+required_keys = [ "name", "category", "credentials", "fingerprint", "path", "default_port", "type", "success",]
 
 def setup_logging(verbose, debug, logfile):
     """
@@ -81,9 +87,14 @@ def setup_logging(verbose, debug, logfile):
 
 
 def parse_yaml(f):
+    global logger
     with open(f, 'r') as fin:
         raw = fin.read()
-        parsed = yaml.load(raw)
+        try:
+            parsed = yaml.load(raw)
+        except(yaml.parser.ParserError):
+            logger.error("%s is not a valid yaml file" % f)
+            return None
     return parsed
 
 def is_yaml(f):
@@ -98,18 +109,41 @@ def is_yaml(f):
 def load_creds():
     creds = list()
     total_creds = 0
+    cred_names = list()
     for root, dirs, files in os.walk('creds'):
         for name in files:
             f = os.path.join(root, name)
             if is_yaml(f):
                 parsed = parse_yaml(f)
-                total_creds += len(parsed["credentials"])
-                creds.append(parsed)
+                if parsed:
+                    if validate_cred(parsed, f) and parsed['name'] not in cred_names:
+                        total_creds += len(parsed["credentials"])
+                        creds.append(parsed)
+                        cred_names.append(parsed['name'])
+                    else:
+                        logger.error("%s: duplicate name %s" % (f, parsed['name']))
 
     print('Loaded %i default credential profiles' % len(creds))
     print('Loaded %i default credentials\n' % total_creds)
 
     return creds
+
+def validate_cred(cred, f):
+    global logger, required_keys
+    # required fields
+    all_valid = True
+
+    for key in required_keys:
+        val = cred.get(key, None)
+        if val is None:
+            logger.error("%s: is missing key %s" % (f, key))
+            all_valid = False
+        
+    # unique names
+
+    return all_valid
+    
+    
 
 def get_fingerprint_matches(res, creds):
     matches = list()
@@ -317,7 +351,6 @@ def build_target_list(targets, creds, name, category):
 
 def main():
     print banner
-    creds = load_creds()
     targets = list()
     proxy = None
     global logger
@@ -336,11 +369,12 @@ def main():
     ap.add_argument('--threads', '-t', type=int, help='Number of threads', default=10)
     ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request', default=10)
     ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    ap.add_argument('--validate', action='store_true', help='Validate creds files')
     args = ap.parse_args()
  
     setup_logging(args.verbose, args.debug, args.log)
 
-    if not args.subnet and not args.targets:
+    if not args.subnet and not args.targets and not args.validate:
         logger.error('Need to supply a subnet or targets file.')
         ap.print_help()
         sys.exit()
@@ -363,6 +397,11 @@ def main():
         logger.error('Invalid proxy')
         sys.exit()
 
+    if args.validate:
+        load_creds()
+        sys.exit()
+
+    creds = load_creds()
     urls = build_target_list(targets, creds, args.name, args.category)
 
     if args.dryrun:

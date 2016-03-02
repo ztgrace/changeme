@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# nosetests --with-coverage --cover-erase --cover-package=scanner test.py
+# nosetests --with-coverage --cover-erase --cover-package=scanner
 
 """
  TODO
@@ -13,6 +13,7 @@ import logging
 import requests
 import responses
 import re
+import random
 
 tomcat_yaml = 'creds/apache_tomcat.yml'
 tomcat_name = 'Apache Tomcat'
@@ -47,7 +48,24 @@ def test_parse_yaml_bad():
     load_creds
 """
 def test_load_creds_good():
+    scanner.logger = scanner.setup_logging(False, False, None)
     scanner.load_creds()
+
+"""
+    validate_cred
+"""    
+def test_validate_cred():
+    scanner.logger = scanner.setup_logging(False, False, None)
+    creds = scanner.load_creds()
+    
+    cred = creds[random.randrange(0, len(creds))]
+    while True:
+        key = random.choice(cred.keys())
+        if key in scanner.required_keys:
+            cred.pop(key)
+            break
+    
+    assert scanner.validate_cred(cred, "/dev/null") == False
 
 """
     setup_logging tests
@@ -140,6 +158,7 @@ def test_check_basic_auth_tomcat():
         'adding_headers': { 'Server': 'Apache-Coyote/1.1'}
         })
 
+    scanner.logger = scanner.setup_logging(False, False, None)
     creds = scanner.load_creds()
     cred = None
     for i in creds:
@@ -148,7 +167,6 @@ def test_check_basic_auth_tomcat():
 
     assert cred['name'] == tomcat_name
 
-    scanner.logger = scanner.setup_logging(False, False, None)
     matches = scanner.check_basic_auth("http://127.0.0.1:8080/manager/html", cred, False, False, None)
     assert len(matches) > 0
 
@@ -399,3 +417,5 @@ def test_do_scan():
     scanner.setup_logging(True, True, None)
     scanner.do_scan("http://127.0.0.1/manager/html", scanner.creds, 10, None)
     
+
+
