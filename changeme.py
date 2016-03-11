@@ -20,7 +20,7 @@ requests.packages.urllib3.disable_warnings()
 
 logger = None
 banner = """
-  ##################################################### 
+  #####################################################
  #       _                                             #
  #   ___| |__   __ _ _ __   __ _  ___ _ __ ___   ___   #
  #  / __| '_ \ / _` | '_ \ / _` |/ _ \ '_ ` _ \ / _ \\  #
@@ -29,9 +29,18 @@ banner = """
  #                         |___/                       #
  #  v%s                                               #
  #  Default Credential Scanner                         #
-  ##################################################### 
+  #####################################################
 """ % __version__
-required_keys = [ "name", "category", "credentials", "fingerprint", "path", "default_port", "type", "success",]
+required_keys = [
+        "name",
+        "category",
+        "credentials",
+        "fingerprint",
+        "path",
+        "default_port",
+        "type",
+        "success"]
+
 
 def setup_logging(verbose, debug, logfile):
     """
@@ -45,7 +54,7 @@ def setup_logging(verbose, debug, logfile):
     global logger
     # Set up our logging object
     logger = logging.getLogger(__name__)
-    
+
     if debug:
         logger.setLevel(logging.DEBUG)
     elif verbose:
@@ -55,7 +64,7 @@ def setup_logging(verbose, debug, logfile):
 
     if logfile:
         # Create file handler which logs even debug messages
-        ################################################################################
+        #######################################################################
         fh = logging.FileHandler(logfile)
 
         # create formatter and add it to the handler
@@ -64,7 +73,7 @@ def setup_logging(verbose, debug, logfile):
         logger.addHandler(fh)
 
     # Set up the StreamHandler so we can write to the console
-    ################################################################################
+    ###########################################################################
     # create console handler with a higher log level
     ch = colorize.ColorizingStreamHandler(sys.stdout)
 
@@ -75,7 +84,6 @@ def setup_logging(verbose, debug, logfile):
     ch.level_map[logging.ERROR] = [None, 'red', False]
     ch.level_map[logging.CRITICAL] = [None, 'green', False]
     formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
-    #formatter = logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s', datefmt='%H:%M:%S')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
@@ -97,6 +105,7 @@ def parse_yaml(f):
             return None
     return parsed
 
+
 def is_yaml(f):
     isyaml = False
     try:
@@ -104,7 +113,7 @@ def is_yaml(f):
     except:
         pass
     return isyaml
-    
+
 
 def load_creds():
     creds = list()
@@ -128,6 +137,7 @@ def load_creds():
 
     return creds
 
+
 def validate_cred(cred, f):
     global logger, required_keys
     # required fields
@@ -138,12 +148,11 @@ def validate_cred(cred, f):
         if val is None:
             logger.error("%s: is missing key %s" % (f, key))
             all_valid = False
-        
+
     # unique names
 
     return all_valid
-    
-    
+
 
 def get_fingerprint_matches(res, creds):
     matches = list()
@@ -171,6 +180,7 @@ def get_fingerprint_matches(res, creds):
 
     return matches
 
+
 def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None):
     matches = list()
     for cred in candidate['credentials']:
@@ -185,6 +195,7 @@ def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None):
             matches.append(cred)
 
     return matches
+
 
 def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
     matches = list()
@@ -211,9 +222,9 @@ def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
 
         data[user_field] = username
         data[pass_field] = password
-        
+
         logger.debug('check_form post data: %s' % data)
-        
+
         res = None
         try:
             if sessionid:
@@ -232,6 +243,7 @@ def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
 
     return matches
 
+
 def check_success(req, res, candidate, username, password):
         match = True
         for s in candidate['success']:
@@ -240,7 +252,7 @@ def check_success(req, res, candidate, username, password):
                 match = False
 
             http_body = s.get('http_body', False)
-            if match and http_body and not http_body in res.text:
+            if match and http_body and http_body not in res.text:
                 match = False
 
         if match:
@@ -250,7 +262,7 @@ def check_success(req, res, candidate, username, password):
             logger.info('Invalid %s default cred %s:%s' % (candidate['name'], username, password))
             return False
 
-            
+
 def get_csrf_token(res, cred):
     name = cred.get('csrf', False)
     if name:
@@ -266,6 +278,7 @@ def get_csrf_token(res, cred):
 
     return csrf
 
+
 def get_session_id(res, cred):
     cookie = cred.get('sessionid', False)
     if cookie:
@@ -274,24 +287,21 @@ def get_session_id(res, cred):
         except:
             logger.error("Failed to get %s cookie from %s" % (cookie, res.url))
             return False
-        return { cookie: value }
+        return {cookie: value}
     else:
         return False
-        
+
+
 def scan(urls, creds, threads, timeout, proxy):
-    
+
     Thread = threading.Thread
-    i = 0
     for req in urls:
-        #if i % 10 == 0 and i is not 0:
-        #    logger.info('%i%% complete' % (i))
         while 1:
             if threading.activeCount() <= threads:
                 t = Thread(target=do_scan, args=(req, creds, timeout, proxy))
                 t.start()
                 break
 
-        i += 1
 
 def do_scan(req, creds, timeout, proxy):
         try:
@@ -310,11 +320,13 @@ def do_scan(req, creds, timeout, proxy):
             sessionid = get_session_id(res, match)
             check(req, match, sessionid, csrf, proxy)
 
+
 def dry_run(urls):
     logger.info("Dry run URLs:")
     for url in urls:
         print url
     sys.exit()
+
 
 def build_target_list(targets, creds, name, category):
 
@@ -349,6 +361,7 @@ def build_target_list(targets, creds, name, category):
 
     return urls
 
+
 def main():
     print banner
     targets = list()
@@ -371,7 +384,7 @@ def main():
     ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
     ap.add_argument('--validate', action='store_true', help='Validate creds files')
     args = ap.parse_args()
- 
+
     setup_logging(args.verbose, args.debug, args.log)
 
     if not args.subnet and not args.targets and not args.validate:
@@ -411,8 +424,6 @@ def main():
 
     scan(urls, creds, args.threads, args.timeout, proxy)
 
-    #elapsed = time() - start
-    #print "Completed in %.2is" % (elapsed)
-            
+
 if __name__ == '__main__':
     main()
