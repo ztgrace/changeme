@@ -1,5 +1,4 @@
 # changme [![Build Status](https://travis-ci.org/ztgrace/changeme.svg?branch=master)](https://travis-ci.org/ztgrace/changeme)
-https://travis-ci.org/ztgrace/changeme.svg?branch=master
 
 A default credential scanner.
 
