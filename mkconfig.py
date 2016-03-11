@@ -24,7 +24,8 @@ get_data("ssl", "Does the service use ssl (y/n): ", boolean=True)
 
 # Path is confiured as a list so we can have more than one potential path
 path = raw_input("Path to the login page: ")
-parameters["path"] = list(path)
+path_list = list()
+parameters["path"] = path_list.append(path)
 
 creds = list()
 num_creds = raw_input("How many default creds for this service (1, 2, 3): ")
