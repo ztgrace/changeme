@@ -283,8 +283,8 @@ def scan(urls, creds, threads, timeout, proxy):
     Thread = threading.Thread
     i = 0
     for req in urls:
-        if i % 10 == 0 and i is not 0:
-            logger.info('%i%% complete' % (i))
+        #if i % 10 == 0 and i is not 0:
+        #    logger.info('%i%% complete' % (i))
         while 1:
             if threading.activeCount() <= threads:
                 t = Thread(target=do_scan, args=(req, creds, timeout, proxy))
