@@ -1,8 +1,6 @@
-yaml
+pyyaml
 logutils
 netaddr
 requests
 responses
-nose.tools
-re
-random
+nose
