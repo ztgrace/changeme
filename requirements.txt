@@ -4,3 +4,4 @@ netaddr
 requests
 responses
 nose
+lxml
