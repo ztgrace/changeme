@@ -2,6 +2,7 @@
 
 import yaml
 import os
+import urllib
 
 parameters = dict()
 
@@ -23,7 +24,7 @@ get_data("default_port", "Default port: ", integer=True)
 get_data("ssl", "Does the service use ssl (y/n): ", boolean=True)
 
 # Path is confiured as a list so we can have more than one potential path
-path = raw_input("Path to the login page: ")
+path = raw_input("Path to the fingerprint page: ")
 path_list = list()
 parameters["path"] = path_list.append(path)
 
@@ -52,10 +53,13 @@ parameters["fingerprint"] = fp
 get_data("type", "Type of authentication method (form, basic_auth): ")
 form = list()
 if parameters["type"] == "form":
+    form_url = raw_input("Form post URL: ")
     user_field = raw_input("Name of username form field: ")
     pass_field = raw_input("Name of password form field: ")
     form_params = raw_input("Post parameters string (data from the post body): ")
+    form_params = urllib.unquote_plus(form_params) # decode the parameters
 
+    form.append({"url": form_url})
     form.append({"username": user_field})
     form.append({"password": pass_field})
 
@@ -65,7 +69,7 @@ if parameters["type"] == "form":
         if fname == user_field or fname == pass_field:
             continue
         else:
-            form.append({ fname: fvalue})
+            form.append({fname: fvalue})
 parameters["form"] = form
 
 get_data("csrf", "Name of csrf field: ")

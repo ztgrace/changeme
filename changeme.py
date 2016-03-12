@@ -13,6 +13,7 @@ import threading
 import logging
 from logutils import colorize
 from time import time
+from urlparse import urlparse
 
 __version__ = 0.1
 
@@ -202,6 +203,8 @@ def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
     data = dict()
     user_field = None
     pass_field = None
+    parsed = urlparse(req)
+    url = "%s://%s" % (parsed[0], parsed[1])
 
     for f in candidate['form']:
         for field in f:
@@ -209,6 +212,8 @@ def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
                 user_field = f[field]
             elif field == "password":
                 pass_field = f[field]
+            elif field == "url":
+                url += f[field]
             else:
                 data[field] = f[field]
 
@@ -223,16 +228,18 @@ def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
         data[user_field] = username
         data[pass_field] = password
 
+        logger.debug("check_form form url: %s" % url)
         logger.debug('check_form post data: %s' % data)
 
         res = None
         try:
             if sessionid:
-                res = requests.post(req, data, cookies=sessionid, verify=False, proxies=proxy)
+                res = requests.post(url, data, cookies=sessionid, verify=False, proxies=proxy)
             else:
-                res = requests.post(req, data, verify=False, proxies=proxy)
-        except:
-            logger.error("Failed to connect to %s" % req)
+                res = requests.post(url, data, verify=False, proxies=proxy)
+        except Exception as e:
+            logger.error("Failed to connect to %s" % url)
+            logger.debug(e)
             return None
 
         logger.debug('check_form res.status_code: %i' % res.status_code)
