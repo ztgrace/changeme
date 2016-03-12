@@ -2,6 +2,7 @@
 
 name: Apache Tomcat
 category: web
+contributor: ztgrace
 credentials:
   - username: tomcat
     password: tomcat

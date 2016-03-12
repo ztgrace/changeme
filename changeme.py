@@ -154,7 +154,6 @@ def validate_cred(cred, f):
     if cred.get("form", False):
         has_url = False
         for f in cred.get("form"):
-            print type(f)
             if "url" in f.keys():
                 has_url = True
         if not has_url:
