@@ -13,6 +13,7 @@ form:
 - login_form: login_form
 - login_form:submit: Login
 - login_form:passowrd: admin
+- url: /admin-console/login.seam
 name: JBoss AS 6
 path: /admin-console/login.seam
 sessionid: JSESSIONID

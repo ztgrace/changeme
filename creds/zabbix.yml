@@ -13,11 +13,12 @@ path:
 default_port: 80
 type: form
 form:
-  - username: name
-    password: password
-  - request: ""
-  - autologin: 1
-  - enter: Sign in
+- url: /zabbix/index.php
+- username: name
+  password: password
+- request: ""
+- autologin: 1
+- enter: Sign in
 sessionid: zbx_sessionid
 ssl: false
 success:
