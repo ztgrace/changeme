@@ -126,12 +126,12 @@ def load_creds():
             if is_yaml(f):
                 parsed = parse_yaml(f)
                 if parsed:
-                    if validate_cred(parsed, f) and parsed['name'] not in cred_names:
+                    if parsed['name'] in cred_names:
+                        logger.error("%s: duplicate name %s" % (f, parsed['name']))
+                    elif validate_cred(parsed, f):
                         total_creds += len(parsed["credentials"])
                         creds.append(parsed)
                         cred_names.append(parsed['name'])
-                    else:
-                        logger.error("%s: duplicate name %s" % (f, parsed['name']))
 
     print('Loaded %i default credential profiles' % len(creds))
     print('Loaded %i default credentials\n' % total_creds)
@@ -150,7 +150,16 @@ def validate_cred(cred, f):
             logger.error("%s: is missing key %s" % (f, key))
             all_valid = False
 
-    # unique names
+    # Make sure form has a url
+    if cred.get("form", False):
+        has_url = False
+        for f in cred.get("form"):
+            print type(f)
+            if "url" in f.keys():
+                has_url = True
+        if not has_url:
+            all_valid = False
+            logger.error("%s: is missing form.url" % cred['name'])
 
     return all_valid
 
