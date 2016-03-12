@@ -71,7 +71,8 @@ if parameters["type"] == "form":
             continue
         else:
             form.append({fname: fvalue})
-parameters["form"] = form
+
+    parameters["form"] = form
 
 get_data("csrf", "Name of csrf field: ")
 get_data("sessionid", "Name of session cookie: ")
@@ -87,7 +88,7 @@ success.append({"http_body": s_body})
 parameters["success"] = success
 
 print
-fname = parameters["name"].lower().replace(" ", "_") + ".yml"
+fname = parameters["name"].lower().replace(" ", "_").replace("/", "_") + ".yml"
 print "Writing config to %s" % fname
 
 with open(os.path.join("creds", fname), "w") as fout:
