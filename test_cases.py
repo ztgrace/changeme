@@ -61,11 +61,11 @@ def test_validate_cred():
     cred = creds[random.randrange(0, len(creds))]
     while True:
         key = random.choice(cred.keys())
-        if key in changeme.required_keys:
+        if key in ('auth', 'category', 'contributor', 'default_port', 'fingerprint', 'name', 'ssl'):
             cred.pop(key)
             break
     
-    assert changeme.validate_cred(cred, "/dev/null") == False
+    assert changeme.validate_cred(cred, "test_validate_cred") == False
 
 """
     setup_logging tests
@@ -386,7 +386,7 @@ def test_build_target_list():
 
     urls = changeme.build_target_list(changeme.targets, creds, tomcat_name, None)
     apache_cred = get_cred(tomcat_name)
-    paths = apache_cred['path']
+    paths = apache_cred['fingerprint']['url']
     
     match = True
     for url in urls:
@@ -395,7 +395,6 @@ def test_build_target_list():
             assert False
             return
 
-    assert True
 
 @responses.activate
 def test_do_scan():
@@ -416,6 +415,3 @@ def test_do_scan():
     changeme.creds = changeme.load_creds()
     changeme.setup_logging(True, True, None)
     changeme.do_scan("http://127.0.0.1/manager/html", changeme.creds, 10, None)
-    
-
-

@@ -1,19 +1,20 @@
+auth:
+  credentials:
+  - password: ''
+    username: '11111'
+  success:
+    body: IP Filtering
+    status: 200
+  type: basic_auth
+  url:
+  - /prscipfil.htm
 category: printer
 contributor: ztgrace
-credentials:
-- password: ''
-  username: '11111'
-csrf: ''
 default_port: 80
 fingerprint:
-- http_status: 200
-- http_body: Xerox WorkCentre 5020/DN
-- basic_auth_realm: CentreWare Internet Services
+  body: Xerox WorkCentre 5020/DN
+  status: 200
+  url:
+  - /prop.htm
 name: Xerox WorkCentre 5020/DN
-path: /prop.htm
-sessionid: ''
 ssl: false
-success:
-- http_status: 200
-- http_body: IP Filtering
-type: basic_auth

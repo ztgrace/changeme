@@ -14,6 +14,8 @@ import logging
 from logutils import colorize
 from time import time
 from urlparse import urlparse
+from cerberus import Validator
+from schema import schema
 
 __version__ = 0.1
 
@@ -32,15 +34,6 @@ banner = """
  #  Default Credential Scanner                         #
   #####################################################
 """ % __version__
-required_keys = [
-        "name",
-        "category",
-        "credentials",
-        "fingerprint",
-        "path",
-        "default_port",
-        "type",
-        "success"]
 
 
 def setup_logging(verbose, debug, logfile):
@@ -129,7 +122,7 @@ def load_creds():
                     if parsed['name'] in cred_names:
                         logger.error("%s: duplicate name %s" % (f, parsed['name']))
                     elif validate_cred(parsed, f):
-                        total_creds += len(parsed["credentials"])
+                        total_creds += len(parsed["auth"]["credentials"])
                         creds.append(parsed)
                         cred_names.append(parsed['name'])
 
@@ -140,44 +133,28 @@ def load_creds():
 
 
 def validate_cred(cred, f):
-    global logger, required_keys
-    # required fields
-    all_valid = True
+    v = Validator()
+    valid = v.validate(cred, schema)
+    for e in v.errors:
+        logger.error("Validation Error: %s, %s - %s" % (f, e, v.errors[e]))
 
-    for key in required_keys:
-        val = cred.get(key, None)
-        if val is None:
-            logger.error("%s: is missing key %s" % (f, key))
-            all_valid = False
-
-    # Make sure form has a url
-    if cred.get("form", False):
-        has_url = False
-        for f in cred.get("form"):
-            if "url" in f.keys():
-                has_url = True
-        if not has_url:
-            all_valid = False
-            logger.error("%s: is missing form.url" % cred['name'])
-
-    return all_valid
-
+    return valid
 
 def get_fingerprint_matches(res, creds):
     matches = list()
     for cred in creds:
         match = False
         for f in cred['fingerprint']:
-            http_status = f.get('http_status', False)
+            http_status = cred['fingerprint'].get('status', False)
             logger.debug('\b[get_fingerprint_matches] fingerprint status: %i, res status: %i' % (http_status, res.status_code))
             if http_status and http_status == res.status_code:
                 match = True
 
-            basic_auth_realm = f.get('basic_auth_realm', False)
+            basic_auth_realm = cred['fingerprint'].get('basic_auth_realm', False)
             if basic_auth_realm and basic_auth_realm in res.headers.get('WWW-Authenticate', list()):
                 match = True
 
-            body_text = f.get('http_body', False)
+            body_text = cred['fingerprint'].get('body', False)
             if body_text and body_text in res.text:
                 match = True
                 logger.debug('matched body: %s' % body_text)
@@ -192,7 +169,7 @@ def get_fingerprint_matches(res, creds):
 
 def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None):
     matches = list()
-    for cred in candidate['credentials']:
+    for cred in candidate['auth']['credentials']:
         username = cred.get('username', "")
         password = cred.get('password', "")
 
@@ -209,66 +186,63 @@ def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None):
 def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
     matches = list()
     data = dict()
-    user_field = None
-    pass_field = None
+
+    form = candidate['auth']['form']
+    user_field = form['username']
+    pass_field = form['password']
     parsed = urlparse(req)
     url = "%s://%s" % (parsed[0], parsed[1])
+    urls = candidate['auth']['url']
 
-    for f in candidate['form']:
-        for field in f:
-            if field == "username":
-                user_field = f[field]
-            elif field == "password":
-                pass_field = f[field]
-            elif field == "url":
-                url += f[field]
-            else:
-                data[field] = f[field]
+    for k in form.keys():
+        if k not in('username', 'password', 'url'):
+            data[k] = form[k]
 
     if csrf:
-        csrf_field = candidate['csrf']
+        csrf_field = candidate['auth']['csrf']
         data[csrf_field] = csrf
 
-    for cred in candidate['credentials']:
+    for cred in candidate['auth']['credentials']:
         username = cred['username']
         password = cred['password']
 
         data[user_field] = username
         data[pass_field] = password
 
-        logger.debug("check_form form url: %s" % url)
-        logger.debug('check_form post data: %s' % data)
-
         res = None
-        try:
-            if sessionid:
-                res = requests.post(url, data, cookies=sessionid, verify=False, proxies=proxy)
-            else:
-                res = requests.post(url, data, verify=False, proxies=proxy)
-        except Exception as e:
-            logger.error("Failed to connect to %s" % url)
-            logger.debug(e)
-            return None
+        for u in urls:
+            url += u
+            logger.debug("check_form form url: %s" % url)
+            logger.debug('check_form post data: %s' % data)
 
-        logger.debug('check_form res.status_code: %i' % res.status_code)
-        logger.debug('check_form res.text: %s' % res.text)
+            try:
+                if sessionid:
+                    res = requests.post(url, data, cookies=sessionid, verify=False, proxies=proxy)
+                else:
+                    res = requests.post(url, data, verify=False, proxies=proxy)
+            except Exception as e:
+                logger.error("Failed to connect to %s" % url)
+                logger.debug(e)
+                return None
 
-        if res and check_success(req, res, candidate, username, password):
-            matches.append(cred)
+            logger.debug('check_form res.status_code: %i' % res.status_code)
+            logger.debug('check_form res.text: %s' % res.text)
+
+            if res and check_success(req, res, candidate, username, password):
+                matches.append(cred)
 
     return matches
 
 
 def check_success(req, res, candidate, username, password):
         match = True
-        for s in candidate['success']:
-            http_status = s.get('http_status', False)
-            if http_status and not http_status == res.status_code:
-                match = False
+        success = candidate['auth']['success']
 
-            http_body = s.get('http_body', False)
-            if match and http_body and http_body not in res.text:
-                match = False
+        if success['status'] and not success['status'] == res.status_code:
+            match = False
+
+        if match and success['body'] and success['body'] not in res.text:
+            match = False
 
         if match:
             logger.critical('[+] Found %s default cred %s:%s at %s' % (candidate['name'], username, password, req))
@@ -279,7 +253,7 @@ def check_success(req, res, candidate, username, password):
 
 
 def get_csrf_token(res, cred):
-    name = cred.get('csrf', False)
+    name = cred['auth'].get('csrf', False)
     if name:
         tree = html.fromstring(res.content)
         try:
@@ -295,7 +269,7 @@ def get_csrf_token(res, cred):
 
 
 def get_session_id(res, cred):
-    cookie = cred.get('sessionid', False)
+    cookie = cred['auth'].get('sessionid', False)
     if cookie:
         try:
             value = res.cookies[cookie]
@@ -330,7 +304,7 @@ def do_scan(req, creds, timeout, proxy):
         logger.debug("[do_scan] Found %i fingerprint matches for %s response" % (len(matches), req))
         for match in matches:
             logger.info('[do_scan] %s matched %s' % (req, match['name']))
-            check = globals()['check_' + match['type']]
+            check = globals()['check_' + match['auth']['type']]
             csrf = get_csrf_token(res, match)
             sessionid = get_session_id(res, match)
             check(req, match, sessionid, csrf, proxy)
@@ -361,13 +335,7 @@ def build_target_list(targets, creds, name, category):
             else:
                 proto = 'http'
 
-            # Convert a single path to list with one element
-            fix = list()
-            paths = c.get('path', list())
-            if isinstance(paths, str):
-                x = list()
-                x.append(paths)
-                paths = x
+            paths = c.get('fingerprint')["url"]
 
             for path in paths:
                 url = '%s://%s:%s%s' % (proto, target, port, path)
@@ -385,7 +353,7 @@ def main():
 
     start = time()
 
-    ap = argparse.ArgumentParser(description='Default credential scanner v%i' % (__version__))
+    ap = argparse.ArgumentParser(description='Default credential scanner v%s' % (__version__))
     ap.add_argument('--category', '-c', type=str, help='Category of default creds to scan for', default=None)
     ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
     ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')

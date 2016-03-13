@@ -1,25 +1,27 @@
+auth:
+  credentials:
+  - password: admin
+    username: '1111'
+  form:
+    NextPage: /properties/authentication/luidLogin.php
+    _fun_function: HTTP_Authenticate_fn
+    frmaltDomain: default
+    password: webPassword
+    username: webUsername
+  sessionid: PHPSESSID
+  success:
+    body: window.opener.top.location.pathname
+    status: 200
+  type: form
+  url:
+  - /userpost/xerox.set
 category: printer
 contributor: ztgrace
-credentials:
-- password: '1111'
-  username: admin
-csrf: ''
 default_port: 80
 fingerprint:
-- http_status: 200
-- http_body: XEROX Phaser 6700DT
-form:
-- url: /userpost/xerox.set
-- username: webUsername
-- password: webPassword
-- _fun_function: HTTP_Authenticate_fn
-- NextPage: /properties/authentication/luidLogin.php
-- frmaltDomain: default
+  body: XEROX Phaser 6700DT
+  status: 200
+  url:
+  - /header.php?tab=status
 name: XEROX Phaser 6700DT
-path: /header.php?tab=status
-sessionid: PHPSESSID
 ssl: false
-success:
-- http_status: 200
-- http_body: window.opener.top.location.pathname
-type: form

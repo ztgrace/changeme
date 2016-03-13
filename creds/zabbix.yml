@@ -1,26 +1,27 @@
----
-
-name: Zabbix
-category: web
-credentials:
-  - username: Admin
-    password: zabbix
-fingerprint:
-  - http_status: 200
-  - http_body: by Zabbix SIA
-path:
+auth:
+  credentials:
+  - password: zabbix
+    username: Admin
+  form:
+    autologin: '1'
+    enter: Sign in
+    password: password
+    request: ''
+    username: name
+  sessionid: zbx_sessionid
+  success:
+    body: Logout</a>
+    status: 200
+  type: form
+  url:
   - /zabbix/index.php
+category: web
+contributor: ztgrace
 default_port: 80
-type: form
-form:
-- url: /zabbix/index.php
-- username: name
-  password: password
-- request: ""
-- autologin: 1
-- enter: Sign in
-sessionid: zbx_sessionid
+fingerprint:
+  body: by Zabbix SIA
+  status: 200
+  url:
+  - /zabbix/index.php
+name: Zabbix
 ssl: false
-success:
-  - http_status: 200
-  - http_body: Logout</a>

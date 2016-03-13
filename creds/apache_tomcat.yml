@@ -1,9 +1,5 @@
----
-
-name: Apache Tomcat
-category: web
-contributor: ztgrace
-credentials:
+auth:
+  credentials:
   - username: tomcat
     password: tomcat
   - username: admin
@@ -38,15 +34,21 @@ credentials:
     password: j5Brn9
   - username: role1
     password: tomcat
-fingerprint:
-  - http_status: 401
-  - basic_auth_realm: Tomcat Manager Application
-path:
+  success:
+    body: Tomcat Web Application Manager
+    status: 200
+  type: basic_auth
+  url:
   - /manager/html
   - /tomcat/manager/html
+category: web
+contributor: ztgrace
 default_port: 8080
-type: basic_auth
-submit:
-success:
-  - http_status: 200
-  - http_body: Tomcat Web Application Manager
+fingerprint:
+  basic_auth_realm: Tomcat Manager Application
+  status: 401
+  url:
+  - /manager/html
+  - /tomcat/manager/html
+name: Apache Tomcat
+ssl: false
