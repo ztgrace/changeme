@@ -309,6 +309,14 @@ def do_scan(req, creds, timeout, proxy):
             check = globals()['check_' + match['auth']['type']]
             csrf = get_csrf_token(res, match)
             sessionid = get_session_id(res, match)
+
+            # Only scan if a sessionid is required and we can get it
+            if match['auth'].get('sessionid', False) and sessionid:
+                continue
+            # Only scan if a csrf token is required and we can get it
+            if match['auth'].get('csrf', False) and csrf:
+                continue
+
             check(req, match, sessionid, csrf, proxy, timeout)
 
 

@@ -14,6 +14,7 @@ import requests
 import responses
 import re
 import random
+from time import sleep
 
 tomcat_yaml = 'creds/apache_tomcat.yml'
 tomcat_name = 'Apache Tomcat'
@@ -368,6 +369,7 @@ def test_scan():
     creds = changeme.load_creds()
 
     changeme.scan(urls, creds, threads, timeout, None)
+
 
 @raises(SystemExit)
 def test_dry_run():
