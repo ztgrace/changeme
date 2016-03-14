@@ -33,6 +33,7 @@ banner = """
  #  v%s                                               #
  #  Default Credential Scanner                         #
   #####################################################
+    print contributors
 """ % __version__
 
 
@@ -167,7 +168,7 @@ def get_fingerprint_matches(res, creds):
     return matches
 
 
-def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None):
+def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     matches = list()
     for cred in candidate['auth']['credentials']:
         username = cred.get('username', "")
@@ -176,14 +177,14 @@ def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None):
         if password is None:
             password = ""
 
-        res = requests.get(req, auth=HTTPBasicAuth(username, password), verify=False, proxies=proxy)
+        res = requests.get(req, auth=HTTPBasicAuth(username, password), verify=False, proxies=proxy, timeout=timeout)
         if check_success(req, res, candidate, username, password):
             matches.append(cred)
 
     return matches
 
 
-def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
+def check_form(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     matches = list()
     data = dict()
 
@@ -217,9 +218,9 @@ def check_form(req, candidate, sessionid=False, csrf=False, proxy=None):
 
             try:
                 if sessionid:
-                    res = requests.post(url, data, cookies=sessionid, verify=False, proxies=proxy)
+                    res = requests.post(url, data, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
                 else:
-                    res = requests.post(url, data, verify=False, proxies=proxy)
+                    res = requests.post(url, data, verify=False, proxies=proxy, timeout=timeout)
             except Exception as e:
                 logger.error("Failed to connect to %s" % url)
                 logger.debug(e)
@@ -241,7 +242,7 @@ def check_success(req, res, candidate, username, password):
         if success['status'] and not success['status'] == res.status_code:
             match = False
 
-        if match and success['body'] and success['body'] not in res.text:
+        if match and success['body'] and not re.search(success['body'], res.text):
             match = False
 
         if match:
@@ -307,7 +308,7 @@ def do_scan(req, creds, timeout, proxy):
             check = globals()['check_' + match['auth']['type']]
             csrf = get_csrf_token(res, match)
             sessionid = get_session_id(res, match)
-            check(req, match, sessionid, csrf, proxy)
+            check(req, match, sessionid, csrf, proxy, timeout)
 
 
 def dry_run(urls):
@@ -344,6 +345,21 @@ def build_target_list(targets, creds, name, category):
 
     return urls
 
+def print_contributors(creds):
+    contributors = set()
+    for cred in creds:
+        contributors.add(cred['contributor'])
+
+    print "Thank you to our contributors!"
+    for i in contributors:
+        print i
+    print
+
+def print_creds(creds):
+    for cred in creds:
+        print "\n%s" % cred['name']
+        for i in cred['auth']['credentials']:
+            print "  - %s:%s" % (i['username'], i['password'])
 
 def main():
     print banner
@@ -355,7 +371,9 @@ def main():
 
     ap = argparse.ArgumentParser(description='Default credential scanner v%s' % (__version__))
     ap.add_argument('--category', '-c', type=str, help='Category of default creds to scan for', default=None)
+    ap.add_argument('--contributors', action='store_true', help='Display cred file contributors')
     ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
+    ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
     ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
@@ -370,7 +388,7 @@ def main():
 
     setup_logging(args.verbose, args.debug, args.log)
 
-    if not args.subnet and not args.targets and not args.validate:
+    if not args.subnet and not args.targets and not args.validate and not args.contributors and not args.dump:
         logger.error('Need to supply a subnet or targets file.')
         ap.print_help()
         sys.exit()
@@ -390,7 +408,7 @@ def main():
                  'https': args.proxy}
         logger.info('Setting proxy to %s' % args.proxy)
     elif args.proxy:
-        logger.error('Invalid proxy')
+        logger.error('Invalid proxy, must be http(s)://x.x.x.x:8080')
         sys.exit()
 
     if args.validate:
@@ -398,6 +416,13 @@ def main():
         sys.exit()
 
     creds = load_creds()
+
+    if args.contributors:
+        print_contributors(creds)
+
+    if args.dump:
+        print_creds(creds)
+
     urls = build_target_list(targets, creds, args.name, args.category)
 
     if args.dryrun:

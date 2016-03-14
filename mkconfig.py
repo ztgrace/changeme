@@ -12,6 +12,8 @@ TODO:
 import yaml
 import os
 import urllib
+from schema import schema
+from changeme import validate_cred
 
 parameters = dict()
 
@@ -45,7 +47,7 @@ path_list.append(path)
 fp["url"] = path_list
 
 fp_status = raw_input("HTTP status code of fingerprint (401, 200): ")
-fp_body = raw_input("String in login page of fingerprint (Welcome to ***): ")
+fp_body = raw_input("Unique string in the fingerprint page (Welcome to ***): ")
 basic_auth_realm = raw_input("Basic Auth Realm: ")
 
 fp["status"] = int(fp_status)
@@ -70,15 +72,16 @@ if auth["type"] == "form":
     form["username"] = raw_input("Name of username form field: ")
     form["password"] = raw_input("Name of password form field: ")
     form_params = raw_input("Post parameters string (data from the post body): ")
-    form_params = urllib.unquote_plus(form_params)  # decode the parameters
 
-    for f in form_params.split("&"):
-        fname = f.split("=")[0]
-        fvalue = f.split("=")[1]
-        if fname == form["username"] or fname == form["password"]:
-            continue
-        else:
-            form[fname] = fvalue
+    if form_params:
+        form_params = urllib.unquote_plus(form_params)  # decode the parameters
+        for f in form_params.split("&"):
+            fname = f.split("=")[0]
+            fvalue = f.split("=")[1]
+            if fname == form["username"] or fname == form["password"]:
+                continue
+            else:
+                form[fname] = fvalue
 
     auth["form"] = form
 
@@ -116,3 +119,5 @@ with open(os.path.join("creds", fname), "w") as fout:
     fout.write(yaml.dump(parameters, default_flow_style=False))
 
 print yaml.dump(parameters, default_flow_style=False)
+
+validate_cred(parameters, fname)

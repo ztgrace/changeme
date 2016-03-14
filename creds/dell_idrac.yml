@@ -1,0 +1,24 @@
+auth:
+  credentials:
+  - password: calvin
+    username: root
+  form:
+    password: password
+    username: user
+  sessionid: _appwebSessionId_
+  success:
+    body: <authResult>[0|5]</authResult>
+    status: 200
+  type: form
+  url:
+  - /data/login
+category: web
+contributor: ztgrace
+default_port: 443
+fingerprint:
+  body: <title>Integrated Dell Remote Access Controller
+  status: 200
+  url:
+  - /login.html
+name: Dell iDRAC
+ssl: true
