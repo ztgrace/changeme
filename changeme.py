@@ -146,21 +146,22 @@ def get_fingerprint_matches(res, creds):
     for cred in creds:
         match = False
         for f in cred['fingerprint']:
-            http_status = cred['fingerprint'].get('status', False)
-            logger.debug('\b[get_fingerprint_matches] fingerprint status: %i, res status: %i' % (http_status, res.status_code))
-            if http_status and http_status == res.status_code:
-                match = True
+            if urlparse(res.request.url)[2] in cred['fingerprint'].get('url'):
+                http_status = cred['fingerprint'].get('status', False)
+                logger.debug('\b[get_fingerprint_matches] fingerprint status: %i, res status: %i' % (http_status, res.status_code))
+                if http_status and http_status == res.status_code:
+                    match = True
 
-            basic_auth_realm = cred['fingerprint'].get('basic_auth_realm', False)
-            if basic_auth_realm and basic_auth_realm in res.headers.get('WWW-Authenticate', list()):
-                match = True
+                basic_auth_realm = cred['fingerprint'].get('basic_auth_realm', False)
+                if basic_auth_realm and basic_auth_realm in res.headers.get('WWW-Authenticate', list()):
+                    match = True
 
-            body_text = cred['fingerprint'].get('body', False)
-            if body_text and body_text in res.text:
-                match = True
-                logger.debug('matched body: %s' % body_text)
-            elif body_text:
-                match = False
+                body_text = cred['fingerprint'].get('body', False)
+                if body_text and body_text in res.text:
+                    match = True
+                    logger.debug('matched body: %s' % body_text)
+                elif body_text:
+                    match = False
 
         if match:
             matches.append(cred)
