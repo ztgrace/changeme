@@ -1,0 +1,25 @@
+auth:
+  credentials:
+  - password: manager
+    username: system
+  form:
+    password: j_password
+    submit: Login
+    username: j_username
+  sessionid: JSESSIONID
+  success:
+    body: Logout</a>
+    status: 200
+  type: form
+  url:
+  - /console/portal/Server/j_security_check
+category: web
+contributor: ztgrace
+default_port: 8080
+fingerprint:
+  body: Administrative Console Login
+  status: 200
+  url:
+  - /console/portal/Server/Web%20Server
+name: WebSphere
+ssl: false
