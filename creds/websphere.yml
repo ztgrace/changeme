@@ -14,7 +14,7 @@ auth:
   url:
   - /console/portal/Server/j_security_check
 category: web
-contributor: ztgrace
+contributor: BuckyGoat
 default_port: 8080
 fingerprint:
   body: Administrative Console Login

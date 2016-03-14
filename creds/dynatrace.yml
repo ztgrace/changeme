@@ -1,0 +1,21 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  success:
+    body: dynaTrace Server Browsable REST Webservices
+    status: 200
+  type: basic_auth
+  url:
+  - /rest/html/management/dashboards
+category: web
+contributor: /rest/html/management/dashboards
+default_port: 8020
+fingerprint:
+  basic_auth_realm: dynaTrace Server
+  body: dynaTrace Server Webinterface
+  status: 401
+  url:
+  - /rest/html/management/dashboards
+name: Dynatrace
+ssl: false
