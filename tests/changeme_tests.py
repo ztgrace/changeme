@@ -57,7 +57,20 @@ class mock:
         'adding_headers': {
             'Server': 'Mbedthis-Appweb/2.4.2',
             'Content-type': 'text/xml',
-            'Set-Cookie': '_appwebSessionId_=dffaac7c4fb4e3c4cbd46d3691aeb40f; path=/; secure',
+            'Set-Cookie': '_appwebSessionId_=dffaac7c4fb4e3c4cbd46d3691aeb40f;',
+        },
+        'body': '<title>Integrated Dell Remote Access Controller 6 - Express</title>',
+    }
+
+    idrac_auth = {
+        'method': responses.POST,
+        'url': 'https://127.0.0.1/data/login',
+        'status': 200,
+        'body': '<title>Integrated Dell Remote Access Controller</title>',
+        'adding_headers': {
+            'Server': 'Mbedthis-Appweb/2.4.2',
+            'Content-type': 'text/xml',
+            'Set-Cookie': '_appwebSessionId_=dffaac7c4fb4e3c4cbd46d3691aeb40f',
         },
         'body': '<? xml version="1.0" encoding="UTF-8"?> <root> <status>ok</status> <authResult>0</authResult> <forwardUrl>index.html</forwardUrl> </root>'
     }
@@ -83,17 +96,19 @@ class mock:
         'body': 'foobar',
     }
 
+
 class TestChangeme:
 
     @classmethod
     def setup_class(cls):
-        changeme.logger = changeme.setup_logging(False, False, None)
+        changeme.logger = changeme.setup_logging(True, True, None)
 
     def __init__(self):
         self.creds = None
         self.tomcat_yaml = 'creds/apache_tomcat.yml'
         self.tomcat_name = 'Apache Tomcat'
         self.jboss_name = 'JBoss AS 6'
+        self.idrac_name = 'Dell iDRAC'
 
     def setUp(self):
         self.creds = changeme.load_creds()
@@ -454,6 +469,38 @@ class TestChangeme:
     def test_do_scan_fail(self):
         responses.add(** mock.tomcat_fp)
         changeme.do_scan(mock.jboss_fp['url'], self.creds, 2, None)
+
+    @responses.activate
+    def test_idrac_fp(self):
+        responses.add(** mock.idrac_fp)
+        res = requests.get(mock.idrac_fp['url'])
+
+        matches = changeme.get_fingerprint_matches(res, self.creds)
+
+        assert len(matches) == 1
+        assert matches[0]['name'] == self.idrac_name
+
+    @responses.activate
+    def test_do_scan_idrac(self):
+        """
+            This test will makes sure the regex in
+            iDRAC success body works
+        """
+        responses.add(** mock.idrac_fp)
+        responses.add(** mock.idrac_auth)
+
+        changeme.logger = changeme.setup_logging(True, True, None)
+        matches = changeme.do_scan(mock.idrac_fp['url'], self.creds, 10, None)
+
+        assert len(matches) == 1
+        assert matches[0]['name'] == self.idrac_name
+
+    @responses.activate
+    def test_idrac_post(self):
+        responses.add(** mock.idrac_auth)
+        requests.post(mock.idrac_auth['url'],
+                      {"username": "root", "password": "calvin"},
+                      verify=False)
 
     def test_print_contributors(self):
         changeme.print_contributors(self.creds)
