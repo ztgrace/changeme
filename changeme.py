@@ -298,8 +298,9 @@ def do_scan(req, creds, timeout, proxy):
         try:
             res = requests.get(req, timeout=timeout, verify=False, proxies=proxy)
             logger.debug('[do_scan] %s - %i' % (req, res.status_code))
-        except:
+        except Exception as e:
             logger.debug('[do_scan] Failed to connect to %s' % req)
+            logger.debug(e)
             return
 
         matches = get_fingerprint_matches(res, creds)
