@@ -384,7 +384,7 @@ class TestChangeme:
         responses.add(** mock.jboss_fp)
         res = requests.get(mock.jboss_fp['url'])
 
-        mock.jboss_fp['adding_headers'] = orig
+        mock.jboss_fp['adding_headers']['Set-Cookie'] = "JSESSIONID=foobar"
 
         cred = self.get_cred(self.jboss_name)
         assert cred['name'] == self.jboss_name
