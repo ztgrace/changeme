@@ -443,7 +443,11 @@ class TestChangeme:
     def test_build_target_list(self):
         changeme.targets = ["127.0.0.1"]
         urls = changeme.build_target_list(changeme.targets, self.creds, None, None)
-        assert(isinstance(urls, list))
+        assert isinstance(urls, list)
+
+        urls = changeme.build_target_list(changeme.targets, self.creds, None, 'web')
+        assert isinstance(urls, list)
+        assert "http://127.0.0.1:8080/manager/html" in urls
 
         urls = changeme.build_target_list(changeme.targets, self.creds, self.tomcat_name, None)
         apache_cred = self.get_cred(self.tomcat_name)
@@ -494,6 +498,30 @@ class TestChangeme:
 
         assert len(matches) == 1
         assert matches[0]['name'] == self.idrac_name
+
+    @responses.activate
+    def test_do_scan_missing_sessionid(self):
+        orig = mock.jboss_fp['adding_headers']
+        mock.jboss_fp['adding_headers'] = None
+        responses.add(** mock.jboss_fp)
+        responses.add(** mock.jboss_auth)
+
+        matches = changeme.do_scan(mock.jboss_fp['url'], self.creds, 10, None)
+        mock.jboss_fp['adding_headers'] = orig
+
+        assert len(matches) == 0
+
+    @responses.activate
+    def test_do_scan_missing_csrf(self):
+        orig = mock.jboss_fp['body']
+        mock.jboss_fp['body'] = '<p>Welcome to the JBoss AS 6 Admin Console.</p>'
+        responses.add(** mock.jboss_fp)
+        responses.add(** mock.jboss_auth)
+
+        matches = changeme.do_scan(mock.jboss_fp['url'], self.creds, 10, None)
+        mock.jboss_fp['body'] = orig
+
+        assert len(matches) == 0
 
     @responses.activate
     def test_idrac_post(self):
