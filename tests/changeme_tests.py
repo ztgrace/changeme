@@ -110,6 +110,12 @@ class TestChangeme:
         self.jboss_name = 'JBoss AS 6'
         self.idrac_name = 'Dell iDRAC'
 
+        self.config = {
+            'threads': 1,
+            'timeout': 2,
+            'proxy': None,
+            'fingerprint': False}
+
     def setUp(self):
         self.creds = changeme.load_creds()
 
@@ -428,10 +434,7 @@ class TestChangeme:
         urls.append(mock.jboss_fp['url'])
         urls.append("http://192.168.0.99:9999/foobar/index.php")
 
-        threads = 1
-        timeout = 5
-
-        changeme.scan(urls, self.creds, threads, timeout, None)
+        changeme.scan(urls, self.creds, self.config)
 
     @raises(SystemExit)
     def test_dry_run(self):
@@ -465,14 +468,14 @@ class TestChangeme:
         responses.add(** mock.tomcat_fp)
         responses.add(** mock.jboss_fp)
 
-        changeme.do_scan(mock.tomcat_fp['url'], self.creds, 10, None)
+        changeme.do_scan(mock.tomcat_fp['url'], self.creds, self.config)
         sleep(2)
-        changeme.do_scan(mock.jboss_fp['url'], self.creds, 10, None)
+        changeme.do_scan(mock.jboss_fp['url'], self.creds, self.config)
 
     @responses.activate
     def test_do_scan_fail(self):
         responses.add(** mock.tomcat_fp)
-        changeme.do_scan(mock.jboss_fp['url'], self.creds, 2, None)
+        changeme.do_scan(mock.jboss_fp['url'], self.creds, self.config)
 
     @responses.activate
     def test_idrac_fp(self):
@@ -494,7 +497,7 @@ class TestChangeme:
         responses.add(** mock.idrac_auth)
 
         changeme.logger = changeme.setup_logging(True, True, None)
-        matches = changeme.do_scan(mock.idrac_fp['url'], self.creds, 10, None)
+        matches = changeme.do_scan(mock.idrac_fp['url'], self.creds, self.config)
 
         assert len(matches) == 1
         assert matches[0]['name'] == self.idrac_name
@@ -506,7 +509,7 @@ class TestChangeme:
         responses.add(** mock.jboss_fp)
         responses.add(** mock.jboss_auth)
 
-        matches = changeme.do_scan(mock.jboss_fp['url'], self.creds, 10, None)
+        matches = changeme.do_scan(mock.jboss_fp['url'], self.creds, self.config)
         mock.jboss_fp['adding_headers'] = orig
 
         assert len(matches) == 0
@@ -518,7 +521,7 @@ class TestChangeme:
         responses.add(** mock.jboss_fp)
         responses.add(** mock.jboss_auth)
 
-        matches = changeme.do_scan(mock.jboss_fp['url'], self.creds, 10, None)
+        matches = changeme.do_scan(mock.jboss_fp['url'], self.creds, self.config)
         mock.jboss_fp['body'] = orig
 
         assert len(matches) == 0
@@ -535,3 +538,14 @@ class TestChangeme:
 
     def test_print_creds(self):
         changeme.print_creds(self.creds)
+
+    @responses.activate
+    def test_do_scan_fingerprint(self):
+        responses.add(** mock.tomcat_fp)
+        self.config['fingerprint'] = True
+        match = changeme.do_scan(mock.tomcat_fp['url'], self.creds, self.config)
+        self.config['fingerprint'] = False
+
+        assert len(match) == 1
+        assert match[0]['name'] == self.tomcat_name
+

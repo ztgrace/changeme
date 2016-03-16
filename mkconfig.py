@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" 
+"""
 TODO:
     - move credentials under auth
     - move auth url under auth
@@ -16,6 +16,7 @@ from schema import schema
 from changeme import validate_cred
 
 parameters = dict()
+auth_types = ['form', 'basic_auth']
 
 
 def get_data(field, prompt, boolean=False, integer=False):
@@ -66,7 +67,15 @@ auth_urls = list()
 url = raw_input("Authentication URL (/login.php): ")
 auth_urls.append(url)
 auth['url'] = auth_urls
-auth['type'] = raw_input("Type of authentication method (form, basic_auth): ")
+
+while True:
+    t = raw_input("Type of authentication method (form, basic_auth): ")
+    if t in auth_types:
+        auth['type'] = t
+        break
+    else:
+        print "Invalid auth type"
+
 if auth["type"] == "form":
     form = dict()
     form["username"] = raw_input("Name of username form field: ")
@@ -89,7 +98,7 @@ csrf = raw_input("Name of csrf field: ")
 if csrf:
     auth["csrf"] = csrf
 
-sessionid =  raw_input("Name of session cookie: ")
+sessionid = raw_input("Name of session cookie: ")
 if sessionid:
     auth["sessionid"] = sessionid
 

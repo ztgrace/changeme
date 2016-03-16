@@ -297,20 +297,20 @@ def get_session_id(res, cred):
         return False
 
 
-def scan(urls, creds, threads, timeout, proxy):
+def scan(urls, creds, config):
 
     Thread = threading.Thread
     for req in urls:
         while 1:
-            if threading.activeCount() <= threads:
-                t = Thread(target=do_scan, args=(req, creds, timeout, proxy))
+            if threading.activeCount() <= config['threads']:
+                t = Thread(target=do_scan, args=(req, creds, config))
                 t.start()
                 break
 
 
-def do_scan(req, creds, timeout, proxy):
+def do_scan(req, creds, config):
         try:
-            res = requests.get(req, timeout=timeout, verify=False, proxies=proxy)
+            res = requests.get(req, timeout=config['timeout'], verify=False, proxies=config['proxy'])
             logger.debug('[do_scan] %s - %i' % (req, res.status_code))
         except Exception as e:
             logger.debug('[do_scan] Failed to connect to %s' % req)
@@ -324,23 +324,26 @@ def do_scan(req, creds, timeout, proxy):
             logger.info('[do_scan] %s matched %s' % (req, match['name']))
             logger.debug('[do_scan] %s auth type: %s' % (match['name'], match['auth']['type']))
 
-            check = globals()['check_' + match['auth']['type']]
-            csrf = get_csrf_token(res, match)
-            sessionid = get_session_id(res, match)
+            if not config['fingerprint']:
+                check = globals()['check_' + match['auth']['type']]
+                csrf = get_csrf_token(res, match)
+                sessionid = get_session_id(res, match)
 
-            # Only scan if a sessionid is required and we can get it
-            if match['auth'].get('sessionid') and not sessionid:
-                logger.debug("[do_scan] Missing required sessionid")
-                continue
-            # Only scan if a csrf token is required and we can get it
-            if match['auth'].get('csrf', False) and not csrf:
-                logger.debug("[do_scan] Missing required csrf")
-                continue
+                # Only scan if a sessionid is required and we can get it
+                if match['auth'].get('sessionid') and not sessionid:
+                    logger.debug("[do_scan] Missing required sessionid")
+                    continue
+                # Only scan if a csrf token is required and we can get it
+                if match['auth'].get('csrf', False) and not csrf:
+                    logger.debug("[do_scan] Missing required csrf")
+                    continue
 
-            new_matches = check(req, match, sessionid, csrf, proxy, timeout)
-            if new_matches:
-                matches = matches + new_matches
-                logger.debug('[do_scan] matches: %s' % matches)
+                new_matches = check(req, match, sessionid, csrf, config['proxy'], config['timeout'])
+                if new_matches:
+                    matches = matches + new_matches
+                    logger.debug('[do_scan] matches: %s' % matches)
+            else:
+                matches = fp_matches
 
         return matches
 
@@ -403,6 +406,7 @@ def main():
     targets = list()
     proxy = None
     global logger
+    config = dict()
 
     start = time()
 
@@ -412,6 +416,7 @@ def main():
     ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
     ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
     ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
+    ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds')
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
@@ -460,6 +465,10 @@ def main():
     if args.dump:
         print_creds(creds)
 
+    if args.fingerprint:
+        # Need to drop the level to INFO to see the fp messages
+        logger.setLevel(logging.INFO)
+
     urls = build_target_list(targets, creds, args.name, args.category)
 
     if args.dryrun:
@@ -467,7 +476,13 @@ def main():
 
     logger.info('Scanning %i URLs' % len(urls))
 
-    scan(urls, creds, args.threads, args.timeout, proxy)
+    config = {
+        'threads':  args.threads,
+        'timeout': args.timeout,
+        'proxy': proxy,
+        'fingerprint': args.fingerprint}
+
+    scan(urls, creds, config)
 
 
 if __name__ == '__main__':
