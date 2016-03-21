@@ -17,7 +17,7 @@ from urlparse import urlparse
 from cerberus import Validator
 from schema import schema
 
-__version__ = 0.1
+__version__ = "0.0.2"
 
 requests.packages.urllib3.disable_warnings()
 
