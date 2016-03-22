@@ -28,6 +28,8 @@ Bugs and enhancements are tracked at [https://github.com/ztgrace/changeme/issues
 
 **Vote for a credential:** If you would like to help us prioritize which credentials to add, you can add a comment to a credential issue.
 
+Please see the [wiki](https://github.com/ztgrace/changeme/wiki) for more details.
+
 ## Contributors
 
 Thanks for code contributions and suggestions.
