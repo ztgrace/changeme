@@ -43,6 +43,14 @@ schema = {
                     'password': {'type': 'string', 'required': True},
                 }
             },
+            'get': {
+                'type': 'dict',
+                'allow_unknown': True,
+            'schema': {
+                    'username': {'type': 'string', 'required': True},
+                    'password': {'type': 'string', 'required': True},
+                }
+            },
             'sessionid': {
                 'type': 'string',
                 'nullable': True,
@@ -57,7 +65,7 @@ schema = {
             },
             'type': {
                 'type': 'string', 
-                'regex': 'form|basic_auth',
+                'regex': 'form|basic_auth|get',
                 'required': True
             },
             'url': {

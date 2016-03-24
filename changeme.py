@@ -3,6 +3,7 @@
 import argparse
 import requests
 from requests.auth import HTTPBasicAuth
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import yaml
 import os
 import sys
@@ -16,10 +17,11 @@ from time import time
 from urlparse import urlparse
 from cerberus import Validator
 from schema import schema
+import urllib
+
 
 __version__ = "0.0.2"
 
-requests.packages.urllib3.disable_warnings()
 
 logger = None
 banner = """
@@ -30,10 +32,9 @@ banner = """
  # | (__| | | | (_| | | | | (_| |  __/ | | | | |  __/  #
  #  \___|_| |_|\__,_|_| |_|\__, |\___|_| |_| |_|\___|  #
  #                         |___/                       #
- #  v%s                                               #
+ #  v%s                                             #
  #  Default Credential Scanner                         #
   #####################################################
-    print contributors
 """ % __version__
 
 
@@ -85,6 +86,7 @@ def setup_logging(verbose, debug, logfile):
     # Adjust the loggers for requests and urllib3
     logging.getLogger('requests').setLevel(logging.ERROR)
     logging.getLogger('urllib3').setLevel(logging.ERROR)
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
     return logger
 
@@ -185,22 +187,36 @@ def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None, ti
 
     return matches
 
+def get_parameter_dict(auth):
+    params = dict()
+    data = auth.get('form', auth.get('get', None))
+    for k in data.keys():
+        if k not in ('username', 'password', 'url'):
+            params[k] = data[k]
 
-def check_form(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
-    matches = list()
-    data = dict()
+    return params
 
-    form = candidate['auth']['form']
-    user_field = form['username']
-    pass_field = form['password']
+def get_base_url(req):
     parsed = urlparse(req)
     url = "%s://%s" % (parsed[0], parsed[1])
-    logger.debug('[check_form] base url: %s' % url)
+    return url
+
+def check_form(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+    return check_http(req, candidate, sessionid, csrf, proxy, timeout)
+
+def check_get(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+    return check_http(req, candidate, sessionid, csrf, proxy, timeout)
+
+def check_http(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+    matches = list()
+
+    config = candidate['auth'].get('form', candidate['auth'].get('get'))
+
+    url = get_base_url(req)
+    logger.debug('[check_http] base url: %s' % url)
     urls = candidate['auth']['url']
 
-    for k in form.keys():
-        if k not in('username', 'password', 'url'):
-            data[k] = form[k]
+    data = get_parameter_dict(candidate['auth'])
 
     if csrf:
         csrf_field = candidate['auth']['csrf']
@@ -210,37 +226,40 @@ def check_form(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=
         username = cred['username']
         password = cred['password']
 
-        logger.debug('[check_form] %s - %s:%s' % (
+        logger.debug('[check_http] %s - %s:%s' % (
                      candidate['name'],
                      username,
                      password,))
 
-        data[user_field] = username
-        data[pass_field] = password
+        data[config['username']] = username
+        data[config['password']] = password
 
         res = None
         for u in urls:
             url += u
-            logger.debug("[check_form] form url: %s" % url)
-            logger.debug('[check_form] post data: %s' % data)
+            logger.debug("[check_http] url: %s" % url)
+            logger.debug('[check_http] data: %s' % data)
 
             try:
-                if sessionid:
+                if candidate['auth']['type'] == 'form':
                     res = requests.post(url, data, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
                 else:
-                    res = requests.post(url, data, verify=False, proxies=proxy, timeout=timeout)
+                    qs = urllib.urlencode(data)
+                    url = "%s?%s" % (url, qs)
+                    logger.debug("[check_http] url: %s" % url)
+                    res = requests.get(url, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
             except Exception as e:
-                logger.error("[check_form] Failed to connect to %s" % url)
-                logger.debug("[check_form] Exception: %s" % e.__str__().replace('\n', '|'))
+                logger.error("[check_http] Failed to connect to %s" % url)
+                logger.debug("[check_http] Exception: %s" % e.__str__().replace('\n', '|'))
                 return None
 
-            logger.debug('[check_form] res.status_code: %i' % res.status_code)
-            logger.debug('[check_form] res.text: %s' % res.text)
+            logger.debug('[check_http] res.status_code: %i' % res.status_code)
+            logger.debug('[check_http] res.text: %s' % res.text)
 
             if res and check_success(req, res, candidate, username, password):
                 matches.append(candidate)
 
-    logger.debug('[check_form] matches: %s' % matches)
+    logger.debug('[check_http] matches: %s' % matches)
     return matches
 
 
@@ -293,7 +312,7 @@ def get_session_id(res, cred):
             return False
         return {cookie: value}
     else:
-        logger.debug('[get_session_id] not cookie?')
+        logger.debug('[get_session_id] no cookie')
         return False
 
 

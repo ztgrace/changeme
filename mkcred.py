@@ -16,7 +16,7 @@ from schema import schema
 from changeme import validate_cred
 
 parameters = dict()
-auth_types = ['form', 'basic_auth']
+auth_types = ['form', 'basic_auth', 'get']
 
 
 def get_data(field, prompt, boolean=False, integer=False):
@@ -69,18 +69,18 @@ auth_urls.append(url)
 auth['url'] = auth_urls
 
 while True:
-    t = raw_input("Type of authentication method (form, basic_auth): ")
+    t = raw_input("Type of authentication method (form, basic_auth, get): ")
     if t in auth_types:
         auth['type'] = t
         break
     else:
         print "Invalid auth type"
 
-if auth["type"] == "form":
+if auth["type"] == "form" or auth["type"] == "get":
     form = dict()
-    form["username"] = raw_input("Name of username form field: ")
-    form["password"] = raw_input("Name of password form field: ")
-    form_params = raw_input("Post parameters string (data from the post body): ")
+    form["username"] = raw_input("Name of username field: ")
+    form["password"] = raw_input("Name of password field: ")
+    form_params = raw_input("Post parameters or query string: ")
 
     if form_params:
         form_params = urllib.unquote_plus(form_params)  # decode the parameters
@@ -92,7 +92,7 @@ if auth["type"] == "form":
             else:
                 form[fname] = fvalue
 
-    auth["form"] = form
+    auth[auth['type']] = form
 
 csrf = raw_input("Name of csrf field: ")
 if csrf:

@@ -1,0 +1,25 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  get:
+    password: password
+    pwd: admin
+    username: user
+    usr: admin
+  success:
+    body: <Result><Success>1</Success><UserLevel>0</UserLevel><UserGroup>Admin</UserGroup></Result>
+    status: 200
+  type: get
+  url:
+  - /login.xml
+category: webcam
+contributor: ztgrace
+default_port: 81
+fingerprint:
+  body: GetXml("login.xml?"+param
+  status: 200
+  url:
+  - /
+name: MayGion Camera
+ssl: false

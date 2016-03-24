@@ -96,6 +96,20 @@ class mock:
         'body': 'foobar',
     }
 
+    ipcamera_fp = {
+        'method': responses.GET,
+        'url': 'http://127.0.0.1:81/',
+        'status': 200,
+        'body': 'GetXml("login.xml?"+param,OnLoginAckOK,OnLoginAckFail);'
+    }
+
+    ipcamera_auth = {
+        'method': responses.GET,
+        'url': 'http://127.0.0.1:81/login.xml',
+        'status': 200,
+        'body': '<?xml version="1.0" encoding="UTF-8" ?><Result><Success>1</Success><UserLevel>0</UserLevel><UserGroup>Admin</UserGroup></Result>'
+    }
+
 
 class TestChangeme:
 
@@ -549,3 +563,13 @@ class TestChangeme:
         assert len(match) == 1
         assert match[0]['name'] == self.tomcat_name
 
+    @responses.activate
+    def test_do_scan_get(self):
+        responses.add(** mock.ipcamera_fp)
+        responses.add(** mock.ipcamera_auth)
+
+        changeme.logger = changeme.setup_logging(True, True, None)
+        matches = changeme.do_scan(mock.ipcamera_fp['url'], self.creds, self.config)
+
+        assert len(matches) == 1
+        #assert matches[0]['name'] == self.c_name
