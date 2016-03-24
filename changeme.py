@@ -20,7 +20,7 @@ from schema import schema
 import urllib
 
 
-__version__ = "0.0.2"
+__version__ = "0.2.2"
 
 
 logger = None
