@@ -20,7 +20,7 @@ from schema import schema
 import urllib
 
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 logger = None
@@ -112,22 +112,36 @@ def is_yaml(f):
     return isyaml
 
 
-def load_creds():
+def in_scope(name, category, cred):
+    add = True
+
+    if name and not cred['name'] == name:
+        add = False
+    elif category and not cred['category'] == category:
+        add = False
+
+    return add
+
+
+def load_creds(name, category):
     creds = list()
     total_creds = 0
     cred_names = list()
     for root, dirs, files in os.walk('creds'):
-        for name in files:
-            f = os.path.join(root, name)
+        for fname in files:
+            f = os.path.join(root, fname)
             if is_yaml(f):
                 parsed = parse_yaml(f)
                 if parsed:
                     if parsed['name'] in cred_names:
                         logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
                     elif validate_cred(parsed, f):
-                        total_creds += len(parsed["auth"]["credentials"])
-                        creds.append(parsed)
-                        cred_names.append(parsed['name'])
+
+                        if in_scope(name, category, parsed):
+                            total_creds += len(parsed["auth"]["credentials"])
+                            creds.append(parsed)
+                            cred_names.append(parsed['name'])
+                            logger.debug("[load_creds] loaded creds from %s" % f)
 
     print('Loaded %i default credential profiles' % len(creds))
     print('Loaded %i default credentials\n' % total_creds)
@@ -149,7 +163,12 @@ def get_fingerprint_matches(res, creds):
     for cred in creds:
         match = False
         for f in cred['fingerprint']:
-            if urlparse(res.request.url)[2] in cred['fingerprint'].get('url'):
+
+            url = "%s" % urlparse(res.request.url)[2]
+            if urlparse(res.request.url)[4]:
+                url += "?%s" % urlparse(res.request.url)[4]
+
+            if url in cred['fingerprint'].get('url'):
                 http_status = cred['fingerprint'].get('status', False)
                 logger.debug('[get_fingerprint_matches] fingerprint status: %i, res status: %i' % (http_status, res.status_code))
                 if http_status and http_status == res.status_code:
@@ -164,6 +183,7 @@ def get_fingerprint_matches(res, creds):
                     match = True
                     logger.debug('[get_fingerprint_matches] matched body: %s' % body_text)
                 elif body_text:
+                    logger.debug('[get_fingerprint_matches] body not matched')
                     match = False
 
         if match:
@@ -187,6 +207,7 @@ def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None, ti
 
     return matches
 
+
 def get_parameter_dict(auth):
     params = dict()
     data = auth.get('form', auth.get('get', None))
@@ -196,16 +217,20 @@ def get_parameter_dict(auth):
 
     return params
 
+
 def get_base_url(req):
     parsed = urlparse(req)
     url = "%s://%s" % (parsed[0], parsed[1])
     return url
 
+
 def check_form(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     return check_http(req, candidate, sessionid, csrf, proxy, timeout)
 
+
 def check_get(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     return check_http(req, candidate, sessionid, csrf, proxy, timeout)
+
 
 def check_http(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     matches = list()
@@ -236,7 +261,7 @@ def check_http(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=
 
         res = None
         for u in urls:
-            url += u
+            url = get_base_url(req) + u
             logger.debug("[check_http] url: %s" % url)
             logger.debug('[check_http] data: %s' % data)
 
@@ -476,7 +501,7 @@ def main():
         load_creds()
         sys.exit()
 
-    creds = load_creds()
+    creds = load_creds(args.name, args.category)
 
     if args.contributors:
         print_contributors(creds)

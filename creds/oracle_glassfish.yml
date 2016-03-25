@@ -1,0 +1,28 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  - password: ''
+    username: admin
+  form:
+    loginButton: Login
+    loginButton.DisabledHiddenField: 'true'
+    password: j_password
+    username: j_username
+  sessionid: JSESSIONID
+  success:
+    body: Logout from GlassFish Administration Console
+    status: 200
+  type: form
+  url:
+  - /j_security_check
+category: web
+contributor: ztgrace
+default_port: 4848
+fingerprint:
+  body: Log In to GlassFish Administration Console
+  status: 200
+  url:
+  - /
+name: Oracle Glassfish
+ssl: true

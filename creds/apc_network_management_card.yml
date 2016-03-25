@@ -1,0 +1,29 @@
+auth:
+  credentials:
+  - password: apc
+    username: apc
+  - password: apc
+    username: device
+  - password: apc
+    username: readonly
+  form:
+    password: login_password
+    submit: Log O
+    username: login_username
+  sessionid: C0
+  success:
+    body: logout.htm
+    status: 200
+  type: form
+  url:
+  - /Forms/login1
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: <title>APC | Log On</title>
+  status: 200
+  url:
+  - /logon.htm
+name: APC Network Management Card
+ssl: false

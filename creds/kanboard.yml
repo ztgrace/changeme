@@ -1,0 +1,26 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  csrf: csrf_token
+  form:
+    password: password
+    remember_me: '1'
+    username: username
+  sessionid: KB_SID
+  success:
+    body: <title>Dashboard</title>
+    status: 200
+  type: form
+  url:
+  - /?controller=auth&action=check
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: /?controller=auth&amp;action=check
+  status: 200
+  url:
+  - /?controller=auth&action=login
+name: Kanboard
+ssl: false

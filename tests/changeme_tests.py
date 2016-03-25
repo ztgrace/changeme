@@ -131,7 +131,7 @@ class TestChangeme:
             'fingerprint': False}
 
     def setUp(self):
-        self.creds = changeme.load_creds()
+        self.creds = changeme.load_creds(None, None)
 
     def tearDown(self):
         self.creds = None
@@ -165,7 +165,7 @@ class TestChangeme:
     """
     def test_load_creds_good(self):
         changeme.logger = changeme.setup_logging(False, False, None)
-        changeme.load_creds()
+        changeme.load_creds(None, None)
 
     """
         validate_cred
