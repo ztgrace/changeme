@@ -20,7 +20,7 @@ from schema import schema
 import urllib
 
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 
 logger = None
@@ -197,13 +197,16 @@ def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None, ti
     for cred in candidate['auth']['credentials']:
         username = cred.get('username', "")
         password = cred.get('password', "")
+        base = get_base_url(req)
 
-        if password is None:
-            password = ""
+        for auth_url in candidate['auth']['url']:
+            url = base + auth_url
+            if password is None:
+                password = ""
 
-        res = requests.get(req, auth=HTTPBasicAuth(username, password), verify=False, proxies=proxy, timeout=timeout)
-        if check_success(req, res, candidate, username, password):
-            matches.append(cred)
+            res = requests.get(url , auth=HTTPBasicAuth(username, password), verify=False, proxies=proxy, timeout=timeout)
+            if check_success(req, res, candidate, username, password):
+                matches.append(cred)
 
     return matches
 

@@ -22,6 +22,15 @@ class mock:
             'WWW-Authenticate': 'Basic realm="Tomcat Manager Application'}
     }
 
+    tomcat_fp_alt = {
+        'method': responses.GET,
+        'url': 'http://127.0.0.1:8080/tomcat/manager/html',
+        'status': 404,
+        'adding_headers': {
+            'Server': 'Apache-Coyote/1.1',
+            'WWW-Authenticate': 'Basic realm="Tomcat Manager Application'}
+    }
+
     tomcat_auth = {
         'method': responses.GET,
         'url': 'http://127.0.0.1:8080/manager/html',
@@ -278,6 +287,7 @@ class TestChangeme:
     """
     @responses.activate
     def test_check_basic_auth_tomcat(self):
+        responses.add(** mock.tomcat_fp_alt)
         responses.add(** mock.tomcat_auth)
 
         cred = None
@@ -293,6 +303,7 @@ class TestChangeme:
     @responses.activate
     def test_check_basic_auth_tomcat_fail(self):
         responses.add(** mock.tomcat_fp)
+        responses.add(** mock.tomcat_fp_alt)
 
         cred = self.get_cred(self.tomcat_name)
         assert cred['name'] == self.tomcat_name
@@ -441,6 +452,7 @@ class TestChangeme:
     @responses.activate
     def test_scan(self):
         responses.add(** mock.tomcat_fp)
+        responses.add(** mock.tomcat_fp_alt)
         responses.add(** mock.jboss_fp)
 
         urls = list()
@@ -477,9 +489,11 @@ class TestChangeme:
                 assert False
                 return
 
+    
     @responses.activate
     def test_do_scan(self):
         responses.add(** mock.tomcat_fp)
+        responses.add(** mock.tomcat_fp_alt)
         responses.add(** mock.jboss_fp)
 
         changeme.do_scan(mock.tomcat_fp['url'], self.creds, self.config)

@@ -1,0 +1,22 @@
+auth:
+  credentials:
+  - password: admin123
+    username: admin
+  success:
+    body: <loggedIn>true</loggedIn>
+    status: 200
+  type: basic_auth
+  url:
+  - /service/local/authentication/login
+  - /nexus/service/local/authentication/login
+category: web
+contributor: ztgrace
+default_port: 8081
+fingerprint:
+  body: <title>Nexus Repository Manager</title>
+  status: 200
+  url:
+  - /
+  - /nexus/
+name: Nexus Repository Manager
+ssl: false
