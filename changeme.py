@@ -20,7 +20,7 @@ from schema import schema
 import urllib
 
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 
 logger = None
@@ -179,7 +179,7 @@ def get_fingerprint_matches(res, creds):
                     match = True
 
                 body_text = cred['fingerprint'].get('body', False)
-                if body_text and body_text in res.text:
+                if body_text and re.search(body_text, res.text):
                     match = True
                     logger.debug('[get_fingerprint_matches] matched body: %s' % body_text)
                 elif body_text:

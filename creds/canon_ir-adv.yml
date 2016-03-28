@@ -1,0 +1,28 @@
+auth:
+  credentials:
+  - password: '7654321'
+    username: '7654321'
+  form:
+    loginType: admin
+    password: password
+    password2: ''
+    uri: /rps/
+    user_type_generic: ''
+    username: deptid
+  sessionid: sessionid
+  success:
+    body: <form name="sdl" method="post">
+    status: 200
+  type: form
+  url:
+  - /login
+category: printer
+contributor: ztgrace
+default_port: 8000
+fingerprint:
+  body: '<title>Default Authentication : iR-ADV'
+  status: 200
+  url:
+  - /rps/
+name: Canon iR-ADV
+ssl: false
