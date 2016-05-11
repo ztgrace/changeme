@@ -6,3 +6,4 @@ responses
 nose
 lxml
 cerberus
+shodan

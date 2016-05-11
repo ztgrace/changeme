@@ -18,9 +18,10 @@ from urlparse import urlparse
 from cerberus import Validator
 from schema import schema
 import urllib
+import shodan
 
 
-__version__ = "0.2.3"
+__version__ = "0.3.0"
 
 
 logger = None
@@ -269,13 +270,14 @@ def check_http(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=
             logger.debug('[check_http] data: %s' % data)
 
             try:
+                session = requests.Session()
                 if candidate['auth']['type'] == 'form':
-                    res = requests.post(url, data, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
+                    res = session.post(url, data, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
                 else:
                     qs = urllib.urlencode(data)
                     url = "%s?%s" % (url, qs)
                     logger.debug("[check_http] url: %s" % url)
-                    res = requests.get(url, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
+                    res = session.get(url, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
             except Exception as e:
                 logger.error("[check_http] Failed to connect to %s" % url)
                 logger.debug("[check_http] Exception: %s" % e.__str__().replace('\n', '|'))
@@ -450,7 +452,7 @@ def print_creds(creds):
 
 def main():
     print banner
-    targets = list()
+    targets = set()
     proxy = None
     global logger
     config = dict()
@@ -468,6 +470,8 @@ def main():
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
     ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan')
+    ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query')
+    ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key')
     ap.add_argument('--targets', type=str, help='File of targets to scan')
     ap.add_argument('--threads', '-t', type=int, help='Number of threads', default=10)
     ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request', default=10)
@@ -477,18 +481,24 @@ def main():
 
     setup_logging(args.verbose, args.debug, args.log)
 
-    if not args.subnet and not args.targets and not args.validate and not args.contributors and not args.dump:
-        logger.error('Need to supply a subnet or targets file.')
+    if not args.subnet and not args.targets and not args.validate and not args.contributors and not args.dump and not args.shodan_query:
+        logger.error('Need to supply a subnet, targets file or shodan query.')
         ap.print_help()
         sys.exit()
 
     if args.subnet:
         for ip in IPNetwork(args.subnet).iter_hosts():
-            targets.append(ip)
+            targets.add(ip)
 
     if args.targets:
         with open(args.targets, 'r') as fin:
             targets = [x.strip('\n') for x in fin.readlines()]
+
+    if args.shodan_query:
+        api = shodan.Shodan(args.shodan_key)
+        results = api.search(args.shodan_query)
+        for r in results['matches']:
+            targets.add(r['ip_str'])
 
     logger.info("Loaded %i targets" % len(targets))
 

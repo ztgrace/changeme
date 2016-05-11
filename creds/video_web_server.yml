@@ -1,0 +1,24 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  form:
+    Submit: Submit
+    password: password
+    username: username
+  success:
+    body: title="Next Channel"
+    status: 200
+  type: form
+  url:
+  - /home.htm
+category: webcam
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: '--- VIDEO WEB SERVER ---'
+  status: 200
+  url:
+  - /
+name: Video Web Server
+ssl: false
