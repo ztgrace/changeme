@@ -20,6 +20,8 @@ Scan a single host: `./changeme.py -s 192.168.59.100`
 
 Scan a subnet for Tomcat default creds and set the timeout to 5 seconds: `./changeme.py -s 192.168.59.0/24 -n "Apache Tomcat" --timeout 5`
 
+Use [Shodan](https://www.shodan.io/) to populate a targets list and check them for default credentials: `./changeme.py --shodan_query "Server: SQ-WEBCAM" --shodan_key keygoeshere -c camera`
+
 ## Bugs and Enhancements
 
 Bugs and enhancements are tracked at [https://github.com/ztgrace/changeme/issues](https://github.com/ztgrace/changeme/issues).
