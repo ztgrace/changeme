@@ -1,0 +1,26 @@
+auth:
+  credentials:
+  - password: admin
+    username: Administrator
+  - password: opsware_admin
+    username: admin
+  form:
+    password: j_password
+    username: j_username
+  sessionid: JSESSIONID
+  success:
+    body: Log Out</a>
+    status: 200
+  type: form
+  url:
+  - /j_security_check
+category: web
+contributor: ztgrace
+default_port: 443
+fingerprint:
+  body: <title>Hewlett-Packard Server Automation System Web Client</title>
+  status: 200
+  url:
+  - /
+name: HP Server Automation
+ssl: true

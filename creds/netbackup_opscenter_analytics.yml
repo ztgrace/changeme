@@ -1,0 +1,27 @@
+auth:
+  credentials:
+  - password: password
+    username: admin
+  csrf: 
+  form:
+    domain: OpsCenterUsers(vx)
+    password: password
+    save: Log In
+    username: userName
+  sessionid: JSESSIONID
+  success:
+    body: 'document.location.href="/opscenter/homeLandingAction.do"'
+    status: 200
+  type: form
+  url:
+  - /opscenter/loadLogin.do
+category: web
+contributor: ztgrace
+default_port: 443
+fingerprint:
+  body: <title>Symantec NetBackup OpsCenter Analytics</title>
+  status: 200
+  url:
+  - /opscenter/
+name: NetBackup OpsCenter Analytics
+ssl: true
