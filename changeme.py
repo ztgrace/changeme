@@ -22,6 +22,7 @@ import shodan
 from libnmap.parser import NmapParser as np
 import base64
 from time import sleep
+from copy import copy, deepcopy
 
 
 __version__ = "0.4.1"
@@ -234,6 +235,10 @@ def validate_cred(cred, f):
 
 def check_basic_auth(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     matches = list()
+
+    # Copy the session so successful creds don't affect other
+    # requests in multi-cred scans
+    orig_session = deepcopy(session)
     for cred in candidate['auth']['credentials']:
         username = cred.get('username', "")
         password = cred.get('password', "")
@@ -245,6 +250,8 @@ def check_basic_auth(req, session, candidate, sessionid=False, csrf=False, proxy
                 password = ""
 
             try:
+                # restore the original session
+                session = deepcopy(orig_session)
                 res = session.get(
                     url,
                     auth=HTTPBasicAuth(username, password),
