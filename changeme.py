@@ -25,7 +25,7 @@ from time import sleep
 from copy import copy, deepcopy
 
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 
 logger = None
