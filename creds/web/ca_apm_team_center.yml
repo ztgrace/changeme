@@ -4,14 +4,14 @@ auth:
     username: Admin
   - password: Guest
     username: Guest
-  form:
+  post:
     password: j_password
     username: j_username
   sessionid: WSESSIONID
   success:
     body: ja/webview/webview.nocache.js
     status: 200
-  type: form
+  type: post
   url:
   - /jsp/j_security_check
 category: web

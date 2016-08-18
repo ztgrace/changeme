@@ -1,0 +1,20 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  success:
+    body: <titleLiveVideo>LIVE VIDEO</titleLiveVideo>
+    status: 200
+  type: basic_auth
+  url:
+  - /eng/liveView.cgi
+category: webcam
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  status: 401
+  url:
+  - /eng/liveView.cgi
+  server_header: dcs-lig-httpd
+name: TRENDnet Internet Camera
+ssl: false

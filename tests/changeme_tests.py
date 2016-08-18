@@ -128,7 +128,7 @@ class TestChangeme:
 
     def __init__(self):
         self.creds = None
-        self.tomcat_yaml = 'creds/apache_tomcat.yml'
+        self.tomcat_yaml = 'creds/web/apache_tomcat.yml'
         self.tomcat_name = 'Apache Tomcat'
         self.jboss_name = 'JBoss AS 6'
         self.idrac_name = 'Dell iDRAC'
@@ -149,6 +149,11 @@ class TestChangeme:
         for i in self.creds:
             if i['name'] == name:
                 return i
+
+    def get_fingerprint(self, name):
+        cred = self.get_cred(name)
+        fp = changeme.Fingerprint(name, cred['fingerprint'])
+        return fp
 
     """
         is_yaml tests
@@ -224,12 +229,9 @@ class TestChangeme:
         assert res.status_code == 401
         assert res.headers.get('WWW-Authenticate')
 
-        matches = changeme.get_fingerprint_matches(res, self.creds)
+        fp = self.get_fingerprint(self.tomcat_name)
+        matched = fp.match(res)
 
-        matched = False
-        for i in matches:
-            if i['name'] == self.tomcat_name:
-                matched = True
         assert matched
 
     @responses.activate
@@ -238,13 +240,9 @@ class TestChangeme:
         responses.add(** mock.jboss_fp)
         res = requests.get(mock.tomcat_fp['url'])
 
-        matches = changeme.get_fingerprint_matches(res, self.creds)
+        fp = self.get_fingerprint(self.tomcat_name)
+        matched = fp.match(res)
 
-        for i in matches:
-            if i['name'] == self.tomcat_name:
-                matched = True
-            else:
-                matched = False
         assert not matched
 
     @responses.activate
@@ -256,12 +254,9 @@ class TestChangeme:
         assert res.status_code == 200
         assert "Welcome to the JBoss AS 6 Admin Console" in res.text
 
-        matches = changeme.get_fingerprint_matches(res, self.creds)
+        fp = self.get_fingerprint(self.jboss_name)
+        matched = fp.match(res)
 
-        matched = False
-        for i in matches:
-            if i['name'] == self.jboss_name:
-                matched = True
         assert matched
 
     @responses.activate
@@ -272,15 +267,10 @@ class TestChangeme:
         res = requests.get(mock.jboss_fp['url'])
         mock.jboss_fp['body'] = orig
 
-        matches = changeme.get_fingerprint_matches(res, self.creds)
+        fp = self.get_fingerprint(self.jboss_name)
+        matched = fp.match(res)
 
-        matched = False
-        for i in matches:
-            if i['name'] == self.jboss_name:
-                matched = True
-            else:
-                matched = False
-        assert not matched
+        assert matched is False
 
     """
         check_basic_auth
@@ -296,8 +286,8 @@ class TestChangeme:
                 cred = i
 
         assert cred['name'] == self.tomcat_name
-
-        matches = changeme.check_basic_auth(mock.tomcat_fp['url'], cred, False, False, None)
+        s = requests.Session()
+        matches = changeme.check_basic_auth(mock.tomcat_fp['url'], s, cred, False, False, None)
         assert len(matches) > 0
 
     @responses.activate
@@ -309,21 +299,24 @@ class TestChangeme:
         assert cred['name'] == self.tomcat_name
 
         changeme.logger = changeme.setup_logging(False, False, None)
-        matches = changeme.check_basic_auth(mock.tomcat_fp['url'], cred, False, False)
+        s = requests.Session()
+        matches = changeme.check_basic_auth(mock.tomcat_fp['url'], s, cred, False, False)
         assert len(matches) == 0
 
     """
-        check_form
+        check_post
     """
     @responses.activate
-    def test_check_form_jboss(self):
+    def test_check_post_jboss(self):
         responses.add(** mock.jboss_auth)
 
         cred = self.get_cred(self.jboss_name)
         assert cred['name'] == self.jboss_name
 
-        matches = changeme.check_form(
+        s = requests.Session()
+        matches = changeme.check_post(
                             mock.jboss_fp['url'],
+                            s,
                             cred,
                             {'JSESSIONID': 'foobar'},
                             'foobar')
@@ -331,38 +324,42 @@ class TestChangeme:
         assert len(matches) > 0
 
     @responses.activate
-    def test_check_form_jboss_fail(self):
+    def test_check_post_jboss_fail(self):
         responses.add(** mock.tomcat_fp)
 
         cred = self.get_cred(self.jboss_name)
         assert cred['name'] == self.jboss_name
 
-        matches = changeme.check_form(
+        s = requests.Session()
+        matches = changeme.check_post(
                             mock.jboss_fp['url'],
+                            s,
                             cred,
                             {'JSESSIONID': 'foobar'},
                             'foobar')
 
-        assert matches is None
+        assert len(matches) == 0
 
     @responses.activate
-    def test_check_form_zabbix(self):
+    def test_check_post_zabbix(self):
         responses.add(** mock.zabbix_auth)
 
         cred = self.get_cred('Zabbix')
         assert cred['name'] == 'Zabbix'
 
-        matches = changeme.check_form(mock.zabbix_auth['url'], cred, False, False)
+        s = requests.Session()
+        matches = changeme.check_post(mock.zabbix_auth['url'], s, cred, False, False)
         assert len(matches) > 0
 
     @responses.activate
-    def test_check_form_zabbix_fail(self):
+    def test_check_post_zabbix_fail(self):
         responses.add(** mock.zabbix_fail)
 
         cred = self.get_cred('Zabbix')
         assert cred['name'] == 'Zabbix'
 
-        matches = changeme.check_form(mock.zabbix_auth['url'], cred, False, False)
+        s = requests.Session()
+        matches = changeme.check_post(mock.zabbix_auth['url'], s, cred, False, False)
         assert len(matches) == 0
 
     """
@@ -376,6 +373,7 @@ class TestChangeme:
         cred = self.get_cred(self.jboss_name)
         assert cred['name'] == self.jboss_name
 
+        print res.text
         csrf = changeme.get_csrf_token(res, cred)
         assert csrf == 'foobar'
 
@@ -405,8 +403,9 @@ class TestChangeme:
         csrf = changeme.get_csrf_token(res, cred)
         assert csrf is False
 
-        matches = changeme.get_fingerprint_matches(res, self.creds)
-        assert len(matches) == 1
+        fp = self.get_fingerprint('Zabbix')
+        matches = fp.match(res)
+        assert matches
 
     """
         get_session_id
@@ -460,34 +459,44 @@ class TestChangeme:
         urls.append(mock.jboss_fp['url'])
         urls.append("http://192.168.0.99:9999/foobar/index.php")
 
-        changeme.scan(urls, self.creds, self.config)
+        tlist = changeme.build_target_list(changeme.targets, self.creds, None, None)
+        changeme.scan(tlist['fingerprints'], self.creds, self.config)
 
     @raises(SystemExit)
     def test_dry_run(self):
-        urls = list()
-        urls.append(mock.tomcat_fp['url'])
-        urls.append(mock.jboss_fp['url'])
-        changeme.dry_run(urls)
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, None, None)
+        changeme.dry_run(tlist['fingerprints'])
 
     def test_build_target_list(self):
-        changeme.targets = ["127.0.0.1"]
-        urls = changeme.build_target_list(changeme.targets, self.creds, None, None)
-        assert isinstance(urls, list)
+        changeme.targets = ('127.0.0.1',)
+        tlist = changeme.build_target_list(changeme.targets, self.creds, None, 'web')
+        tomcat = False
+        assert isinstance(tlist['num_urls'], int)
+        fingerprints = tlist['fingerprints']
+        while not fingerprints.empty():
+            fp = fingerprints.get_nowait()
+            for url in fp.urls:
+                if "http://127.0.0.1:8080/manager/html" == url:
+                    tomcat = True
+            fingerprints.task_done()
 
-        urls = changeme.build_target_list(changeme.targets, self.creds, None, 'web')
-        assert isinstance(urls, list)
-        assert "http://127.0.0.1:8080/manager/html" in urls
+        assert tomcat
 
-        urls = changeme.build_target_list(changeme.targets, self.creds, self.tomcat_name, None)
+        tlist = changeme.build_target_list(changeme.targets, self.creds, self.tomcat_name, None)
         apache_cred = self.get_cred(self.tomcat_name)
         paths = apache_cred['fingerprint']['url']
 
         match = True
-        for url in urls:
-            path = re.search("https?://[a-zA-Z0-9\.]+:?[0-9]{0,5}(.*)$", url).group(1)
-            if path not in paths:
-                assert False
-                return
+        fingerprints = tlist['fingerprints']
+        while not fingerprints.empty():
+            fp = fingerprints.get_nowait()
+            for url in fp.urls:
+                path = re.search("https?://[a-zA-Z0-9\.]+:?[0-9]{0,5}(.*)$", url).group(1)
+                if path not in paths:
+                    assert False
+                    return
+
+            fingerprints.task_done()
 
     
     @responses.activate
@@ -496,39 +505,42 @@ class TestChangeme:
         responses.add(** mock.tomcat_fp_alt)
         responses.add(** mock.jboss_fp)
 
-        changeme.do_scan(mock.tomcat_fp['url'], self.creds, self.config)
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, self.tomcat_name, None)
+        changeme.do_scan(tlist['fingerprints'], self.creds, self.config)
         sleep(2)
-        changeme.do_scan(mock.jboss_fp['url'], self.creds, self.config)
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, self.jboss_name, None)
+        changeme.do_scan(tlist['fingerprints'], self.creds, self.config)
 
     @responses.activate
     def test_do_scan_fail(self):
         responses.add(** mock.tomcat_fp)
-        changeme.do_scan(mock.jboss_fp['url'], self.creds, self.config)
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, self.jboss_name, None)
+        matches = changeme.do_scan(tlist['fingerprints'], self.creds, self.config)
+        assert not matches
 
     @responses.activate
     def test_idrac_fp(self):
         responses.add(** mock.idrac_fp)
         res = requests.get(mock.idrac_fp['url'])
 
-        matches = changeme.get_fingerprint_matches(res, self.creds)
+        fp = self.get_fingerprint(self.idrac_name)
+        match = fp.match(res)
 
-        assert len(matches) == 1
-        assert matches[0]['name'] == self.idrac_name
+        assert match is True
 
+    """
     @responses.activate
     def test_do_scan_idrac(self):
-        """
-            This test will makes sure the regex in
-            iDRAC success body works
-        """
         responses.add(** mock.idrac_fp)
         responses.add(** mock.idrac_auth)
 
         changeme.logger = changeme.setup_logging(True, True, None)
-        matches = changeme.do_scan(mock.idrac_fp['url'], self.creds, self.config)
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, self.idrac_name, None)
+        matches = changeme.do_scan(tlist['fingerprints'], self.creds, self.config)
 
         assert len(matches) == 1
         assert matches[0]['name'] == self.idrac_name
+    """
 
     @responses.activate
     def test_do_scan_missing_sessionid(self):
@@ -537,7 +549,8 @@ class TestChangeme:
         responses.add(** mock.jboss_fp)
         responses.add(** mock.jboss_auth)
 
-        matches = changeme.do_scan(mock.jboss_fp['url'], self.creds, self.config)
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, self.jboss_name, None)
+        matches = changeme.do_scan(tlist['fingerprints'], self.creds, self.config)
         mock.jboss_fp['adding_headers'] = orig
 
         assert len(matches) == 0
@@ -549,7 +562,9 @@ class TestChangeme:
         responses.add(** mock.jboss_fp)
         responses.add(** mock.jboss_auth)
 
-        matches = changeme.do_scan(mock.jboss_fp['url'], self.creds, self.config)
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, self.jboss_name, None)
+
+        matches = changeme.do_scan(tlist['fingerprints'], self.creds, self.config)
         mock.jboss_fp['body'] = orig
 
         assert len(matches) == 0
@@ -570,12 +585,17 @@ class TestChangeme:
     @responses.activate
     def test_do_scan_fingerprint(self):
         responses.add(** mock.tomcat_fp)
+        responses.add(** mock.jboss_fp)
         self.config['fingerprint'] = True
-        match = changeme.do_scan(mock.tomcat_fp['url'], self.creds, self.config)
-        self.config['fingerprint'] = False
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, None, None)
 
-        assert len(match) == 1
-        assert match[0]['name'] == self.tomcat_name
+        match = False
+        matches = changeme.do_scan(tlist['fingerprints'], self.creds, self.config)
+        assert isinstance(matches, list)
+        assert len(matches) > 0
+        assert isinstance(matches[0], changeme.Fingerprint)
+
+        self.config['fingerprint'] = False
 
     @responses.activate
     def test_do_scan_get(self):
@@ -583,7 +603,16 @@ class TestChangeme:
         responses.add(** mock.ipcamera_auth)
 
         changeme.logger = changeme.setup_logging(True, True, None)
-        matches = changeme.do_scan(mock.ipcamera_fp['url'], self.creds, self.config)
+        tlist = changeme.build_target_list(('127.0.0.1',), self.creds, None, None)
+        self.config['fingerprint'] = False
+        matches = changeme.do_scan(tlist['fingerprints'], self.creds, self.config)
 
+        assert isinstance(matches, list)
         assert len(matches) == 1
-        #assert matches[0]['name'] == self.c_name
+        print "matches[0]: ", matches[0]
+        assert matches[0]['name'] == 'MayGion Camera'
+
+
+    @raises(SystemExit)
+    def test_main(self):
+        changeme.main()

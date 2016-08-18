@@ -1,0 +1,22 @@
+auth:
+  credentials:
+  - password: manager
+    username: admin
+    raw: '{"username":"admin","uid":-1,"gid":-1,"password":"manager"}'
+  success:
+    body: '{"data":{"username": "admin","uid": 500'
+    status: 200
+  type: raw_post
+  url:
+  - /apis/authentication
+category: web
+contributor: ztgrace
+default_port: 443
+fingerprint:
+  body: <title>Haivision</title>
+  server_header: lighttpd/1.4.35
+  status: 200
+  url:
+  - /login
+name: Haivision Makito X Decoder
+ssl: true

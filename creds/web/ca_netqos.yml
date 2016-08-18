@@ -1,0 +1,32 @@
+auth:
+  credentials:
+  - password: nq
+    username: nqadmin
+  - password: nq
+    username: nquser
+  csrf: __VIEWSTATE
+  post:
+    __LASTFOCUS: ''
+    hdnCookiesEnabled: '1'
+    hdnRunCookieTest: '0'
+    ibSignIn.x: '0'
+    ibSignIn.y: '0'
+    password: tbPassword
+    username: tbUsername
+  sessionid: ASP.NET_SessionId
+  success:
+    body: <h2>Object moved to <a href="%2f">here</a>.</h2>
+    status: 302
+  type: post
+  url:
+  - /SingleSignOn/SignIn.aspx?SsoProductCode=npc&SsoRedirectUrl=%2fnpc%2fdefault.aspx
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: Network Performance Management Console
+  status: 200
+  url:
+  - /SingleSignOn/SignIn.aspx?SsoProductCode=npc&SsoRedirectUrl=%2fnpc%2fdefault.aspx
+name: CA NetQoS
+ssl: false

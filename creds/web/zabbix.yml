@@ -2,7 +2,7 @@ auth:
   credentials:
   - password: zabbix
     username: Admin
-  form:
+  post:
     autologin: '1'
     enter: Sign in
     password: password
@@ -12,7 +12,7 @@ auth:
   success:
     body: Logout</a>
     status: 200
-  type: form
+  type: post
   url:
   - /zabbix/index.php
 category: web

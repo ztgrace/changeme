@@ -2,14 +2,14 @@ auth:
   credentials:
   - password: calvin
     username: root
-  form:
+  post:
     password: password
     username: user
   sessionid: _appwebSessionId_
   success:
     body: <authResult>[0|5]</authResult>
     status: 200
-  type: form
+  type: post
   url:
   - /data/login
 category: web

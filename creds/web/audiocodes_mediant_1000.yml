@@ -1,0 +1,25 @@
+auth:
+  credentials:
+  - password: Admin
+    username: Admin
+  post:
+    c0: '0'
+    t: '1'
+    password: u
+    username: c1
+  success:
+    body: <prms>
+    status: 200
+  type: post
+  url:
+  - /UE/Login
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: Mediant 1000
+  status: 200
+  url:
+  - /
+name: AudioCodes Mediant 1000
+ssl: false

@@ -2,14 +2,14 @@ auth:
   credentials:
   - password: admin
     username: admin
-  form:
+  post:
     Submit: Submit
     password: password
     username: username
   success:
     body: title="Next Channel"
     status: 200
-  type: form
+  type: post
   url:
   - /home.htm
 category: webcam

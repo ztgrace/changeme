@@ -3,7 +3,7 @@ auth:
   - password: admin
     username: admin
   csrf: csrf_token
-  form:
+  post:
     password: password
     remember_me: '1'
     username: username
@@ -11,7 +11,7 @@ auth:
   success:
     body: <title>Dashboard</title>
     status: 200
-  type: form
+  type: post
   url:
   - /?controller=auth&action=check
 category: web

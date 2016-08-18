@@ -1,0 +1,25 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  get:
+    a: command
+    cmd: check_login
+    password: p2
+    username: p1
+  success:
+    body: '{"login_ur":1}'
+    status: 200
+  type: get
+  url:
+  - /aj.html
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: <title>HD-MD4x1-4K-E</title>
+  status: 200
+  url:
+  - /
+name: Crestron HD-MD4x1-4K-E
+ssl: false

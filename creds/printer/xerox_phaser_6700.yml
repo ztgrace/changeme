@@ -1,8 +1,8 @@
 auth:
   credentials:
-  - password: admin
-    username: '1111'
-  form:
+  - password: '1111'
+    username: admin
+  post:
     NextPage: /properties/authentication/luidLogin.php
     _fun_function: HTTP_Authenticate_fn
     frmaltDomain: default
@@ -12,16 +12,16 @@ auth:
   success:
     body: window.opener.top.location.pathname
     status: 200
-  type: form
+  type: post
   url:
   - /userpost/xerox.set
 category: printer
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: XEROX Phaser 6700DT
+  body: XEROX Phaser 6700
   status: 200
   url:
   - /header.php?tab=status
-name: XEROX Phaser 6700DT
+name: XEROX Phaser 6700
 ssl: false

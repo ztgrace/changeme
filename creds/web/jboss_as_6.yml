@@ -3,16 +3,16 @@ auth:
   - password: admin
     username: admin
   csrf: javax.faces.ViewState
-  form:
-    login_form: login_form
-    login_form:submit: Login
-    password: login_form:password
-    username: login_form:name
+  post:
+    login_post: login_form
+    login_post:submit: Login
+    password: login_post:password
+    username: login_post:name
   sessionid: JSESSIONID
   success:
     body: Logout</a>
     status: 200
-  type: form
+  type: post
   url:
   - /admin-console/login.seam
 category: web

@@ -1,0 +1,21 @@
+auth:
+  credentials:
+  - password: ''
+    username: ''
+  sessionid: sessionId
+  success:
+    body: Password is not set.
+    status: 200
+  type: basic_auth
+  url:
+  - /hp/device/GeneralSecurity/Index
+category: printer
+contributor: ztgrace
+default_port: 443
+fingerprint:
+  body: id="HomeDeviceName">HP LaserJet
+  status: 200
+  url:
+  - /hp/device/GeneralSecurity/Index
+name: HP LaserJet 600
+ssl: true

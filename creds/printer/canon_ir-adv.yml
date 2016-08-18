@@ -2,7 +2,7 @@ auth:
   credentials:
   - password: '7654321'
     username: '7654321'
-  form:
+  post:
     loginType: admin
     password: password
     password2: ''
@@ -13,7 +13,7 @@ auth:
   success:
     body: <form name="sdl" method="post">
     status: 200
-  type: form
+  type: post
   url:
   - /login
 category: printer

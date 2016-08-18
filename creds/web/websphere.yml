@@ -2,7 +2,7 @@ auth:
   credentials:
   - password: manager
     username: system
-  form:
+  post:
     password: j_password
     submit: Login
     username: j_username
@@ -10,7 +10,7 @@ auth:
   success:
     body: Logout</a>
     status: 200
-  type: form
+  type: post
   url:
   - /console/portal/Server/j_security_check
 category: web

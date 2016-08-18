@@ -4,7 +4,7 @@ auth:
     username: admin
   - password: ''
     username: admin
-  form:
+  post:
     loginButton: Login
     loginButton.DisabledHiddenField: 'true'
     password: j_password
@@ -13,7 +13,7 @@ auth:
   success:
     body: Logout from GlassFish Administration Console
     status: 200
-  type: form
+  type: post
   url:
   - /j_security_check
 category: web

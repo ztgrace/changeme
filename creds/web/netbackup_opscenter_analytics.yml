@@ -3,7 +3,7 @@ auth:
   - password: password
     username: admin
   csrf: 
-  form:
+  post:
     domain: OpsCenterUsers(vx)
     password: password
     save: Log In
@@ -12,7 +12,7 @@ auth:
   success:
     body: 'document.location.href="/opscenter/homeLandingAction.do"'
     status: 200
-  type: form
+  type: post
   url:
   - /opscenter/loadLogin.do
 category: web

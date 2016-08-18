@@ -1,0 +1,22 @@
+auth:
+  credentials:
+  - password: '123'
+    username: User
+  - password: '456'
+    username: Admin
+  success:
+    body: Polycom - VVX 500 Configuration Utility
+    status: 200
+  type: basic_auth
+  url:
+  - /auth.htm
+category: phone
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: Polycom Web Configuration Utility
+  status: 200
+  url:
+  - /login.htm
+name: Polycom VVX 500
+ssl: false

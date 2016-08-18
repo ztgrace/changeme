@@ -5,7 +5,7 @@ from cerberus import Validator
 import yaml
 import sys
 
-    
+
 schema = {
     'auth': {
         'type': 'dict',
@@ -18,16 +18,25 @@ schema = {
                     'type': 'dict',
                     'schema': {
                         'username': {
-                            'type': ['string', 'integer'], 
+                            'type': ['string', 'integer'],
                             'nullable': True,
                             'required': True,
                         },
                         'password': {
-                            'type': ['string', 'integer'], 
+                            'type': ['string', 'integer'],
                             'nullable': True,
                             'required': True,
-                        }
+                        },
+                        'ref': {'type': 'string', 'required': False},
+                        'raw': {'type': 'string', 'required': False},
                     }
+                }
+            },
+            'headers': {
+                'type': 'list',
+                'required': False,
+                'schema': {
+                    'type': 'dict'
                 }
             },
             'csrf': {
@@ -35,10 +44,10 @@ schema = {
                 'nullable': True,
                 'required': False,
             },
-            'form': {
+            'post': {
                 'type': 'dict',
                 'allow_unknown': True,
-            'schema': {
+                'schema': {
                     'username': {'type': 'string', 'required': True},
                     'password': {'type': 'string', 'required': True},
                 }
@@ -46,7 +55,7 @@ schema = {
             'get': {
                 'type': 'dict',
                 'allow_unknown': True,
-            'schema': {
+                'schema': {
                     'username': {'type': 'string', 'required': True},
                     'password': {'type': 'string', 'required': True},
                 }
@@ -54,6 +63,11 @@ schema = {
             'sessionid': {
                 'type': 'string',
                 'nullable': True,
+                'required': False,
+            },
+            'base64': {
+                'type': 'boolean',
+                'nullable': False,
                 'required': False,
             },
             'success': {
@@ -64,12 +78,12 @@ schema = {
                 },
             },
             'type': {
-                'type': 'string', 
-                'regex': 'form|basic_auth|get',
+                'type': 'string',
+                'regex': 'post|basic_auth|get|raw_post',
                 'required': True
             },
             'url': {
-                'type': 'list', 
+                'type': 'list',
                 'required': True,
                 'schema': {'type': 'string'}
             },
@@ -82,6 +96,21 @@ schema = {
         'required': True,
         'schema': {
             'body': {'type': 'string', 'required': False},
+            'server_header': {'type': 'string', 'required': False},
+            'cookie': {
+                'type': 'list',
+                'required': False,
+                'schema': {
+                    'type': 'dict'
+                },
+            },
+            'headers': {
+                'type': 'list',
+                'required': False,
+                'schema': {
+                    'type': 'dict'
+                }
+            },
             'status': {'type': 'integer', 'required': True},
             'basic_auth_realm': {
                 'type': 'string',
@@ -98,6 +127,7 @@ schema = {
     'default_port': {'type': 'integer', 'required': True},
     'name': {'type': 'string', 'required': True},
     'ssl': {'type': 'boolean', 'required': True},
+    'references': {'type': 'list', 'required': False},
 }
 
 if __name__ == "__main__":
@@ -108,7 +138,7 @@ if __name__ == "__main__":
 
     v = Validator()
     v.validate(cred, schema)
-    
+
     if v.errors:
         for e in v.errors:
             print "%s: %s" % (e, v.errors[e])

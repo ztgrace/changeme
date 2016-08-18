@@ -4,14 +4,14 @@ auth:
     username: Administrator
   - password: opsware_admin
     username: admin
-  form:
+  post:
     password: j_password
     username: j_username
   sessionid: JSESSIONID
   success:
     body: Log Out</a>
     status: 200
-  type: form
+  type: post
   url:
   - /j_security_check
 category: web

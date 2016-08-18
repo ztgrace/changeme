@@ -1,0 +1,27 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  - password: ucdpadmin
+    username: ucdpadmin
+  post:
+    password: password
+    requestedHash: ''
+    username: username
+  sessionid: JSESSIONID_80
+  success:
+    body: Sign Out
+    status: 200
+  type: post
+  url:
+  - /tasks/LoginTasks/login
+category: web
+contributor: ztgrace
+default_port: 443
+fingerprint:
+  body: IBM UrbanCode Deploy
+  status: 200
+  url:
+  - /
+name: IBM UrbanCode Deploy
+ssl: true

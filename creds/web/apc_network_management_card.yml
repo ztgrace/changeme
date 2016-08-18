@@ -6,7 +6,7 @@ auth:
     username: device
   - password: apc
     username: readonly
-  form:
+  post:
     password: login_password
     submit: Log O
     username: login_username
@@ -14,7 +14,7 @@ auth:
   success:
     body: logout.htm
     status: 200
-  type: form
+  type: post
   url:
   - /Forms/login1
 category: web

@@ -1,0 +1,31 @@
+auth:
+  credentials:
+  - password: ''
+    username: supervisor
+  post:
+    open: ''
+    password: password
+    password_work: ''
+    userid_work: ''
+    username: userid
+    wimToken: '995573576'
+  sessionid: risessionid
+  base64: true
+  success:
+    body: Web Image Monitor</title>
+    status: 200
+  type: post
+  url:
+  - /web/guest/en/websys/webArch/login.cgi
+category: printer
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: title="Web Image Monitor"
+  cookie:
+  - cookieOnOffChecker: 'on'
+  status: 200
+  url:
+  - /web/guest/en/websys/webArch/authForm.cgi
+name: Ricoh MP
+ssl: false

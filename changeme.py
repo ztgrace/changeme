@@ -10,7 +10,7 @@ import sys
 import re
 from netaddr import *
 from lxml import html
-import threading
+import multiprocessing as mp
 import logging
 from logutils import colorize
 from time import time
@@ -19,12 +19,16 @@ from cerberus import Validator
 from schema import schema
 import urllib
 import shodan
+from libnmap.parser import NmapParser as np
+import base64
+from time import sleep
 
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 
 logger = None
+found_q = mp.Manager().Queue()
 banner = """
   #####################################################
  #       _                                             #
@@ -37,6 +41,72 @@ banner = """
  #  Default Credential Scanner                         #
   #####################################################
 """ % __version__
+
+
+class Fingerprint:
+
+    def __init__(self, name, fp=dict()):
+        self.name = name
+        self.urls = set(fp.get('url'))
+        self.http_status = fp.get('status')
+        self.body_text = fp.get('body')
+        self.basic_auth_realm = fp.get('basic_auth_realm', None)
+        self.cookies = None
+        cookies = fp.get('cookie')
+        if cookies:
+            self.cookies = cookies[0]
+
+        self.headers = None
+        headers = fp.get('headers', None)
+        if headers:
+            self.headers = headers[0]
+
+        self.server_header = fp.get('server_header', None)
+
+    def __hash__(self):
+        return hash(self.name + ' '.join(self.urls))
+
+    def __eq__(self, other):
+        logger.debug("self.name: %s, other.name: %s" % (self.name, other.name))
+        logger.debug("self.urls: %s, other.urls: %s" %
+                     (','.join(self.urls), ','.join(other.urls)))
+        # quick check
+        if self.name == other.name:
+            return True
+
+        if (self.urls == other.urls and self.cookies == other.cookies and
+                self.headers == other .headers):
+            return True
+
+        return False
+
+    def __str__(self):
+        return self.name
+
+    def match(self, res):
+        match = False
+
+        if (self.basic_auth_realm and
+                self.basic_auth_realm in res.headers.get('WWW-Authenticate', list())):
+            logger.debug(
+                '[Fingerprint.match] basic auth matched: %s' % self.body_text)
+            match = True
+
+        server = res.headers.get('Server', None)
+        if self.server_header and server and self.server_header in server:
+            logger.debug(
+                '[Fingerprint.match] server header matched: %s' % self.body_text)
+            match = True
+
+        if self.body_text and re.search(self.body_text, res.text):
+            match = True
+            logger.debug('[Fingerprint.match] matched body: %s' %
+                         self.body_text)
+        elif self.body_text:
+            logger.debug('[Fingerprint.match] body not matched')
+            match = False
+
+        return match
 
 
 def setup_logging(verbose, debug, logfile):
@@ -65,7 +135,8 @@ def setup_logging(verbose, debug, logfile):
         fh = logging.FileHandler(logfile)
 
         # create formatter and add it to the handler
-        formatter = logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s')
+        formatter = logging.Formatter(
+            '[%(asctime)s][%(levelname)s] %(message)s')
         fh.setFormatter(formatter)
         logger.addHandler(fh)
 
@@ -80,7 +151,8 @@ def setup_logging(verbose, debug, logfile):
     ch.level_map[logging.WARNING] = [None, 'yellow', False]
     ch.level_map[logging.ERROR] = [None, 'red', False]
     ch.level_map[logging.CRITICAL] = [None, 'green', False]
-    formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
+    formatter = logging.Formatter(
+        '[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
@@ -135,14 +207,14 @@ def load_creds(name, category):
                 parsed = parse_yaml(f)
                 if parsed:
                     if parsed['name'] in cred_names:
-                        logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
+                        logger.error(
+                            "[load_creds] %s: duplicate name %s" % (f, parsed['name']))
                     elif validate_cred(parsed, f):
 
                         if in_scope(name, category, parsed):
                             total_creds += len(parsed["auth"]["credentials"])
                             creds.append(parsed)
                             cred_names.append(parsed['name'])
-                            logger.debug("[load_creds] loaded creds from %s" % f)
 
     print('Loaded %i default credential profiles' % len(creds))
     print('Loaded %i default credentials\n' % total_creds)
@@ -154,46 +226,13 @@ def validate_cred(cred, f):
     v = Validator()
     valid = v.validate(cred, schema)
     for e in v.errors:
-        logger.error("[validate_cred] Validation Error: %s, %s - %s" % (f, e, v.errors[e]))
+        logger.error("[validate_cred] Validation Error: %s, %s - %s" %
+                     (f, e, v.errors[e]))
 
     return valid
 
 
-def get_fingerprint_matches(res, creds):
-    matches = list()
-    for cred in creds:
-        match = False
-        for f in cred['fingerprint']:
-
-            url = "%s" % urlparse(res.request.url)[2]
-            if urlparse(res.request.url)[4]:
-                url += "?%s" % urlparse(res.request.url)[4]
-
-            if url in cred['fingerprint'].get('url'):
-                http_status = cred['fingerprint'].get('status', False)
-                logger.debug('[get_fingerprint_matches] fingerprint status: %i, res status: %i' % (http_status, res.status_code))
-                if http_status and http_status == res.status_code:
-                    match = True
-
-                basic_auth_realm = cred['fingerprint'].get('basic_auth_realm', False)
-                if basic_auth_realm and basic_auth_realm in res.headers.get('WWW-Authenticate', list()):
-                    match = True
-
-                body_text = cred['fingerprint'].get('body', False)
-                if body_text and re.search(body_text, res.text):
-                    match = True
-                    logger.debug('[get_fingerprint_matches] matched body: %s' % body_text)
-                elif body_text:
-                    logger.debug('[get_fingerprint_matches] body not matched')
-                    match = False
-
-        if match:
-            matches.append(cred)
-
-    return matches
-
-
-def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+def check_basic_auth(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     matches = list()
     for cred in candidate['auth']['credentials']:
         username = cred.get('username', "")
@@ -205,8 +244,25 @@ def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None, ti
             if password is None:
                 password = ""
 
-            res = requests.get(url , auth=HTTPBasicAuth(username, password), verify=False, proxies=proxy, timeout=timeout)
-            if check_success(req, res, candidate, username, password):
+            try:
+                res = session.get(
+                    url,
+                    auth=HTTPBasicAuth(username, password),
+                    verify=False,
+                    proxies=proxy,
+                    timeout=timeout,
+                    headers={
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}
+                )
+
+            except Exception as e:
+                logger.error(
+                    "[check_basic_auth] Failed to connect to %s" % url)
+                logger.debug("[check_basic_auth] Exception: %s" %
+                             e.__str__().replace('\n', '|'))
+                continue
+
+            if check_success(req, res, candidate, username, password, candidate['auth'].get('base64', None)):
                 matches.append(cred)
 
     return matches
@@ -214,7 +270,7 @@ def check_basic_auth(req, candidate, sessionid=False, csrf=False, proxy=None, ti
 
 def get_parameter_dict(auth):
     params = dict()
-    data = auth.get('form', auth.get('get', None))
+    data = auth.get('post', auth.get('get', None))
     for k in data.keys():
         if k not in ('username', 'password', 'url'):
             params[k] = data[k]
@@ -228,89 +284,154 @@ def get_base_url(req):
     return url
 
 
-def check_form(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
-    return check_http(req, candidate, sessionid, csrf, proxy, timeout)
+def check_post(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+    return check_http(req, session, candidate, sessionid, csrf, proxy, timeout)
 
 
-def check_get(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
-    return check_http(req, candidate, sessionid, csrf, proxy, timeout)
+def check_raw_post(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+    return check_http(req, session, candidate, sessionid, csrf, proxy, timeout)
 
 
-def check_http(req, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+def check_get(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+    return check_http(req, session, candidate, sessionid, csrf, proxy, timeout)
+
+
+def render_creds(candidate, csrf):
+    """
+        Return a list of dicts with post/get data and creds.
+
+        The list of dicts have a data element and a username and password
+        associated with the data. The data will either be a dict if its a
+        regular GET or POST and a string if its a raw POST.
+    """
+    posts = list()
+    data = None
+    b64 = candidate['auth'].get('base64', None)
+    config = candidate['auth'].get('post', candidate['auth'].get(
+        'get', candidate['auth'].get('raw_post', None)))
+
+    if not candidate['auth']['type'] == 'raw_post':
+        data = get_parameter_dict(candidate['auth'])
+
+        if csrf:
+            csrf_field = candidate['auth']['csrf']
+            data[csrf_field] = csrf
+
+        for cred in candidate['auth']['credentials']:
+            username = ""
+            password = ""
+            if b64:
+                username = base64.b64encode(cred['username'])
+                password = base64.b64encode(cred['password'])
+            else:
+                username = cred['username']
+                password = cred['password']
+
+            data[config['username']] = username
+            data[config['password']] = password
+
+            posts.append({
+                'data': data,
+                'username': username,
+                'password': password,
+            })
+    else:  # raw post
+        for cred in candidate['auth']['credentials']:
+            posts.append({
+                'data': cred['raw'],
+                'username': cred['username'],
+                'password': cred['password'],
+            })
+
+    return posts
+
+
+def check_http(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     matches = list()
-
-    config = candidate['auth'].get('form', candidate['auth'].get('get'))
+    data = None
 
     url = get_base_url(req)
     logger.debug('[check_http] base url: %s' % url)
     urls = candidate['auth']['url']
 
-    data = get_parameter_dict(candidate['auth'])
-
-    if csrf:
-        csrf_field = candidate['auth']['csrf']
-        data[csrf_field] = csrf
-
-    for cred in candidate['auth']['credentials']:
-        username = cred['username']
-        password = cred['password']
-
+    rendered = render_creds(candidate, csrf)
+    for cred in rendered:
         logger.debug('[check_http] %s - %s:%s' % (
-                     candidate['name'],
-                     username,
-                     password,))
-
-        data[config['username']] = username
-        data[config['password']] = password
+            candidate['name'],
+            cred['username'],
+            cred['username'],))
 
         res = None
         for u in urls:
             url = get_base_url(req) + u
             logger.debug("[check_http] url: %s" % url)
-            logger.debug('[check_http] data: %s' % data)
+            logger.debug('[check_http] data: %s' % cred['data'])
 
             try:
-                session = requests.Session()
-                if candidate['auth']['type'] == 'form':
-                    res = session.post(url, data, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
+                if candidate['auth']['type'] == 'post' or candidate['auth']['type'] == 'raw_post':
+                    res = session.post(
+                        url,
+                        cred['data'],
+                        cookies=sessionid,
+                        verify=False,
+                        proxies=proxy,
+                        timeout=timeout,
+                        headers={
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}
+                    )
                 else:
-                    qs = urllib.urlencode(data)
+                    qs = urllib.urlencode(cred['data'])
                     url = "%s?%s" % (url, qs)
                     logger.debug("[check_http] url: %s" % url)
-                    res = session.get(url, cookies=sessionid, verify=False, proxies=proxy, timeout=timeout)
+                    res = session.get(
+                        url,
+                        cookies=sessionid,
+                        verify=False,
+                        proxies=proxy,
+                        timeout=timeout,
+                        headers={
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}
+                    )
             except Exception as e:
                 logger.error("[check_http] Failed to connect to %s" % url)
-                logger.debug("[check_http] Exception: %s" % e.__str__().replace('\n', '|'))
-                return None
+                logger.debug("[check_http] Exception: %s" %
+                             e.__str__().replace('\n', '|'))
+                continue
 
             logger.debug('[check_http] res.status_code: %i' % res.status_code)
             logger.debug('[check_http] res.text: %s' % res.text)
 
-            if res and check_success(req, res, candidate, username, password):
+            if res and check_success(req, res, candidate, cred['username'], cred['password'], candidate['auth'].get('base64', None)):
                 matches.append(candidate)
 
     logger.debug('[check_http] matches: %s' % matches)
     return matches
 
 
-def check_success(req, res, candidate, username, password):
-        match = True
-        success = candidate['auth']['success']
+def check_success(req, res, candidate, username, password, b64):
+    match = True
+    success = candidate['auth']['success']
+    if b64:
+        username = base64.b64decode(username)
+        password = base64.b64decode(password)
 
-        if success['status'] and not success['status'] == res.status_code:
-            logger.debug('[check_success] status != res.status')
-            match = False
+    if success['status'] and not success['status'] == res.status_code:
+        logger.debug('[check_success] status != res.status')
+        match = False
 
-        if match and success['body'] and not re.search(success['body'], res.text):
-            logger.debug('[check_success] body text not found in response body')
-            match = False
+    if match and success['body'] and not re.search(success['body'], res.text):
+        logger.debug('[check_success] body text not found in response body')
+        match = False
 
-        if match:
-            logger.critical('[+] Found %s default cred %s:%s at %s' % (candidate['name'], username, password, req))
-            return True
-        else:
-            logger.info('[check_success] Invalid %s default cred %s:%s' % (candidate['name'], username, password))
-            return False
+    if match:
+        logger.critical('[+] Found %s default cred %s:%s at %s' %
+                        (candidate['name'], username, password, req))
+        found_q.put((candidate['name'], username, password, req))
+        return True
+    else:
+        logger.info('[check_success] Invalid %s default cred %s:%s at %s' %
+                    (candidate['name'], username, password, req))
+        return False
 
 
 def get_csrf_token(res, cred):
@@ -320,7 +441,8 @@ def get_csrf_token(res, cred):
         try:
             csrf = tree.xpath('//input[@name="%s"]/@value' % name)[0]
         except:
-            logger.error("[get_csrf_token] failed to get CSRF token %s in %s" % (name, res.url))
+            logger.error(
+                "[get_csrf_token] failed to get CSRF token %s in %s" % (name, res.url))
             return False
         logger.debug('[get_csrf_token] got CSRF token %s: %s' % (name, csrf))
     else:
@@ -338,7 +460,8 @@ def get_session_id(res, cred):
             value = res.cookies[cookie]
             logger.debug('[get_session_id] cookie value: %s' % value)
         except:
-            logger.error("[get_session_id] failed to get %s cookie from %s" % (cookie, res.url))
+            logger.error(
+                "[get_session_id] failed to get %s cookie from %s" % (cookie, res.url))
             return False
         return {cookie: value}
     else:
@@ -346,90 +469,122 @@ def get_session_id(res, cred):
         return False
 
 
-def scan(urls, creds, config):
-
-    Thread = threading.Thread
-    for req in urls:
-        while 1:
-            if threading.activeCount() <= config['threads']:
-                t = Thread(target=do_scan, args=(req, creds, config))
-                t.start()
-                break
+def get_cred(fp, creds):
+    for cred in creds:
+        if fp == Fingerprint(cred['name'], cred['fingerprint']):
+            return cred
 
 
-def do_scan(req, creds, config):
-        try:
-            res = requests.get(req, timeout=config['timeout'], verify=False, proxies=config['proxy'])
-            logger.debug('[do_scan] %s - %i' % (req, res.status_code))
-        except Exception as e:
-            logger.debug('[do_scan] Failed to connect to %s' % req)
-            logger.debug(e)
-            return
+def scan(fingerprints, creds, config):
 
-        fp_matches = get_fingerprint_matches(res, creds)
-        logger.debug("[do_scan] Found %i fingerprint matches for %s response" % (len(fp_matches), req))
-        matches = list()
-        for match in fp_matches:
-            logger.info('[do_scan] %s matched %s' % (req, match['name']))
-            logger.debug('[do_scan] %s auth type: %s' % (match['name'], match['auth']['type']))
+    procs = [mp.Process(target=do_scan, args=(fingerprints, creds, config))
+             for i in range(config['threads'])]
+    logger.debug("fp q size: %i " % fingerprints.qsize())
+    for proc in procs:
+        proc.start()
 
-            if not config['fingerprint']:
-                check = globals()['check_' + match['auth']['type']]
-                csrf = get_csrf_token(res, match)
-                sessionid = get_session_id(res, match)
-
-                # Only scan if a sessionid is required and we can get it
-                if match['auth'].get('sessionid') and not sessionid:
-                    logger.debug("[do_scan] Missing required sessionid")
-                    continue
-                # Only scan if a csrf token is required and we can get it
-                if match['auth'].get('csrf', False) and not csrf:
-                    logger.debug("[do_scan] Missing required csrf")
-                    continue
-
-                new_matches = check(req, match, sessionid, csrf, config['proxy'], config['timeout'])
-                if new_matches:
-                    matches = matches + new_matches
-                    logger.debug('[do_scan] matches: %s' % matches)
-            else:
-                matches = fp_matches
-
-        return matches
+    for proc in procs:
+        proc.join()
 
 
-def dry_run(urls):
+def do_scan(fingerprints, creds, config):
+    matches = list()
+    while not fingerprints.empty():
+        fp = fingerprints.get_nowait()
+        s = requests.Session()
+        for url in fp.urls:
+            try:
+                res = s.get(url, timeout=config['timeout'], verify=False, proxies=config[
+                            'proxy'], cookies=fp.cookies, headers=fp.headers)
+                logger.debug('[do_scan] %s - %i' % (url, res.status_code))
+            except Exception as e:
+                logger.debug('[do_scan] Failed to connect to %s' % (url,))
+                logger.debug(e)
+                continue
+
+            match = fp.match(res)
+            if match:
+                logger.info("[do_scan] %s fingerprint matched %s" %
+                            (url, fp.name))
+
+                if not config['fingerprint']:
+                    cred = get_cred(fp, creds)  # return matching cred
+                    logger.debug("fp.name: %s, cred.name: %s" %
+                                 (fp.name, cred['name']))
+                    check = globals()['check_' + cred['auth']['type']]
+                    csrf = get_csrf_token(res, cred)
+                    sessionid = get_session_id(res, cred)
+
+                    # Only scan if a sessionid is required and we can get it
+                    if cred['auth'].get('sessionid') and not sessionid:
+                        logger.debug("[do_scan] Missing required sessionid")
+                        continue
+
+                    # Only scan if a csrf token is required and we can get it
+                    if cred['auth'].get('csrf', False) and not csrf:
+                        logger.debug("[do_scan] Missing required csrf")
+                        continue
+
+                    cred_matches = check(url, s, cred, sessionid, csrf, config[
+                                         'proxy'], config['timeout'])
+                    if cred_matches:
+                        matches = matches + cred_matches
+                        logger.debug('[do_scan] matches: %s' % cred_matches)
+                else:  # fingerprinting only
+                    matches.append(fp)
+
+        fingerprints.task_done()
+    return matches
+
+
+def dry_run(fingerprints):
     logger.info("Dry run URLs:")
-    for url in urls:
-        print url
+    while not fingerprints.empty():
+        fp = fingerprints.get_nowait()
+        for url in fp.urls:
+            print url
+        fingerprints.task_done()
     sys.exit()
 
 
 def build_target_list(targets, creds, name, category):
 
     # Build target list
-    urls = list()
+    fingerprints = mp.Manager().Queue()
+    num_urls = 0
     for target in targets:
         for c in creds:
+            urls = set()
+            port = c.get('default_port', 80)
+
             if name and not name == c['name']:
                 continue
             if category and not category == c['category']:
                 continue
+            if not isinstance(target, IPAddress) and ":" in target and not int(port) == int(target.split(":")[1]):
+                continue
+            elif not isinstance(target, IPAddress):
+                # strip the port off
+                target = target.split(":")[0]
 
-            port = c.get('default_port', 80)
             ssl = c.get('ssl', False)
             if ssl:
                 proto = 'https'
             else:
                 proto = 'http'
 
-            paths = c.get('fingerprint')["url"]
+            fp = Fingerprint(c['name'], fp=c['fingerprint'])
 
-            for path in paths:
+            for path in fp.urls:
                 url = '%s://%s:%s%s' % (proto, target, port, path)
-                urls.append(url)
+                urls.add(url)
+                num_urls += 1
                 logger.debug('[build_target_list] Rendered url: %s' % url)
 
-    return urls
+            fp.urls = urls
+            fingerprints.put(fp)
+
+    return {'fingerprints': fingerprints, 'num_urls': num_urls}
 
 
 def print_contributors(creds):
@@ -450,12 +605,29 @@ def print_creds(creds):
             print "  - %s:%s" % (i['username'], i['password'])
 
 
+def file_exists(f):
+    if not os.path.isfile(f):
+        logger.error("File %s not found" % f)
+        sys.exit()
+
+
+def report_creds(found_q, output):
+    logger.critical("Found %i credentials" % found_q.qsize())
+    if output:
+        with open(output, "wb") as fout:
+            while not found_q.empty():
+                fout.write(','.join(map(str, found_q.get())) + '\n')
+
+        logger.info("Wrote output to %s" % output)
+
+
 def main():
     print banner
     targets = set()
     proxy = None
     global logger
     config = dict()
+    global found_q
 
     start = time()
 
@@ -469,19 +641,23 @@ def main():
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
+    ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
     ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan')
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query')
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key')
     ap.add_argument('--targets', type=str, help='File of targets to scan')
-    ap.add_argument('--threads', '-t', type=int, help='Number of threads', default=10)
-    ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request', default=10)
+    ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
+    ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
     ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
     ap.add_argument('--validate', action='store_true', help='Validate creds files')
+    ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse')
     args = ap.parse_args()
 
     setup_logging(args.verbose, args.debug, args.log)
 
-    if not args.subnet and not args.targets and not args.validate and not args.contributors and not args.dump and not args.shodan_query:
+    if (not args.subnet and not args.targets and not args.validate and
+            not args.contributors and not args.dump and
+            not args.shodan_query and not args.nmap):
         logger.error('Need to supply a subnet, targets file or shodan query.')
         ap.print_help()
         sys.exit()
@@ -491,6 +667,7 @@ def main():
             targets.add(ip)
 
     if args.targets:
+        file_exists(args.targets)
         with open(args.targets, 'r') as fin:
             targets = [x.strip('\n') for x in fin.readlines()]
 
@@ -500,7 +677,15 @@ def main():
         for r in results['matches']:
             targets.add(r['ip_str'])
 
-    logger.info("Loaded %i targets" % len(targets))
+    if args.nmap:
+        file_exists(args.nmap)
+        report = np.parse_fromfile(args.nmap)
+        logger.info('Loaded %i hosts from %s' % (len(report.hosts), args.nmap))
+        for h in report.hosts:
+            for s in h.services:
+                targets.add('%s:%s' % (h.address, s.port))
+
+    logger.info('Loaded %i targets' % len(targets))
 
     if args.proxy and re.match('^https?://[0-9\.]+:[0-9]{1,5}$', args.proxy):
         proxy = {'http': args.proxy,
@@ -526,12 +711,13 @@ def main():
         # Need to drop the level to INFO to see the fp messages
         logger.setLevel(logging.INFO)
 
-    urls = build_target_list(targets, creds, args.name, args.category)
+    tlist = build_target_list(targets, creds, args.name, args.category)
+    fingerprints = tlist['fingerprints']
 
     if args.dryrun:
-        dry_run(urls)
+        dry_run(fingerprints)
 
-    logger.info('Scanning %i URLs' % len(urls))
+    logger.info('Scanning %i URLs' % tlist['num_urls'])
 
     config = {
         'threads':  args.threads,
@@ -539,8 +725,11 @@ def main():
         'proxy': proxy,
         'fingerprint': args.fingerprint}
 
-    scan(urls, creds, config)
+    if config['threads'] > tlist['num_urls']:
+        config['threads'] = tlist['num_urls']
 
+    scan(fingerprints, creds, config)
+    report_creds(found_q, args.output)
 
 if __name__ == '__main__':
     main()

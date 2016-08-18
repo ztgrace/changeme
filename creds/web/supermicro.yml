@@ -1,0 +1,23 @@
+auth:
+  credentials:
+  - password: ADMIN
+    username: ADMIN
+  post:
+    password: pwd
+    username: name
+  success:
+    body: 'self.location="../cgi/url_redirect.cgi\?url_name=mainmenu"; '
+    status: 200
+  type: post
+  url:
+  - /cgi/login.cgi
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: '<h3><script>document.writeln\(lang.LANG_LOGIN_PROMPT\);</script></h3>'
+  status: 200
+  url:
+  - /
+name: Supermicro
+ssl: false
