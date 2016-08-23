@@ -269,7 +269,6 @@ def check_basic_auth(req, session, candidate, sessionid=False, csrf=False, proxy
             try:
                 # restore the original session
                 session = deepcopy(orig_session)
-                print(UserAgent)
                 res = session.get(
                     url,
                     auth=HTTPBasicAuth(username, password),
