@@ -1,0 +1,21 @@
+auth:
+  credentials:
+  - password: PASSW0RD
+    username: USERID
+    raw: USERNAME=USERID,PASSWORD=PASSW0RD
+  success:
+    body: 'ok:'
+    status: 200
+  type: raw_post
+  url:
+  - /session/create
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: <title>IMM</title>
+  status: 200
+  url:
+  - /
+name: IBM IMM
+ssl: false

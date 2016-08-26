@@ -1,0 +1,21 @@
+auth:
+  credentials:
+  - password: ''
+    username: ''
+  sessionid: TCSESSIONID
+  success:
+    body: <title>Projects &mdash; TeamCity</title>
+    status: 200
+  type: basic_auth
+  url:
+  - /guestLogin.html?guest=1
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: Log in to TeamCity
+  status: 200
+  url:
+  - /login.html
+name: TeamCity 9 Guest
+ssl: false

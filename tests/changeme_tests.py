@@ -10,6 +10,7 @@ import responses
 import re
 import random
 from time import sleep
+from copy import deepcopy
 
 
 class mock:
@@ -137,7 +138,8 @@ class TestChangeme:
             'threads': 1,
             'timeout': 2,
             'proxy': None,
-            'fingerprint': False}
+            'fingerprint': False,
+            'useragent': None}
 
     def setUp(self):
         self.creds = changeme.load_creds(None, None)
@@ -287,7 +289,7 @@ class TestChangeme:
 
         assert cred['name'] == self.tomcat_name
         s = requests.Session()
-        matches = changeme.check_basic_auth(mock.tomcat_fp['url'], s, cred, False, False, None)
+        matches = changeme.check_basic_auth(mock.tomcat_fp['url'], s, cred, self.config, False)
         assert len(matches) > 0
 
     @responses.activate
@@ -300,7 +302,7 @@ class TestChangeme:
 
         changeme.logger = changeme.setup_logging(False, False, None)
         s = requests.Session()
-        matches = changeme.check_basic_auth(mock.tomcat_fp['url'], s, cred, False, False)
+        matches = changeme.check_basic_auth(mock.tomcat_fp['url'], s, cred, self.config, False, False)
         assert len(matches) == 0
 
     """
@@ -318,8 +320,10 @@ class TestChangeme:
                             mock.jboss_fp['url'],
                             s,
                             cred,
+                            self.config,
                             {'JSESSIONID': 'foobar'},
-                            'foobar')
+                            'foobar',
+                    )
 
         assert len(matches) > 0
 
@@ -335,6 +339,7 @@ class TestChangeme:
                             mock.jboss_fp['url'],
                             s,
                             cred,
+                            self.config,
                             {'JSESSIONID': 'foobar'},
                             'foobar')
 
@@ -348,7 +353,7 @@ class TestChangeme:
         assert cred['name'] == 'Zabbix'
 
         s = requests.Session()
-        matches = changeme.check_post(mock.zabbix_auth['url'], s, cred, False, False)
+        matches = changeme.check_post(mock.zabbix_auth['url'], s, cred, self.config, False, False)
         assert len(matches) > 0
 
     @responses.activate
@@ -359,7 +364,7 @@ class TestChangeme:
         assert cred['name'] == 'Zabbix'
 
         s = requests.Session()
-        matches = changeme.check_post(mock.zabbix_auth['url'], s, cred, False, False)
+        matches = changeme.check_post(mock.zabbix_auth['url'], s, cred, self.config, False, False)
         assert len(matches) == 0
 
     """

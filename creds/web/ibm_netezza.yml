@@ -1,0 +1,25 @@
+auth:
+  credentials:
+  - password: password
+    raw: <?xml version="1.0" encoding="UTF-8" curtime="1471988517270" ?> <SOAP-ENV:Envelope
+      xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:ns1="http://www.example.org/Admin/"> <SOAP-ENV:Body>  <ns1:PortalAuthentication>    <host>127.0.0.1</host>    <application>portal</application>   <statusOnly>false</statusOnly>   <portalUsername>admin</portalUsername>    <portalPassword>password</portalPassword>   </ns1:PortalAuthentication>
+      </SOAP-ENV:Body></SOAP-ENV:Envelope>
+    username: admin
+  success:
+    body: "><Status username=\"admin\""
+    status: 200
+  type: raw_post
+  url:
+  - /com.netezza.portal.Portal/nzsoap
+category: web
+contributor: ztgrace
+default_port: 443
+fingerprint:
+  body: <title>IBM Netezza
+  status: 200
+  url:
+  - /com.netezza.portal.Portal/index.html
+name: IBM Netezza
+ssl: true

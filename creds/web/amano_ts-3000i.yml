@@ -1,0 +1,24 @@
+auth:
+  credentials:
+  - password: '6569'
+    username: Admin
+  post:
+    Submit: Login
+    password: atvsUserPassword
+    username: atvsUserName
+  success:
+    body: '>Logout</a>'
+    status: 200
+  type: post
+  url:
+  - /Forms/index_1
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: <img src="Images/amano_header.jpg"
+  status: 200
+  url:
+  - /
+name: Amano TS-3000i
+ssl: false

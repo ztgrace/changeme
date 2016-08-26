@@ -26,7 +26,7 @@ from copy import copy, deepcopy
 import random
 
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 
 
 logger = None
@@ -250,7 +250,7 @@ def get_useragent():
     return random.choice(headers_useragents)
 
 
-def check_basic_auth(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+def check_basic_auth(req, session, candidate, config, sessionid=False, csrf=False):
     matches = list()
 
     # Copy the session so successful creds don't affect other
@@ -273,10 +273,9 @@ def check_basic_auth(req, session, candidate, sessionid=False, csrf=False, proxy
                     url,
                     auth=HTTPBasicAuth(username, password),
                     verify=False,
-                    proxies=proxy,
-                    timeout=timeout,
-                    headers={
-                        'User-Agent': UserAgent if UserAgent else get_useragent()}
+                    proxies=config['proxy'],
+                    timeout=config['timeout'],
+                    headers=config['useragent'],
                 )
 
             except Exception as e:
@@ -308,16 +307,16 @@ def get_base_url(req):
     return url
 
 
-def check_post(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
-    return check_http(req, session, candidate, sessionid, csrf, proxy, timeout)
+def check_post(req, session, candidate, config, sessionid=False, csrf=False):
+    return check_http(req, session, candidate, config, sessionid, csrf)
 
 
-def check_raw_post(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
-    return check_http(req, session, candidate, sessionid, csrf, proxy, timeout)
+def check_raw_post(req, session, candidate, config, sessionid=False, csrf=False):
+    return check_http(req, session, candidate, config, sessionid, csrf)
 
 
-def check_get(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
-    return check_http(req, session, candidate, sessionid, csrf, proxy, timeout)
+def check_get(req, session, candidate, config, sessionid=False, csrf=False):
+    return check_http(req, session, candidate, config, sessionid, csrf)
 
 
 def render_creds(candidate, csrf):
@@ -370,7 +369,7 @@ def render_creds(candidate, csrf):
     return posts
 
 
-def check_http(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
+def check_http(req, session, candidate, config, sessionid=False, csrf=False):
     matches = list()
     data = None
 
@@ -398,10 +397,9 @@ def check_http(req, session, candidate, sessionid=False, csrf=False, proxy=None,
                         cred['data'],
                         cookies=sessionid,
                         verify=False,
-                        proxies=proxy,
-                        timeout=timeout,
-                        headers={
-                            'User-Agent': UserAgent if UserAgent else get_useragent()}
+                        proxies=config['proxy'],
+                        timeout=config['timeout'],
+                        headers=config['useragent'],
                     )
                 else:
                     qs = urllib.urlencode(cred['data'])
@@ -411,10 +409,9 @@ def check_http(req, session, candidate, sessionid=False, csrf=False, proxy=None,
                         url,
                         cookies=sessionid,
                         verify=False,
-                        proxies=proxy,
-                        timeout=timeout,
-                        headers={
-                            'User-Agent': UserAgent if UserAgent else get_useragent()}
+                        proxies=config['proxy'],
+                        timeout=config['timeout'],
+                        headers=config['useragent'],
                     )
             except Exception as e:
                 logger.error("[check_http] Failed to connect to %s" % url)
@@ -518,8 +515,15 @@ def do_scan(fingerprints, creds, config):
         s = requests.Session()
         for url in fp.urls:
             try:
+                # config['useragent'] is merged with fp.headers so 
+                # that a hard-coded ua in a fp supersedes a manually set ua
+                headers = config['useragent']
+                if fp.headers:
+                    headers.update(fp.headers)
+                    logger.debug("merged headers: %s" % headers)
+
                 res = s.get(url, timeout=config['timeout'], verify=False, proxies=config[
-                            'proxy'], cookies=fp.cookies, headers=fp.headers)
+                            'proxy'], cookies=fp.cookies, headers=headers)
                 logger.debug('[do_scan] %s - %i' % (url, res.status_code))
             except Exception as e:
                 logger.debug('[do_scan] Failed to connect to %s' % (url,))
@@ -549,8 +553,7 @@ def do_scan(fingerprints, creds, config):
                         logger.debug("[do_scan] Missing required csrf")
                         continue
 
-                    cred_matches = check(url, s, cred, sessionid, csrf, config[
-                                         'proxy'], config['timeout'])
+                    cred_matches = check(url, s, cred, config, sessionid, csrf)
                     if cred_matches:
                         matches = matches + cred_matches
                         logger.debug('[do_scan] matches: %s' % cred_matches)
@@ -691,13 +694,6 @@ def main():
         for ip in IPNetwork(args.subnet).iter_hosts():
             targets.add(ip)
 
-    global UserAgent
-    if args.useragent:
-        UserAgent = args.useragent
-    else:
-        UserAgent = ""
-
-
     if args.targets:
         file_exists(args.targets)
         with open(args.targets, 'r') as fin:
@@ -753,9 +749,11 @@ def main():
 
     config = {
         'threads':  args.threads,
-        'timeout': args.timeout,
+        'timeout': args.timeout if args.timeout else 10,
         'proxy': proxy,
-        'fingerprint': args.fingerprint}
+        'fingerprint': args.fingerprint,
+        'useragent': {'User-Agent': args.useragent if args.useragent else get_useragent()}
+    }
 
     if config['threads'] > tlist['num_urls']:
         config['threads'] = tlist['num_urls']
