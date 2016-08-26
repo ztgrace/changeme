@@ -23,6 +23,7 @@ from libnmap.parser import NmapParser as np
 import base64
 from time import sleep
 from copy import copy, deepcopy
+import random
 
 
 __version__ = "0.4.2"
@@ -76,7 +77,7 @@ class Fingerprint:
             return True
 
         if (self.urls == other.urls and self.cookies == other.cookies and
-                self.headers == other .headers):
+                self.headers == other.headers):
             return True
 
         return False
@@ -232,6 +233,22 @@ def validate_cred(cred, f):
 
     return valid
 
+def get_useragent():
+    headers_useragents = [
+            'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.3) Gecko/20090913 Firefox/3.5.3',
+            'Mozilla/5.0 (Windows; U; Windows NT 6.1; en; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 (.NET CLR 3.5.30729)',
+            'Mozilla/5.0 (Windows; U; Windows NT 5.2; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 (.NET CLR 3.5.30729)',
+            'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.1) Gecko/20090718 Firefox/3.5.1',
+            'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/532.1 (KHTML, like Gecko) Chrome/4.0.219.6 Safari/532.1',
+            'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; InfoPath.2)',
+            'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Win64; x64; Trident/4.0)',
+            'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; SV1; .NET CLR 2.0.50727; InfoPath.2)',
+            'Mozilla/5.0 (Windows; U; MSIE 7.0; Windows NT 6.0; en-US)',
+            'Mozilla/4.0 (compatible; MSIE 6.1; Windows XP)',
+            'Opera/9.80 (Windows NT 5.2; U; ru) Presto/2.5.22 Version/10.51'
+        ]
+    return random.choice(headers_useragents)
+
 
 def check_basic_auth(req, session, candidate, sessionid=False, csrf=False, proxy=None, timeout=10):
     matches = list()
@@ -259,7 +276,7 @@ def check_basic_auth(req, session, candidate, sessionid=False, csrf=False, proxy
                     proxies=proxy,
                     timeout=timeout,
                     headers={
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}
+                        'User-Agent': UserAgent if UserAgent else get_useragent()}
                 )
 
             except Exception as e:
@@ -384,7 +401,7 @@ def check_http(req, session, candidate, sessionid=False, csrf=False, proxy=None,
                         proxies=proxy,
                         timeout=timeout,
                         headers={
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}
+                            'User-Agent': UserAgent if UserAgent else get_useragent()}
                     )
                 else:
                     qs = urllib.urlencode(cred['data'])
@@ -397,7 +414,7 @@ def check_http(req, session, candidate, sessionid=False, csrf=False, proxy=None,
                         proxies=proxy,
                         timeout=timeout,
                         headers={
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'}
+                            'User-Agent': UserAgent if UserAgent else get_useragent()}
                     )
             except Exception as e:
                 logger.error("[check_http] Failed to connect to %s" % url)
@@ -658,6 +675,7 @@ def main():
     ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
     ap.add_argument('--validate', action='store_true', help='Validate creds files')
     ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse')
+    ap.add_argument('--useragent', '-ua' , type=str, help="User agent string to use")
     args = ap.parse_args()
 
     setup_logging(args.verbose, args.debug, args.log)
@@ -672,6 +690,13 @@ def main():
     if args.subnet:
         for ip in IPNetwork(args.subnet).iter_hosts():
             targets.add(ip)
+
+    global UserAgent
+    if args.useragent:
+        UserAgent = args.useragent
+    else:
+        UserAgent = ""
+
 
     if args.targets:
         file_exists(args.targets)
