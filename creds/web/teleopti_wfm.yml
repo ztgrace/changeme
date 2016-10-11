@@ -1,0 +1,22 @@
+auth:
+  credentials:
+  - password: admin
+    raw: '{"granttype":"password","username":"admin@company.com","password":"admin"}'
+    username: admin@company.com
+  sessionid: .AspNet.ApplicationCookie
+  success:
+    body: Log out</a>
+    status: 200
+  type: raw_post
+  url:
+  - /TeleoptiWFM/Administration/Login
+category: web
+contributor: Graph-X
+default_port: 80
+fingerprint:
+  body: <title>Teleopti WFM Administration</title>
+  status: 200
+  url:
+  - /TeleoptiWFM/Administration
+name: Teleopti WFM
+ssl: false
