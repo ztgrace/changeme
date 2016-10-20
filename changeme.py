@@ -58,10 +58,9 @@ class Fingerprint:
         if cookies:
             self.cookies = cookies[0]
         self.headers = None
-        headers = fp.get('headers')
+        headers = fp.get('headers', None)
         if headers:
             self.headers = headers[0]
-            logger.debug("self.headers: %s" % self.headers)
 
         self.server_header = fp.get('server_header', None)
 
@@ -611,7 +610,7 @@ def build_target_list(targets, creds, name, category):
             fp = Fingerprint(c['name'], fp=c['fingerprint'])
 
             for path in fp.urls:
-                url = '%s://%s%s' % (proto, target, path)
+                url = '%s://%s%s' % (proto, target, port, path)
                 urls.add(url)
                 num_urls += 1
                 logger.debug('[build_target_list] Rendered url: %s' % url)
