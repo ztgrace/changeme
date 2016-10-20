@@ -530,7 +530,6 @@ def do_scan(fingerprints, creds, config):
                 if fp.headers:
                     headers.update(fp.headers)
                     logger.debug("merged headers: %s" % headers)
-                headers.update(contentType)
                 res = s.get(url, timeout=config['timeout'], verify=False, proxies=config[
                             'proxy'], cookies=fp.cookies, headers=headers)
                 logger.debug('[do_scan] %s - %i' % (url, res.status_code))
