@@ -57,11 +57,11 @@ class Fingerprint:
         cookies = fp.get('cookie')
         if cookies:
             self.cookies = cookies[0]
-
         self.headers = None
-        headers = fp.get('headers', None)
+        headers = fp.get('headers')
         if headers:
             self.headers = headers[0]
+            logger.debug("self.headers: %s" % self.headers)
 
         self.server_header = fp.get('server_header', None)
 
@@ -372,11 +372,20 @@ def render_creds(candidate, csrf):
 def check_http(req, session, candidate, config, sessionid=False, csrf=False):
     matches = list()
     data = None
+    headers = dict()
 
     url = get_base_url(req)
     logger.debug('[check_http] base url: %s' % url)
     urls = candidate['auth']['url']
-
+    if candidate['auth']['headers']:
+        canheaders = candidate['auth']['headers']
+        logger.debug('[check_http] candidate headers: %s' % canheaders)
+        for head in canheaders:
+            headers.update(head)
+        
+        headers.update(config['useragent'])
+    else:
+        headers = config['useragent']
     rendered = render_creds(candidate, csrf)
     for cred in rendered:
         logger.debug('[check_http] %s - %s:%s' % (
@@ -399,7 +408,7 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
                         verify=False,
                         proxies=config['proxy'],
                         timeout=config['timeout'],
-                        headers=config['useragent'],
+                        headers=headers,
                     )
                 else:
                     qs = urllib.urlencode(cred['data'])
@@ -411,7 +420,7 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
                         verify=False,
                         proxies=config['proxy'],
                         timeout=config['timeout'],
-                        headers=config['useragent'],
+                        headers=headers,
                     )
             except Exception as e:
                 logger.error("[check_http] Failed to connect to %s" % url)
@@ -521,7 +530,7 @@ def do_scan(fingerprints, creds, config):
                 if fp.headers:
                     headers.update(fp.headers)
                     logger.debug("merged headers: %s" % headers)
-
+                headers.update(contentType)
                 res = s.get(url, timeout=config['timeout'], verify=False, proxies=config[
                             'proxy'], cookies=fp.cookies, headers=headers)
                 logger.debug('[do_scan] %s - %i' % (url, res.status_code))
@@ -603,7 +612,7 @@ def build_target_list(targets, creds, name, category):
             fp = Fingerprint(c['name'], fp=c['fingerprint'])
 
             for path in fp.urls:
-                url = '%s://%s:%s%s' % (proto, target, port, path)
+                url = '%s://%s%s' % (proto, target, path)
                 urls.add(url)
                 num_urls += 1
                 logger.debug('[build_target_list] Rendered url: %s' % url)
