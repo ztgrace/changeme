@@ -1,0 +1,31 @@
+auth:
+  credentials:
+  - password: jasperadmin
+    username: jasperadmin
+  - password: bitnami
+    username: jasperadmin
+  post:
+    j_password_pseudo: jasperadmin
+    password: j_password
+    userLocale: en_US
+    userTimezone: Asia/Calcutta
+    username: j_username
+  sessionid: JSESSIONID
+  success:
+    body: '<title>Jaspersoft: Browse Repository</title>'
+    status: 200
+  type: post
+  url:
+  - /jasperserver/j_spring_security_check
+  - /j_spring_security_check
+category: web
+contributor: ztgrace
+default_port: 8080
+fingerprint:
+  body: '<title>Jaspersoft: Login</title>'
+  status: 200
+  url:
+  - /login.html
+  - /jasperserver/login.html
+name: JasperReports
+ssl: false

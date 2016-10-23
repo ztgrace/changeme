@@ -1,0 +1,20 @@
+auth:
+  credentials:
+  - password: ''
+    username: ''
+  success:
+    body: <title>Dashboard \[Jenkins\]</title>
+    status: 200
+  type: basic_auth
+  url:
+  - /
+category: web
+contributor: ztgrace
+default_port: 8080
+fingerprint:
+  body: <title>Dashboard \[Jenkins\]</title>
+  status: 200
+  url:
+  - /
+name: Jenkins
+ssl: false
