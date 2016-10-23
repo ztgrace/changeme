@@ -26,7 +26,7 @@ from copy import copy, deepcopy
 import random
 
 
-__version__ = "0.4.3"
+__version__ = "0.4.4"
 
 
 logger = None
@@ -373,12 +373,12 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
     matches = list()
     data = None
     headers = dict()
-    d = config['delay']
+    delay = config.get('delay', 10)
     url = get_base_url(req)
     logger.debug('[check_http] base url: %s' % url)
     urls = candidate['auth']['url']
-    if candidate['auth']['headers']:
-        canheaders = candidate.get(['auth']['headers'], None)
+    if candidate['auth'].get('headers', None):
+        canheaders = candidate['auth']['headers']
         logger.debug('[check_http] candidate headers: %s' % canheaders)
         for head in canheaders:
             headers.update(head)
@@ -434,8 +434,8 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
             # response code 429 is too many requests.  Some appliances or WAFs may respond this way if
             # there are too many requests from the same source in a certain amount of time.
             if res.status_code == 429:
-                logger.warn('[check_http] Status 429 received.  sleeping for %d seconds and trying again' % d)
-                sleep(d)
+                logger.warn('[check_http] Status 429 received. Sleeping for %d seconds and trying again' % delay)
+                sleep(delay)
                 try:
                     if candidtate['auth']['type'] == 'post' or candidate['auth']['type'] == 'raw_post':
                         res = session.post(
