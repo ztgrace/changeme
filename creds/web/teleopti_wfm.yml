@@ -1,15 +1,16 @@
 auth:
   credentials:
-  - password: admin
-    raw: '{"granttype":"password","username":"admin@company.com","password":"admin"}'
-    username: admin@company.com
-  sessionid: .AspNet.ApplicationCookie
+    - raw: '{"granttype":"password","username":"admin@company.com","password":"admin"}'
+      username: admin@company.com
+      password: admin
   success:
-    body: Log out</a>
+    body: '"AccessToken":"C1F2BF74658F78E6928A2E8A2426BE6360720989","UserName"'
     status: 200
   type: raw_post
   url:
   - /TeleoptiWFM/Administration/Login
+  headers: 
+    - Content-Type: application/json;charset=UTF-8
 category: web
 contributor: Graph-X
 default_port: 80
@@ -17,6 +18,6 @@ fingerprint:
   body: <title>Teleopti WFM Administration</title>
   status: 200
   url:
-  - /TeleoptiWFM/Administration
+  - /TeleoptiWFM/Administration/
 name: Teleopti WFM
 ssl: false

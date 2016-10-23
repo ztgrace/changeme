@@ -57,11 +57,11 @@ class Fingerprint:
         cookies = fp.get('cookie')
         if cookies:
             self.cookies = cookies[0]
-
         self.headers = None
         headers = fp.get('headers', None)
         if headers:
             self.headers = headers[0]
+            logger.debug("self.headers: %s" % self.headers)
 
         self.server_header = fp.get('server_header', None)
 
@@ -372,11 +372,20 @@ def render_creds(candidate, csrf):
 def check_http(req, session, candidate, config, sessionid=False, csrf=False):
     matches = list()
     data = None
-
+    headers = dict()
+    d = config['delay']
     url = get_base_url(req)
     logger.debug('[check_http] base url: %s' % url)
     urls = candidate['auth']['url']
-
+    if candidate['auth']['headers']:
+        canheaders = candidate.get(['auth']['headers'], None)
+        logger.debug('[check_http] candidate headers: %s' % canheaders)
+        for head in canheaders:
+            headers.update(head)
+        
+        headers.update(config['useragent'])
+    else:
+        headers = config['useragent']
     rendered = render_creds(candidate, csrf)
     for cred in rendered:
         logger.debug('[check_http] %s - %s:%s' % (
@@ -399,7 +408,7 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
                         verify=False,
                         proxies=config['proxy'],
                         timeout=config['timeout'],
-                        headers=config['useragent'],
+                        headers=headers,
                     )
                 else:
                     qs = urllib.urlencode(cred['data'])
@@ -411,16 +420,49 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
                         verify=False,
                         proxies=config['proxy'],
                         timeout=config['timeout'],
-                        headers=config['useragent'],
+                        headers=headers,
                     )
             except Exception as e:
                 logger.error("[check_http] Failed to connect to %s" % url)
                 logger.debug("[check_http] Exception: %s" %
                              e.__str__().replace('\n', '|'))
                 continue
-
             logger.debug('[check_http] res.status_code: %i' % res.status_code)
             logger.debug('[check_http] res.text: %s' % res.text)
+
+            #adding sleep and try again if 429 status code received.
+            # response code 429 is too many requests.  Some appliances or WAFs may respond this way if
+            # there are too many requests from the same source in a certain amount of time.
+            if res.status_code == 429:
+                logger.warn('[check_http] Status 429 received.  sleeping for %d seconds and trying again' % d)
+                sleep(d)
+                try:
+                    if candidtate['auth']['type'] == 'post' or candidate['auth']['type'] == 'raw_post':
+                        res = session.post(
+                            url,
+                            cred['data'],
+                            cookies=sessionid,
+                            verify=False,
+                            proxies=config['proxy'],
+                            timeout=config['timeout'],
+                            headers=headers,
+                        )
+                    else:
+                        res = session.get(
+                            url,
+                            cookies=sessionid,
+                            verify=False,
+                            proxies=config['proxy'],
+                            timeout=config['timeout'],
+                            headers=headers,
+                        )
+                except Exception as e:
+                    logger.error('[check_http] Failed to connect to %s' % url)
+                    logger.debug('[check_http] Exception: %s: %s' %
+                                e.__str__().replace('\n', '|'))
+                    continue
+                logger.error('[check_http] res.status_code: %i' % res.status_code)
+                logger.debug('[check_http] res.text: %s' % res.text)
 
             if res and check_success(req, res, candidate, cred['username'], cred['password'], candidate['auth'].get('base64', None)):
                 matches.append(candidate)
@@ -450,7 +492,7 @@ def check_success(req, res, candidate, username, password, b64):
         found_q.put((candidate['name'], username, password, req))
         return True
     else:
-        logger.info('[check_success] Invalid %s default cred %s:%s at %s' %
+        logger.info( '[check_success] Invalid %s default cred %s:%s at %s' %
                     (candidate['name'], username, password, req))
         return False
 
@@ -463,7 +505,7 @@ def get_csrf_token(res, cred):
             csrf = tree.xpath('//input[@name="%s"]/@value' % name)[0]
         except:
             logger.error(
-                "[get_csrf_token] failed to get CSRF token %s in %s" % (name, res.url))
+                "[get_csrf_token] failed to get CSRF token %s in %s" % (str(name), str(res.url)))
             return False
         logger.debug('[get_csrf_token] got CSRF token %s: %s' % (name, csrf))
     else:
@@ -521,7 +563,6 @@ def do_scan(fingerprints, creds, config):
                 if fp.headers:
                     headers.update(fp.headers)
                     logger.debug("merged headers: %s" % headers)
-
                 res = s.get(url, timeout=config['timeout'], verify=False, proxies=config[
                             'proxy'], cookies=fp.cookies, headers=headers)
                 logger.debug('[do_scan] %s - %i' % (url, res.status_code))
@@ -529,7 +570,6 @@ def do_scan(fingerprints, creds, config):
                 logger.debug('[do_scan] Failed to connect to %s' % (url,))
                 logger.debug(e)
                 continue
-
             match = fp.match(res)
             if match:
                 logger.info("[do_scan] %s fingerprint matched %s" %
@@ -679,6 +719,7 @@ def main():
     ap.add_argument('--validate', action='store_true', help='Validate creds files')
     ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse')
     ap.add_argument('--useragent', '-ua' , type=str, help="User agent string to use")
+    ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in miliseconds to avoid 429 status codes default=500", default=500)
     args = ap.parse_args()
 
     setup_logging(args.verbose, args.debug, args.log)
@@ -745,9 +786,22 @@ def main():
     if args.dryrun:
         dry_run(fingerprints)
 
+    # input checking for delay
+    if args.delay and args.delay != 0:
+        if type(args.delay) == int:
+            if args.delay  >= 0 and args.delay <= 1000:
+                logger.info('Delay is set to %d miliseconds' % args.delay)
+            else:
+                logger.error('Invalid delay value. Delay must be between 0 and 1000 miliseconds.  Delay is %d' % args.delay)
+                sys.exit()
+        else:
+            logger.error('Invalid delay type. Delay must be an intiger.  Delay is: %s' % type(args.delay))
+            sys.exit()
+
     logger.info('Scanning %i URLs' % tlist['num_urls'])
 
     config = {
+        'delay': args.delay * .001,
         'threads':  args.threads,
         'timeout': args.timeout if args.timeout else 10,
         'proxy': proxy,
