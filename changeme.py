@@ -58,7 +58,7 @@ class Fingerprint:
         if cookies:
             self.cookies = cookies[0]
         self.headers = None
-        headers = fp.get('headers')
+        headers = fp.get('headers', None)
         if headers:
             self.headers = headers[0]
             logger.debug("self.headers: %s" % self.headers)
