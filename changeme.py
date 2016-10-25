@@ -190,7 +190,7 @@ def is_yaml(f):
 def in_scope(name, category, cred):
     add = True
 
-    if name and not cred['name'] == name:
+    if name and not name.lower() in cred['name'].lower():
         add = False
     elif category and not cred['category'] == category:
         add = False
@@ -341,6 +341,7 @@ def render_creds(candidate, csrf):
             data[csrf_field] = csrf
 
         for cred in candidate['auth']['credentials']:
+            cred_data = {}
             username = ""
             password = ""
             if b64:
@@ -350,13 +351,14 @@ def render_creds(candidate, csrf):
                 username = cred['username']
                 password = cred['password']
 
-            data[config['username']] = username
-            data[config['password']] = password
+            cred_data[config['username']] = username
+            cred_data[config['password']] = password
 
+            data_to_send = dict(data.items() + cred_data.items())
             posts.append({
-                'data': data,
+                'data': data_to_send,
                 'username': username,
-                'password': password,
+                'password': password
             })
     else:  # raw post
         for cred in candidate['auth']['credentials']:
@@ -624,21 +626,28 @@ def build_target_list(targets, creds, name, category):
             urls = set()
             port = c.get('default_port', 80)
 
-            if name and not name == c['name']:
-                continue
-            if category and not category == c['category']:
-                continue
-            if not isinstance(target, IPAddress) and ":" in target and not int(port) == int(target.split(":")[1]):
-                continue
-            elif not isinstance(target, IPAddress):
-                # strip the port off
-                target = target.split(":")[0]
-
             ssl = c.get('ssl', False)
             if ssl:
                 proto = 'https'
             else:
                 proto = 'http'
+
+            if target.startswith('http://'):
+                target = target.replace('http://', '')
+                proto = 'http'
+            elif target.startswith('http://'):
+                target = target.replace('https://', '')
+                proto = 'https'
+
+            if name and not name.lower() in c['name'].lower():
+                continue
+            if category and not category == c['category']:
+                continue
+            if not isinstance(target, IPAddress) and ":" in target:
+                # get the custom target and port 
+                t = target.split(":")
+                target = t[0]
+                port = t[1]
 
             fp = Fingerprint(c['name'], fp=c['fingerprint'])
 
@@ -712,6 +721,7 @@ def main():
     ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan')
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query')
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key')
+    ap.add_argument('--target', type=str, help='Specific target to scan (IP:PORT)')
     ap.add_argument('--targets', type=str, help='File of targets to scan')
     ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
     ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
@@ -726,7 +736,7 @@ def main():
 
     if (not args.subnet and not args.targets and not args.validate and
             not args.contributors and not args.dump and
-            not args.shodan_query and not args.nmap):
+            not args.shodan_query and not args.nmap and not args.target):
         logger.error('Need to supply a subnet, targets file or shodan query.')
         ap.print_help()
         sys.exit()
@@ -739,6 +749,9 @@ def main():
         file_exists(args.targets)
         with open(args.targets, 'r') as fin:
             targets = [x.strip('\n') for x in fin.readlines()]
+
+    if args.target:
+        targets.add(args.target)
 
     if args.shodan_query:
         api = shodan.Shodan(args.shodan_key)
@@ -765,7 +778,7 @@ def main():
         sys.exit()
 
     if args.validate:
-        load_creds()
+        load_creds(args.name, args.category)
         sys.exit()
 
     creds = load_creds(args.name, args.category)
