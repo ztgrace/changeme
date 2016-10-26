@@ -1,0 +1,49 @@
+auth:
+  credentials:
+  - username: system
+    password: manager
+  - username: weblogic
+    password: weblogic1
+  - username: WEBLOGIC
+    password: WEBLOGIC
+  - username: PUBLIC
+    password: PUBLIC
+  - username: EXAMPLES
+    password: EXAMPLES
+  - username: weblogic
+    password: weblogic
+  - username: system
+    password: password
+  - username: weblogic
+    password: welcome(1)
+  - username: system
+    password: welcome(1)
+  - username: operator
+    password: weblogic
+  - username: operator
+    password: password
+  - username: system
+    password: Passw0rd
+  - username: monitor
+    password: password
+  post:
+    username: j_username
+    password: j_password
+    j_character_encoding: UTF-8
+  sessionid: ADMINCONSOLESESSION
+  success:
+    body: Logout</a>
+    status: 200
+  type: post
+  url:
+  - /console/j_security_check
+category: web
+contributor: AlessandroZ
+default_port: 7001
+fingerprint:
+  body: Oracle WebLogic Server Administration Console
+  status: 200
+  url:
+  - /console/login/LoginForm.jsp
+name: Weblogic
+ssl: false
