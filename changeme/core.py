@@ -1,0 +1,156 @@
+import argparse
+import logging
+from logutils import colorize
+import os
+import re
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import sys
+import version
+
+
+def init_logging(verbose, debug, logfile):
+    """
+    Logging levels:
+        - Critical: Default credential found
+        - Error: error in the program
+        - Warning: Verbose data
+        - Info: more verbose
+        - Debug: Extra info for debugging purposes
+    """
+    global logger
+    # Set up our logging object
+    logger = logging.getLogger(__name__)
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    elif verbose:
+        logger.setLevel(logging.INFO)
+    else:
+        logger.setLevel(logging.WARNING)
+
+    if logfile:
+        # Create file handler which logs even debug messages
+        #######################################################################
+        fh = logging.FileHandler(logfile)
+
+        # create formatter and add it to the handler
+        formatter = logging.Formatter(
+            '[%(asctime)s][%(levelname)s] %(message)s')
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+    # Set up the StreamHandler so we can write to the console
+    ###########################################################################
+    # create console handler with a higher log level
+    ch = colorize.ColorizingStreamHandler(sys.stdout)
+
+    # set custom colorings:
+    ch.level_map[logging.DEBUG] = [None, 2, False]
+    ch.level_map[logging.INFO] = [None, 'white', False]
+    ch.level_map[logging.WARNING] = [None, 'yellow', False]
+    ch.level_map[logging.ERROR] = [None, 'red', False]
+    ch.level_map[logging.CRITICAL] = [None, 'green', False]
+    formatter = logging.Formatter(
+        '[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    # Adjust the loggers for requests and urllib3
+    logging.getLogger('requests').setLevel(logging.ERROR)
+    logging.getLogger('urllib3').setLevel(logging.ERROR)
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+    return logger
+
+def banner(version):
+    b = """
+ #####################################################
+#       _                                             #
+#   ___| |__   __ _ _ __   __ _  ___ _ __ ___   ___   #
+#  / __| '_ \ / _` | '_ \ / _` |/ _ \ '_ ` _ \ / _ \\  #
+# | (__| | | | (_| | | | | (_| |  __/ | | | | |  __/  #
+#  \___|_| |_|\__,_|_| |_|\__, |\___|_| |_| |_|\___|  #
+#                         |___/                       #
+#  v%s                                             #
+#  Default Credential Scanner by @ztgrace             #
+ #####################################################
+    """ % version
+
+    return b
+
+
+class config(object):
+    def __init__(self):
+        self.logger = None
+        self.parse_args()
+
+    def _validate_args(self, ap):
+        if (not self.subnet and not self.targets and not self.validate and not self.contributors and not self.dump
+                and not self.shodan_query and not self.nmap and not self.target):
+            ap.print_help()
+            quit()
+
+        if self.target:
+            self._file_exists(self.target)
+
+        if self.nmap:
+            self._file_exists(self.nmap)
+
+        if self.proxy and re.match('^https?://[0-9\.]+:[0-9]{1,5}$', self.proxy):
+            self.proxy = {'http': self.proxy,
+                     'https': self.proxy}
+            logger.info('Setting proxy to %s' % self.proxy)
+        elif self.proxy:
+            logger.error('Invalid proxy, must be http(s)://x.x.x.x:8080')
+            sys.exit()
+
+        if self.delay and self.delay !=0:
+            if not isinstance(self.delay, int) and 1000 <= self.delay >= 0:
+                self.logger.info('Delay is set to %d milliseconds' % self.delay)
+                sys.exit()
+            else:
+                self.logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
+                                    type(self.delay))
+
+
+
+    def parse_args(self):
+        ap = argparse.ArgumentParser(description='Default credential scanner v%s' % version.__version__)
+        ap.add_argument('--category', '-c', type=str, help='Category of default creds to scan for', default=None)
+        ap.add_argument('--contributors', action='store_true', help='Display cred file contributors')
+        ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
+        ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
+        ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
+        ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds')
+        ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
+        ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
+        ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
+        ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
+        ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan')
+        ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query')
+        ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key')
+        ap.add_argument('--target', type=str, help='Specific target to scan (IP:PORT)')
+        ap.add_argument('--targets', type=str, help='File of targets to scan')
+        ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
+        ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
+        ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+        ap.add_argument('--validate', action='store_true', help='Validate creds files')
+        ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse')
+        ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use")
+        ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in milliseconds to avoid 429 status codes default=500", default=500)
+        args = ap.parse_args()
+
+        # Convert argparse Namespace to a dict and make the keys + values member variables of the config class
+        args = vars(args)
+        for key in args:
+            setattr(self, key, args[key])
+
+        self.logger = init_logging(self.verbose, self.debug, self.log)
+        self._validate_args(ap)
+
+
+    def _file_exists(self, f):
+        if not os.path.isfile(f):
+            self.logger.error("File %s not found" % f)
+            sys.exit()
