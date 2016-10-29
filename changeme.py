@@ -632,10 +632,10 @@ def build_target_list(targets, creds, name, category):
             else:
                 proto = 'http'
 
-            if target.startswith('http://'):
+            if isinstance(target, str) and target.startswith('http://'):
                 target = target.replace('http://', '')
                 proto = 'http'
-            elif target.startswith('http://'):
+            elif isinstance(target, str) and target.startswith('http://'):
                 target = target.replace('https://', '')
                 proto = 'https'
 
