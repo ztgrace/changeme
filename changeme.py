@@ -252,6 +252,17 @@ def get_useragent():
 
 def check_basic_auth(req, session, candidate, config, sessionid=False, csrf=False):
     matches = list()
+    headers = dict()
+    delay = config.get('delay', .5)
+    if candidate['auth'].get('headers', None):
+        canheaders = candidate['auth']['headers']
+        logger.debug('[check_http] candidate headers: %s' % canheaders)
+        for head in canheaders:
+             headers.update(head)
+
+        headers.update(config['useragent'])
+    else:
+        headers = config['useragent']
 
     # Copy the session so successful creds don't affect other
     # requests in multi-cred scans
@@ -266,6 +277,7 @@ def check_basic_auth(req, session, candidate, config, sessionid=False, csrf=Fals
             if password is None:
                 password = ""
 
+
             try:
                 # restore the original session
                 session = deepcopy(orig_session)
@@ -275,7 +287,7 @@ def check_basic_auth(req, session, candidate, config, sessionid=False, csrf=Fals
                     verify=False,
                     proxies=config['proxy'],
                     timeout=config['timeout'],
-                    headers=config['useragent'],
+                    headers=headers
                 )
 
             except Exception as e:
@@ -284,7 +296,30 @@ def check_basic_auth(req, session, candidate, config, sessionid=False, csrf=Fals
                 logger.debug("[check_basic_auth] Exception: %s" %
                              e.__str__().replace('\n', '|'))
                 continue
-
+            if res.status_code == 429:
+                i = 0
+                while i < 2 and res.status_code == 429:
+                    if i != 0:
+                        delay = delay + .5
+                    logger.warn('[check_http] Status 429 received. Sleeping for %d miliseconds and trying again' % (delay / .001))
+                    sleep(delay)
+                    try:
+                        session = deepcopy(orig_session)
+                        res = session.get(
+                            url,
+                            auth=HTTPBasicAuth(username, password),
+                            verify=False,
+                            proxies=config['proxy'],
+                            timeout=config['timeout'],
+                            headers=headers
+                        )
+                    except Exception as e:
+                        logger.error(
+                            "[check_basic_auth] Failed to connect to %s" % url)
+                        logger.debug("[check_basic_auth] Exception: %s" %
+                                     e.__str__().replace('\n', '|'))
+                        continue
+                    i = i + 1
             if check_success(req, res, candidate, username, password, candidate['auth'].get('base64', None)):
                 matches.append(cred)
 
@@ -375,7 +410,7 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
     matches = list()
     data = None
     headers = dict()
-    delay = config.get('delay', 10)
+    delay = config.get('delay', .5)
     url = get_base_url(req)
     logger.debug('[check_http] base url: %s' % url)
     urls = candidate['auth']['url']
@@ -384,7 +419,7 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
         logger.debug('[check_http] candidate headers: %s' % canheaders)
         for head in canheaders:
             headers.update(head)
-        
+
         headers.update(config['useragent'])
     else:
         headers = config['useragent']
@@ -436,39 +471,45 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
             # response code 429 is too many requests.  Some appliances or WAFs may respond this way if
             # there are too many requests from the same source in a certain amount of time.
             if res.status_code == 429:
-                logger.warn('[check_http] Status 429 received. Sleeping for %d seconds and trying again' % delay)
-                sleep(delay)
-                try:
-                    if candidtate['auth']['type'] == 'post' or candidate['auth']['type'] == 'raw_post':
-                        res = session.post(
-                            url,
-                            cred['data'],
-                            cookies=sessionid,
-                            verify=False,
-                            proxies=config['proxy'],
-                            timeout=config['timeout'],
-                            headers=headers,
-                        )
-                    else:
-                        res = session.get(
-                            url,
-                            cookies=sessionid,
-                            verify=False,
-                            proxies=config['proxy'],
-                            timeout=config['timeout'],
-                            headers=headers,
-                        )
-                except Exception as e:
-                    logger.error('[check_http] Failed to connect to %s' % url)
-                    logger.debug('[check_http] Exception: %s: %s' %
-                                e.__str__().replace('\n', '|'))
-                    continue
-                logger.error('[check_http] res.status_code: %i' % res.status_code)
-                logger.debug('[check_http] res.text: %s' % res.text)
+                i = 0
+                while i < 2 and res.status_code == 429: #Trying two more times for a total of three times
+                    if i != 0:
+                        delay = delay + .5
+                    logger.warn('[check_http] Status 429 received. Sleeping for %d miliseconds and trying again' % (delay / .001))
+                    sleep(delay)
+                    try:
+                        if candidtate['auth']['type'] == 'post' or candidate['auth']['type'] == 'raw_post':
+                            res = session.post(
+                                url,
+                                cred['data'],
+                                cookies=sessionid,
+                                verify=False,
+                                proxies=config['proxy'],
+                                timeout=config['timeout'],
+                                headers=headers,
+                            )
+                        else:
+                            res = session.get(
+                                url,
+                                cookies=sessionid,
+                                verify=False,
+                                proxies=config['proxy'],
+                                timeout=config['timeout'],
+                                headers=headers,
+                            )
+                    except Exception as e:
+                        logger.error('[check_http] Failed to connect to %s' % url)
+                        logger.debug('[check_http] Exception: %s: %s' %
+                                    e.__str__().replace('\n', '|'))
+                        continue
+                    logger.error('[check_http] res.status_code: %i' % res.status_code)
+                    logger.debug('[check_http] res.text: %s' % res.text)
+                    i = i + 1
 
             if res and check_success(req, res, candidate, cred['username'], cred['password'], candidate['auth'].get('base64', None)):
                 matches.append(candidate)
-
+                break
+        delay = config.get('delay', .5)
     logger.debug('[check_http] matches: %s' % matches)
     return matches
 
@@ -559,7 +600,7 @@ def do_scan(fingerprints, creds, config):
         s = requests.Session()
         for url in fp.urls:
             try:
-                # config['useragent'] is merged with fp.headers so 
+                # config['useragent'] is merged with fp.headers so
                 # that a hard-coded ua in a fp supersedes a manually set ua
                 headers = config['useragent']
                 if fp.headers:
@@ -644,7 +685,7 @@ def build_target_list(targets, creds, name, category):
             if category and not category == c['category']:
                 continue
             if not isinstance(target, IPAddress) and ":" in target:
-                # get the custom target and port 
+                # get the custom target and port
                 t = target.split(":")
                 target = t[0]
                 port = t[1]
@@ -800,20 +841,17 @@ def main():
         dry_run(fingerprints)
 
     # input checking for delay
-    if args.delay and args.delay != 0:
-        if type(args.delay) == int:
-            if args.delay  >= 0 and args.delay <= 1000:
-                logger.info('Delay is set to %d miliseconds' % args.delay)
-            else:
-                logger.error('Invalid delay value. Delay must be between 0 and 1000 miliseconds.  Delay is %d' % args.delay)
-                sys.exit()
+    if args.delay:
+        if args.delay  >= 0 and args.delay <= 2000:
+            logger.info('Delay is set to %d miliseconds' % args.delay)
         else:
-            logger.error('Invalid delay type. Delay must be an intiger.  Delay is: %s' % type(args.delay))
+            logger.error('Invalid delay value. Delay must be between 0 and 2000 miliseconds.  Delay is %d' % args.delay)
             sys.exit()
 
     logger.info('Scanning %i URLs' % tlist['num_urls'])
 
     config = {
+        'less': args.less if args.less else None,
         'delay': args.delay * .001,
         'threads':  args.threads,
         'timeout': args.timeout if args.timeout else 10,
