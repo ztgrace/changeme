@@ -851,7 +851,6 @@ def main():
     logger.info('Scanning %i URLs' % tlist['num_urls'])
 
     config = {
-        'less': args.less if args.less else None,
         'delay': args.delay * .001,
         'threads':  args.threads,
         'timeout': args.timeout if args.timeout else 10,
