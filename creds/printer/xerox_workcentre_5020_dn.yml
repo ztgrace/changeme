@@ -3,7 +3,8 @@ auth:
   - password: ''
     username: '11111'
   success:
-    body: IP Filtering
+    body: 
+    - IP Filtering
     status: 200
   type: basic_auth
   url:

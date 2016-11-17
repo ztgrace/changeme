@@ -474,19 +474,20 @@ def check_http(req, session, candidate, config, sessionid=False, csrf=False):
 
 
 def check_success(req, res, candidate, username, password, b64):
-    match = True
+    match = False
     success = candidate['auth']['success']
     if b64:
         username = base64.b64decode(username)
         password = base64.b64decode(password)
 
-    if success['status'] and not success['status'] == res.status_code:
-        logger.debug('[check_success] status != res.status')
-        match = False
-
-    if match and success['body'] and not re.search(success['body'], res.text):
-        logger.debug('[check_success] body text not found in response body')
-        match = False
+    if success.get('status') == res.status_code:
+        if success.get('body'):
+            for string in success.get('body'):
+                if re.search(string, res.text, re.IGNORECASE):
+                    match = True
+                    break
+        else:
+            match = True
 
     if match:
         logger.critical('[+] Found %s default cred %s:%s at %s' %

@@ -11,7 +11,8 @@ auth:
     username: j_username
   sessionid: JSESSIONID
   success:
-    body: Logout from GlassFish Administration Console
+    body: 
+    - Logout from GlassFish Administration Console
     status: 200
   type: post
   url:

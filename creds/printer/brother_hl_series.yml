@@ -3,7 +3,8 @@ auth:
   - password: access
     username: admin
   success:
-    body: Administrator&#32;Settings
+    body: 
+    - Administrator&#32;Settings
     status: 200
   type: basic_auth
   url:

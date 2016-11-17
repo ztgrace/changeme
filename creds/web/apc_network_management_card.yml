@@ -12,7 +12,8 @@ auth:
     username: login_username
   sessionid: C0
   success:
-    body: logout.htm
+    body: 
+    - logout.htm
     status: 200
   type: post
   url:

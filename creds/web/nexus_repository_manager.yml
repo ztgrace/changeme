@@ -3,7 +3,8 @@ auth:
   - password: admin123
     username: admin
   success:
-    body: <loggedIn>true</loggedIn>
+    body: 
+    - <loggedIn>true</loggedIn>
     status: 200
   type: basic_auth
   url:

@@ -12,7 +12,8 @@ auth:
     username: j_username
   sessionid: JSESSIONID
   success:
-    body: '<title>Jaspersoft: Browse Repository</title>'
+    body: 
+    - '<title>Jaspersoft: Browse Repository</title>'
     status: 200
   type: post
   url:

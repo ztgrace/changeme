@@ -9,7 +9,8 @@ auth:
     password: Password
     username: UserID
   success:
-    body: <title>Contact Center Manager - Accept terms and conditions</title>
+    body: 
+    - <title>Contact Center Manager - Accept terms and conditions</title>
     status: 200
   type: post
   url:

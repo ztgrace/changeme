@@ -4,7 +4,8 @@ auth:
       username: admin@company.com
       password: admin
   success:
-    body: '"AccessToken":"C1F2BF74658F78E6928A2E8A2426BE6360720989","UserName"'
+    body: 
+    - '"AccessToken":"C1F2BF74658F78E6928A2E8A2426BE6360720989","UserName"'
     status: 200
   type: raw_post
   url:

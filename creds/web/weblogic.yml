@@ -32,7 +32,8 @@ auth:
     j_character_encoding: UTF-8
   sessionid: ADMINCONSOLESESSION
   success:
-    body: Logout</a>
+    body: 
+    - Logout</a>
     status: 200
   type: post
   url:

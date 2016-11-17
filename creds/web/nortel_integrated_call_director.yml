@@ -7,7 +7,8 @@ auth:
     system: win32
     username: login
   success:
-    body: <applet code="mipcd.mdware.GUIManager.class
+    body: 
+    - <applet code="mipcd.mdware.GUIManager.class
     status: 200
   type: post
   url:
