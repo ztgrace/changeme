@@ -540,7 +540,6 @@ def check_success(req, res, candidate, username, password, b64):
                     (candidate['name'], username, password, req))
         return False
 
-
 def get_csrf_token(res, cred):
     name = cred['auth'].get('csrf', False)
     if name:
