@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """
 TODO:
     - move credentials under auth
@@ -66,6 +67,7 @@ parameters['fingerprint'] = fp
 # Authentication
 ###############################################################################
 auth = dict()
+headers = list()
 auth_urls = list()
 url = raw_input('Authentication URL (/login.php): ')
 auth_urls.append(url)
@@ -99,7 +101,17 @@ if auth['type'] == 'post' or auth['type'] == 'get':
         form['raw'] = form_params
 
     auth[auth['type']] = form
-
+while True:
+    header = raw_input('Pleae enter any custom header needed. Hit enter if done or not needed \n Example: Content-Type: application/json: ')
+    if len(header) > 0:
+        if len(header.split(':')) == 2:
+            h = header.split(':')
+            header = {h[0]: h[1]}
+            headers.append(header)
+        else:
+            print 'Invalid header.  Headers must be in the format "Header_name: header_value"\n'
+    else:
+        break
 csrf = raw_input('Name of csrf field: ')
 if csrf:
     auth['csrf'] = csrf
