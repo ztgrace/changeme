@@ -105,15 +105,12 @@ class config(object):
             logger.error('Invalid proxy, must be http(s)://x.x.x.x:8080')
             sys.exit()
 
-        if self.delay and self.delay !=0:
-            if not isinstance(self.delay, int) and 1000 <= self.delay >= 0:
+        if self.delay and self.delay != 0:
+            if isinstance(self.delay, int) and 0 <= self.delay <= 1000:
                 self.logger.info('Delay is set to %d milliseconds' % self.delay)
-                sys.exit()
             else:
                 self.logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
                                     type(self.delay))
-
-
 
     def parse_args(self):
         ap = argparse.ArgumentParser(description='Default credential scanner v%s' % version.__version__)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from changeme import core, version
+from changeme import core, scan_engine, version
+from changeme.scan_engine import ScanEngine
 import argparse
 
 
@@ -16,12 +17,14 @@ def main():
     start = time()
     """
 
-
-
-    #logger = setup_logging(args.verbose, args.debug, args.log)
     config = core.config()
 
+    s = ScanEngine()
+    s.scan(list(), list(), config)
+
+
     """
+    TODO: incorporate all of the arg checking
 
     if args.subnet:
         for ip in IPNetwork(args.subnet).iter_hosts():
