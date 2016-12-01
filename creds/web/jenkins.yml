@@ -3,7 +3,8 @@ auth:
   - password: ''
     username: ''
   success:
-    body: <title>Dashboard \[Jenkins\]</title>
+    body: 
+    - <title>Dashboard \[Jenkins\]</title>
     status: 200
   type: basic_auth
   url:

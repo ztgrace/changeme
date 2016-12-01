@@ -4,7 +4,8 @@ auth:
     username: ''
   sessionid: TCSESSIONID
   success:
-    body: <title>Projects &mdash; TeamCity</title>
+    body: 
+    - <title>Projects &mdash; TeamCity</title>
     status: 200
   type: basic_auth
   url:

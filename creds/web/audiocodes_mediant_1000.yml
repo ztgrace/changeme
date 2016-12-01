@@ -8,7 +8,8 @@ auth:
     password: u
     username: c1
   success:
-    body: <prms>
+    body: 
+    - <prms>
     status: 200
   type: post
   url:

@@ -9,7 +9,8 @@ auth:
     username: j_username
   sessionid: JSESSIONID
   success:
-    body: Log Out</a>
+    body: 
+    - Log Out</a>
     status: 200
   type: post
   url:

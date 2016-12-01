@@ -73,7 +73,10 @@ schema = {
             'success': {
                 'type': 'dict',
                 'schema': {
-                    'body': {'type': 'string', 'required': True},
+                    'body': {
+                        'type': 'list',
+                        'required': False
+                    },
                     'status': {'type': 'integer', 'required': True},
                 },
             },

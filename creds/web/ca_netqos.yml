@@ -15,7 +15,8 @@ auth:
     username: tbUsername
   sessionid: ASP.NET_SessionId
   success:
-    body: <h2>Object moved to <a href="%2f">here</a>.</h2>
+    body: 
+    - <h2>Object moved to <a href="%2f">here</a>.</h2>
     status: 302
   type: post
   url:

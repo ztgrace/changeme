@@ -4,7 +4,8 @@ auth:
     username: admin
     raw: '{"username":"admin","uid":-1,"gid":-1,"password":"manager"}'
   success:
-    body: '{"data":{"username": "admin","uid": 500'
+    body: 
+    - '{"data":{"username": "admin","uid": 500'
     status: 200
   type: raw_post
   url:

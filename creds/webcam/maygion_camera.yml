@@ -8,7 +8,8 @@ auth:
     username: user
     usr: admin
   success:
-    body: <Result><Success>1</Success><UserLevel>0</UserLevel><UserGroup>Admin</UserGroup></Result>
+    body: 
+    - <Result><Success>1</Success><UserLevel>0</UserLevel><UserGroup>Admin</UserGroup></Result>
     status: 200
   type: get
   url:

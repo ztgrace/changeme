@@ -4,7 +4,8 @@ auth:
     username: USERID
     raw: USERNAME=USERID,PASSWORD=PASSW0RD
   success:
-    body: 'ok:'
+    body: 
+    - 'ok:'
     status: 200
   type: raw_post
   url:

@@ -10,7 +10,8 @@ auth:
     username: webUsername
   sessionid: PHPSESSID
   success:
-    body: window.opener.top.location.pathname
+    body: 
+    - window.opener.top.location.pathname
     status: 200
   type: post
   url:

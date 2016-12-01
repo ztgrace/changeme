@@ -5,7 +5,8 @@ auth:
   - password: '456'
     username: Admin
   success:
-    body: Polycom - VVX 500 Configuration Utility
+    body: 
+    - Polycom - VVX 500 Configuration Utility
     status: 200
   type: basic_auth
   url:
