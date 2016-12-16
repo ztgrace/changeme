@@ -17,5 +17,6 @@ RUN apk add --no-cache --virtual .changeme-deps \
     && find /usr/ -type f -a -name '*.pyc' -o -name '*.pyo' -exec rm '{}' \;
 
 ENV HOME /changeme
+ENV PS1 "\033[00;34mchangeme>\033[0m "
 WORKDIR /changeme
 CMD /bin/bash
