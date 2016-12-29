@@ -27,7 +27,7 @@ except paramiko.ssh_exception.AuthenticationException:
     success = False
 
 if success:
-    print "Found credentails"
+    print "Found credentials"
 else:
     print "Failed to Auth"
 

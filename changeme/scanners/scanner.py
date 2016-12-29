@@ -1,13 +1,13 @@
 class Scanner(object):
-    def __init__(self, creds, targets, config):
+    def __init__(self, creds, target, config):
         """
 
         :param creds:
-        :param targets:
+        :param target:
         :param config:
         """
         self.creds = creds
-        self.targets = targets
+        self.target = target
         self.config = config
         self.logger = config.logger
 
@@ -22,3 +22,15 @@ class Scanner(object):
 
     def _class_name(self):
         return self.__class__.__name__
+
+    def critical(self, method, message=""):
+        self.config.logger.critical("[%s][%s] %s" % (self._class_name(), method, message))
+
+    def warning(self, method, message=""):
+        self.config.logger.warning("[%s][%s] %s" % (self._class_name(), method, message))
+
+    def info(self, method, message=""):
+        self.config.logger.info("[%s][%s] %s" % (self._class_name(), method, message))
+
+    def debug(self, method, message=""):
+        self.config.logger.debug("[%s][%s] %s" % (self._class_name(), method, message))

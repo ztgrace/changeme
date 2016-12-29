@@ -3,25 +3,29 @@ from scanners.http_post import HTTPPostScanner
 from scanners.http_basic_auth import HTTPBasicAuthScanner
 
 class ScanEngine(object):
-    def __init__(self, threads=10):
+    def __init__(self, creds, targets, config, threads=10):
         self.threads = threads
         self.scanners = list()
+        self.creds = creds
+        self.targets = targets
+        self.config = config
 
-
-    def scan(self, creds, targets, config):
-        self._build_scanners(creds, targets, config)
+    def scan(self):
+        self._build_scanners(self.creds, self.targets, self.config)
         for e in self.scanners:
             e.scan()
+
+    def fingerprint_targets(self):
+        self.config.logger.debug("[ScanEngine][fingerprint_targets]")
 
     def _build_scanners(self, creds, targets, config):
         self.scanners = self.scanners + self._create_target_list(creds, targets, config)
 
-
-    def _create_target_list(self, creds, targets, config):
-        config.logger.debug("[ScanEngine][_create_target_list]")
+    def _create_target_list(self):
+        self.config.logger.debug("[ScanEngine][_create_target_list]")
 
         scanners = list()
-        scanners.append(HTTPGetScanner(creds, targets, config),)
-        scanners.append(HTTPPostScanner(creds, targets, config),)
-        scanners.append(HTTPBasicAuthScanner(creds, targets, config),)
+        scanners.append(HTTPGetScanner(self.creds, self.targets, self.config),)
+        scanners.append(HTTPPostScanner(self.creds, self.targets, self.config),)
+        scanners.append(HTTPBasicAuthScanner(self.creds, self.targets, self.config),)
         return scanners

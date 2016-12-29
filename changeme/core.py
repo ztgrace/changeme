@@ -1,4 +1,5 @@
 import argparse
+from cerberus import Validator
 import logging
 from logutils import colorize
 import os
@@ -7,6 +8,7 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import sys
 import version
+import yaml
 
 
 def init_logging(verbose, debug, logfile):
@@ -146,8 +148,75 @@ class config(object):
         self.logger = init_logging(self.verbose, self.debug, self.log)
         self._validate_args(ap)
 
-
     def _file_exists(self, f):
         if not os.path.isfile(f):
             self.logger.error("File %s not found" % f)
             sys.exit()
+
+
+def load_creds(config):
+    creds = list()
+    total_creds = 0
+    cred_names = list()
+    for root, dirs, files in os.walk('creds'):
+        for fname in files:
+            f = os.path.join(root, fname)
+            if is_yaml(f):
+                parsed = parse_yaml(f)
+                if parsed:
+                    if parsed['name'] in cred_names:
+                        logger.error(
+                            "[load_creds] %s: duplicate name %s" % (f, parsed['name']))
+                    elif validate_cred(parsed, f):
+
+                        if in_scope(config.name, config.category, parsed):
+                            total_creds += len(parsed["auth"]["credentials"])
+                            creds.append(parsed)
+                            cred_names.append(parsed['name'])
+
+    print('Loaded %i default credential profiles' % len(creds))
+    print('Loaded %i default credentials\n' % total_creds)
+
+    return creds
+
+
+def validate_cred(cred, f):
+    v = Validator()
+    valid = v.validate(cred, schema)
+    for e in v.errors:
+        logger.error("[validate_cred] Validation Error: %s, %s - %s" %
+                     (f, e, v.errors[e]))
+
+    return valid
+
+
+def parse_yaml(f):
+    global logger
+    with open(f, 'r') as fin:
+        raw = fin.read()
+        try:
+            parsed = yaml.load(raw)
+        except(yaml.parser.ParserError):
+            logger.error("[parse_yaml] %s is not a valid yaml file" % f)
+            return None
+    return parsed
+
+
+def is_yaml(f):
+    isyaml = False
+    try:
+        isyaml = os.path.basename(f).split('.')[1] == 'yml'
+    except:
+        pass
+    return isyaml
+
+
+def in_scope(name, category, cred):
+    add = True
+
+    if name and not name.lower() in cred['name'].lower():
+        add = False
+    elif category and not cred['category'] == category:
+        add = False
+
+    return add
