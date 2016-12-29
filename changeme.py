@@ -18,9 +18,8 @@ def main():
     """
 
     config = core.config()
-    creds = core.load_creds(config)
 
-    s = ScanEngine(creds, targets, config)
+    s = ScanEngine()
     s.scan(list(), list(), config)
 
 

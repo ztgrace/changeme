@@ -9,7 +9,8 @@ auth:
     password: password
     username: username
   success:
-    body: '>Logout</a'
+    body: 
+    - '>Logout</a'
     status: 200
   type: post
   url:

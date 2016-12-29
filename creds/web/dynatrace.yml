@@ -3,7 +3,8 @@ auth:
   - password: admin
     username: admin
   success:
-    body: dynaTrace Server Browsable REST Webservices
+    body: 
+    - dynaTrace Server Browsable REST Webservices
     status: 200
   type: basic_auth
   url:

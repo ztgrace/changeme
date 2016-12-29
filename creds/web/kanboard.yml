@@ -9,7 +9,8 @@ auth:
     username: username
   sessionid: KB_SID
   success:
-    body: <title>Dashboard</title>
+    body: 
+    - <title>Dashboard</title>
     status: 200
   type: post
   url:

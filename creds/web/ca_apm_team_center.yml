@@ -9,7 +9,8 @@ auth:
     username: j_username
   sessionid: WSESSIONID
   success:
-    body: ja/webview/webview.nocache.js
+    body: 
+    - ja/webview/webview.nocache.js
     status: 200
   type: post
   url:

@@ -3,7 +3,8 @@ auth:
   - password: admin
     username: admin
   success:
-    body: <titleLiveVideo>LIVE VIDEO</titleLiveVideo>
+    body: 
+    - <titleLiveVideo>LIVE VIDEO</titleLiveVideo>
     status: 200
   type: basic_auth
   url:

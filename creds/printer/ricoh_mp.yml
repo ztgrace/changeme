@@ -12,7 +12,8 @@ auth:
   sessionid: risessionid
   base64: true
   success:
-    body: Web Image Monitor</title>
+    body: 
+    - Web Image Monitor</title>
     status: 200
   type: post
   url:

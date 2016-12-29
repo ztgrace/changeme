@@ -8,7 +8,8 @@ auth:
     password: p2
     username: p1
   success:
-    body: '{"login_ur":1}'
+    body: 
+    - '{"login_ur":1}'
     status: 200
   type: get
   url:

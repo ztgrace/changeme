@@ -11,7 +11,8 @@ auth:
     username: deptid
   sessionid: sessionid
   success:
-    body: <form name="sdl" method="post">
+    body: 
+    - <form name="sdl" method="post">
     status: 200
   type: post
   url:

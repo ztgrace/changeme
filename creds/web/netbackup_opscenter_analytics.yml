@@ -10,7 +10,8 @@ auth:
     username: userName
   sessionid: JSESSIONID
   success:
-    body: 'document.location.href="/opscenter/homeLandingAction.do"'
+    body: 
+    - 'document.location.href="/opscenter/homeLandingAction.do"'
     status: 200
   type: post
   url:

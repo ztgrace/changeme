@@ -7,7 +7,8 @@ auth:
     password: password
     username: username
   success:
-    body: title="Next Channel"
+    body: 
+    - title="Next Channel"
     status: 200
   type: post
   url:

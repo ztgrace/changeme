@@ -6,7 +6,8 @@ auth:
     password: pwd
     username: name
   success:
-    body: 'self.location="../cgi/url_redirect.cgi\?url_name=mainmenu"; '
+    body: 
+    - 'self.location="../cgi/url_redirect.cgi\?url_name=mainmenu"; '
     status: 200
   type: post
   url:

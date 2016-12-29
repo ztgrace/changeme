@@ -7,7 +7,8 @@ auth:
     password: atvsUserPassword
     username: atvsUserName
   success:
-    body: '>Logout</a>'
+    body: 
+    - '>Logout</a>'
     status: 200
   type: post
   url:

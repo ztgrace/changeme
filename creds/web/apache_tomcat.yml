@@ -35,7 +35,6 @@ auth:
   - username: role1
     password: tomcat
   success:
-    body: Tomcat Web Application Manager
     status: 200
   type: basic_auth
   url:
