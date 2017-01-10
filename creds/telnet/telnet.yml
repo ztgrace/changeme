@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: root
+    password: password
+  - username: root
+    password: root
+category: telnet
+default_port: 23
+name: telnet
+contributor: AlessandroZ

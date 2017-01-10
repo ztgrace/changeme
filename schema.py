@@ -83,11 +83,11 @@ schema = {
             'type': {
                 'type': 'string',
                 'regex': 'post|basic_auth|get|raw_post',
-                'required': True
+                'required': False
             },
             'url': {
                 'type': 'list',
-                'required': True,
+                'required': False,
                 'schema': {'type': 'string'}
             },
         }
@@ -96,7 +96,7 @@ schema = {
     'contributor': {'type': 'string', 'required': True},
     'fingerprint': {
         'type': 'dict',
-        'required': True,
+        'required': False,
         'schema': {
             'body': {'type': 'string', 'required': False},
             'server_header': {'type': 'string', 'required': False},
@@ -129,7 +129,7 @@ schema = {
     },
     'default_port': {'type': 'integer', 'required': True},
     'name': {'type': 'string', 'required': True},
-    'ssl': {'type': 'boolean', 'required': True},
+    'ssl': {'type': 'boolean', 'required': False},
     'references': {'type': 'list', 'required': False},
 }
 
