@@ -6,7 +6,7 @@ import yaml
 import sys
 
 
-schema = {
+changeme_schema = {
     'auth': {
         'type': 'dict',
         'required': True,

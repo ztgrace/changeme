@@ -1,11 +1,13 @@
 import argparse
 from cerberus import Validator
+from changeme import cred
 import logging
 from logutils import colorize
 import os
 import re
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import schema
 import sys
 import version
 import yaml
@@ -82,7 +84,7 @@ def banner(version):
     return b
 
 
-class config(object):
+class Config(object):
     def __init__(self):
         self.logger = None
         self.parse_args()
@@ -113,6 +115,10 @@ class config(object):
             else:
                 self.logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
                                     type(self.delay))
+
+        # Drop logging level to INFO to see the fingerprint messages
+        if self.fingerprint:
+            self.logger.setLevel(logging.INFO)
 
     def parse_args(self):
         ap = argparse.ArgumentParser(description='Default credential scanner v%s' % version.__version__)
@@ -165,7 +171,7 @@ def load_creds(config):
                 parsed = parse_yaml(f)
                 if parsed:
                     if parsed['name'] in cred_names:
-                        logger.error(
+                        config.logger.error(
                             "[load_creds] %s: duplicate name %s" % (f, parsed['name']))
                     elif validate_cred(parsed, f):
 
@@ -173,6 +179,7 @@ def load_creds(config):
                             total_creds += len(parsed["auth"]["credentials"])
                             creds.append(parsed)
                             cred_names.append(parsed['name'])
+                            config.logger.debug('Loaded %s' % parsed['name'])
 
     print('Loaded %i default credential profiles' % len(creds))
     print('Loaded %i default credentials\n' % total_creds)
@@ -182,7 +189,7 @@ def load_creds(config):
 
 def validate_cred(cred, f):
     v = Validator()
-    valid = v.validate(cred, schema)
+    valid = v.validate(cred, schema.changeme_schema)
     for e in v.errors:
         logger.error("[validate_cred] Validation Error: %s, %s - %s" %
                      (f, e, v.errors[e]))
@@ -220,3 +227,22 @@ def in_scope(name, category, cred):
         add = False
 
     return add
+
+
+def print_contributors(creds):
+    contributors = set()
+    for cred in creds:
+        contributors.add(cred['contributor'])
+
+    print "Thank you to our contributors!"
+    for i in contributors:
+        print i
+    print
+
+
+def print_creds(creds):
+    for cred in creds:
+        print "\n%s" % cred['name']
+        for i in cred['auth']['credentials']:
+            print "  - %s:%s" % (i['username'], i['password'])
+

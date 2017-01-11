@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from changeme import core, scan_engine, version
+from changeme import core, version
 from changeme.scan_engine import ScanEngine
 import argparse
 
@@ -17,57 +17,24 @@ def main():
     start = time()
     """
 
-    config = core.config()
+    config = core.Config()
+    creds = core.load_creds(config)
 
-    s = ScanEngine()
-    s.scan(list(), list(), config)
+    if config.contributors:
+        core.print_contributors(creds)
+        quit()
+
+    if config.dump:
+        core.print_creds(creds)
+        quit()
+
+    if not config.validate:
+        s = ScanEngine(creds, config)
+        s.scan()
 
 
     """
     TODO: incorporate all of the arg checking
-
-    if args.subnet:
-        for ip in IPNetwork(args.subnet).iter_hosts():
-            targets.add(ip)
-
-    if args.targets:
-        with open(args.targets, 'r') as fin:
-            targets = [x.strip('\n') for x in fin.readlines()]
-
-    if args.target:
-        targets.add(args.target)
-
-    if args.shodan_query:
-        api = shodan.Shodan(args.shodan_key)
-        results = api.search(args.shodan_query)
-        for r in results['matches']:
-            targets.add(r['ip_str'])
-
-    if args.nmap:
-        report = np.parse_fromfile(args.nmap)
-        logger.info('Loaded %i hosts from %s' % (len(report.hosts), args.nmap))
-        for h in report.hosts:
-            for s in h.services:
-                targets.add('%s:%s' % (h.address, s.port))
-
-    logger.info('Loaded %i targets' % len(targets))
-
-
-    if args.validate:
-        load_creds(args.name, args.category)
-        sys.exit()
-
-    creds = load_creds(args.name, args.category)
-
-    if args.contributors:
-        print_contributors(creds)
-
-    if args.dump:
-        print_creds(creds)
-
-    if args.fingerprint:
-        # Need to drop the level to INFO to see the fp messages
-        logger.setLevel(logging.INFO)
 
     tlist = build_target_list(targets, creds, args.name, args.category)
     fingerprints = tlist['fingerprints']

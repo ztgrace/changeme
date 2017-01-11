@@ -1,12 +1,12 @@
 class Scanner(object):
-    def __init__(self, creds, target, config):
+    def __init__(self, cred, target, config):
         """
 
-        :param creds:
+        :param cred:
         :param target:
         :param config:
         """
-        self.creds = creds
+        self.cred = cred
         self.target = target
         self.config = config
         self.logger = config.logger
@@ -16,9 +16,6 @@ class Scanner(object):
 
     def check_success(self):
         raise NotImplementedError( "A protocol class needs to implement a check_success method." )
-
-    def check_fingerprint(self):
-        raise NotImplementedError( "A protocol class needs to implement a check_fingerprint method." )
 
     def _class_name(self):
         return self.__class__.__name__
