@@ -54,6 +54,7 @@ class ScanEngine(object):
                 )
                 if hfp not in self.fingerprints:
                     self.fingerprints.add(hfp)
+        self.config.logger.debug("[ScanEngine][fingerprint_targets] %i fingerprints" % len(self.fingerprints))
 
         # Scan all the fingerprints
         for target in self.targets:
@@ -77,7 +78,7 @@ class ScanEngine(object):
                     continue
 
                 for cred in self.creds:
-                    if HttpFingerprint.ismatch(c, res, self.config.logger):
+                    if HttpFingerprint.ismatch(cred, res, self.config.logger):
                         for c in cred['auth']['credentials']:
                             self._build_scanner(cred, c, res.url, s)
 
@@ -108,6 +109,8 @@ class ScanEngine(object):
             for h in report.hosts:
                 for s in h.services:
                     self.targets.add('%s:%s' % (h.address, s.port))
+
+        self.config.logger.debug("[ScanEngine][_build_targets] %i targets" % len(self.targets))
 
     def _build_scanner(self, cred, c, url, session):
         self.config.logger.debug("[ScanEngine][_build_scanner] building %s %s:%s" % (cred['name'], c['username'], c['password']))
