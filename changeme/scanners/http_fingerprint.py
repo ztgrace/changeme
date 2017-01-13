@@ -24,7 +24,7 @@ class HttpFingerprint:
         fp = cred['fingerprint']
         basic_auth = fp.get('basic_auth_realm', None)
         if basic_auth and basic_auth in response.headers.get('WWW-Authenticate', list()):
-            logger.debug('[HttpFingerprint][match] %s basic auth matched: %s' % (cred['name'], basic_auth))
+            logger.info('[HttpFingerprint][match] %s basic auth matched: %s' % (cred['name'], basic_auth))
             match = True
 
         server = response.headers.get('Server', None)
@@ -36,7 +36,7 @@ class HttpFingerprint:
         body = fp.get('body')
         if body and re.search(body, response.text):
             match = True
-            logger.debug('[HttpFingerprint][match] %s body matched: %s' % (cred['name'], body))
+            logger.info('[HttpFingerprint][match] %s body matched: %s' % (cred['name'], body))
         elif body:
             logger.debug('[Fingerprint][match] %s body not matched' % cred['name'])
             match = False

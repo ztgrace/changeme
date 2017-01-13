@@ -7,7 +7,7 @@ import re
 
 class HTTPGetScanner(Scanner):
 
-    def __init__(self, cred, target, config, session):
+    def __init__(self, cred, target, username, password, config, session):
         super(HTTPGetScanner, self).__init__(cred, target, config)
         self.cred = cred
         self.config = config
@@ -15,11 +15,13 @@ class HTTPGetScanner(Scanner):
         self.request = session
         self.response = None
         self.url = target
+        self.username = username
+        self.password = password
 
     def scan(self):
         self.debug("scan")
-        self._build_request()
         self._make_request()
+        # TODO handle 429 requests
         return self.check_success()
 
         return False
@@ -28,7 +30,6 @@ class HTTPGetScanner(Scanner):
         self.debug("check_success")
         match = False
         success = self.cred['auth']['success']
-        print self.cred
         if self.cred['auth'].get('base64', None):
             username = base64.b64decode(self.cred.username)
             password = base64.b64decode(self.cred.password)
@@ -44,11 +45,11 @@ class HTTPGetScanner(Scanner):
 
         if match:
             self.config.logger.critical('[+] Found %s default cred %s:%s at %s' %
-                            (self.cred.name, self.cred.username, self.cred.password, self.request))
-            return (self.cred.name, self.cred.username, self.cred.password, self.request)
+                            (self.cred['name'], self.username, self.password, self.url))
+            return self.cred['name'], self.username, self.password, self.request
         else:
             self.config.logger.info( '[check_success] Invalid %s default cred %s:%s at %s' %
-                         (self.cred['name'], self.cred['username'], self.cred['password'], self.request))
+                         (self.cred['name'], self.username, self.password, self.url))
             return False
 
     def _check_fingerprint(self):
@@ -64,7 +65,12 @@ class HTTPGetScanner(Scanner):
 
     def _make_request(self):
         self.debug("_make_request")
-        self.request.get()
+        self.response = self.request.get(self.url,
+                                         verify=False,
+                                         proxies=self.config['proxy'],
+                                         timeout=self.config['timeout'],
+                                         headers=self.config['headers']
+                                         )
 
     def _build_headers(self):
         self.cred['']

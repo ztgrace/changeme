@@ -43,8 +43,6 @@ class ScanEngine(object):
 
         # Build a set of unique fingerprints
         for c in self.creds:
-            if c['name'] == 'Apache Tomcat':
-                self.config.logger.warning('Apache Tomcat')
             fp = c['fingerprint']
             for url in fp.get('url'):
                 hfp = HttpFingerprint(
@@ -57,7 +55,6 @@ class ScanEngine(object):
                 if hfp not in self.fingerprints:
                     self.fingerprints.add(hfp)
 
-        self.config.logger.critical(len(self.fingerprints))
         # Scan all the fingerprints
         for target in self.targets:
             for fp in self.fingerprints:
@@ -65,7 +62,6 @@ class ScanEngine(object):
                 if fp.ssl is True:
                     proto = 'https'
                 url = "%s://%s:%s%s" % (proto, target, fp.port, fp.url)
-                self.config.logger.critical(url + str(fp.headers) + str(fp.cookies))
 
                 try:
                     res = s.get(
@@ -80,13 +76,10 @@ class ScanEngine(object):
                     self.config.logger.debug('[ScanEngine][fingerprint_targets] Failed to connect to %s' % url)
                     continue
 
-                for c in self.creds:
+                for cred in self.creds:
                     if HttpFingerprint.ismatch(c, res, self.config.logger):
-                        self._build_scanner(c, res.url, s)
-
-
-
-
+                        for c in cred['auth']['credentials']:
+                            self._build_scanner(cred, c, res.url, s)
 
     def _build_targets(self):
         self.config.logger.debug("[ScanEngine][_build_targets]")
@@ -116,15 +109,12 @@ class ScanEngine(object):
                 for s in h.services:
                     self.targets.add('%s:%s' % (h.address, s.port))
 
-    def _build_scanner(self, cred, url, session):
+    def _build_scanner(self, cred, c, url, session):
+        self.config.logger.debug("[ScanEngine][_build_scanner] building %s %s:%s" % (cred['name'], c['username'], c['password']))
         if cred['auth']['type'] == 'get':
-            self.scanners.append(HTTPGetScanner(cred, url, self.config, session))
+            self.scanners.append(HTTPGetScanner(cred, url, c['username'], c['password'], self.config, session))
         elif cred['auth']['type'] == 'post':
-            self.scanners.append(HTTPPostScanner(cred, url, self.config, session))
+            self.scanners.append(HTTPPostScanner(cred, url, c['username'], c['password'], self.config, session))
         elif cred['auth']['type'] == 'basic_auth':
-            self.scanners.append(HTTPBasicAuthScanner(cred, url, self.config, session))
-        #scanners = list()
-        #scanners.append(HTTPGetScanner(self.creds, self.targets, self.config),)
-        #scanners.append(HTTPPostScanner(self.creds, self.targets, self.config),)
-        #scanners.append(HTTPBasicAuthScanner(self.creds, self.targets, self.config),)
+            self.scanners.append(HTTPBasicAuthScanner(cred, url, c['username'], c['password'], self.config, session))
 
