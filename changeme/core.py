@@ -95,7 +95,7 @@ class Config(object):
             ap.print_help()
             quit()
 
-        if self.target:
+        if self.targets:
             self._file_exists(self.target)
 
         if self.nmap:
@@ -111,7 +111,7 @@ class Config(object):
 
         if self.delay and self.delay != 0:
             if isinstance(self.delay, int) and 0 <= self.delay <= 1000:
-                self.logger.info('Delay is set to %d milliseconds' % self.delay)
+                self.logger.debug('Delay is set to %d milliseconds' % self.delay)
             else:
                 self.logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
                                     type(self.delay))
@@ -125,25 +125,25 @@ class Config(object):
         ap.add_argument('--category', '-c', type=str, help='Category of default creds to scan for', default=None)
         ap.add_argument('--contributors', action='store_true', help='Display cred file contributors')
         ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
+        ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in milliseconds to avoid 429 status codes default=500", default=500)
         ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
         ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
         ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds')
         ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
         ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
+        ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse', default=None)
         ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
         ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
-        ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan')
-        ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query')
-        ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key')
-        ap.add_argument('--target', type=str, help='Specific target to scan (IP:PORT)')
-        ap.add_argument('--targets', type=str, help='File of targets to scan')
+        ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan', default=None)
+        ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
+        ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
+        ap.add_argument('--target', type=str, help='Specific target to scan (IP:PORT)', default=None)
+        ap.add_argument('--targets', type=str, help='File of targets to scan', default=None)
         ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
         ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
-        ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
-        ap.add_argument('--validate', action='store_true', help='Validate creds files')
-        ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse')
-        ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use")
-        ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in milliseconds to avoid 429 status codes default=500", default=500)
+        ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use", default=None)
+        ap.add_argument('--validate', action='store_true', help='Validate creds files', default=False)
+        ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output', default=False)
         args = ap.parse_args()
 
         # Convert argparse Namespace to a dict and make the keys + values member variables of the config class

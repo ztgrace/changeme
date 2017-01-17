@@ -4,4 +4,4 @@ python:
 install: 
   - pip install -r requirements.txt
   - pip install coverage
-script: nosetests -v -s --with-coverage --cover-erase --cover-package=changeme tests/*.py
+script: nosetests --nologcapture -v -s --with-coverage --cover-erase --cover-package=changeme tests/*.py

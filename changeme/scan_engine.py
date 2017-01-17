@@ -7,6 +7,7 @@ from scanners.http_get import HTTPGetScanner
 from scanners.http_post import HTTPPostScanner
 from scanners.http_basic_auth import HTTPBasicAuthScanner
 import shodan
+from lxml import html
 
 
 class ScanEngine(object):
@@ -79,8 +80,27 @@ class ScanEngine(object):
 
                 for cred in self.creds:
                     if HttpFingerprint.ismatch(cred, res, self.config.logger):
+                        csrf = self.get_csrf_token(res, cred)
                         for c in cred['auth']['credentials']:
-                            self._build_scanner(cred, c, res.url, s)
+                            for u in cred['auth']['url']:  # pass in the auth url
+                                u = "%s%s" % (HTTPGetScanner.get_base_url(res.url), u)
+                                self._build_scanner(cred, c, u, s, csrf=csrf)
+
+    def get_csrf_token(self, res, cred):
+        name = cred['auth'].get('csrf', False)
+        if name:
+            tree = html.fromstring(res.content)
+            try:
+                csrf = tree.xpath('//input[@name="%s"]/@value' % name)[0]
+            except:
+                self.config.logger.error(
+                    "[get_csrf_token] failed to get CSRF token %s in %s" % (str(name), str(res.url)))
+                return False
+            self.config.logger.debug('[get_csrf_token] got CSRF token %s: %s' % (name, csrf))
+        else:
+            csrf = False
+
+        return csrf
 
     def _build_targets(self):
         self.config.logger.debug("[ScanEngine][_build_targets]")
@@ -112,12 +132,12 @@ class ScanEngine(object):
 
         self.config.logger.debug("[ScanEngine][_build_targets] %i targets" % len(self.targets))
 
-    def _build_scanner(self, cred, c, url, session):
+    def _build_scanner(self, cred, c, url, session, **moar):
         self.config.logger.debug("[ScanEngine][_build_scanner] building %s %s:%s" % (cred['name'], c['username'], c['password']))
         if cred['auth']['type'] == 'get':
             self.scanners.append(HTTPGetScanner(cred, url, c['username'], c['password'], self.config, session))
         elif cred['auth']['type'] == 'post':
-            self.scanners.append(HTTPPostScanner(cred, url, c['username'], c['password'], self.config, session))
+            self.scanners.append(HTTPPostScanner(cred, url, c['username'], c['password'], self.config, session, moar.get('csrf', None)))
         elif cred['auth']['type'] == 'basic_auth':
             self.scanners.append(HTTPBasicAuthScanner(cred, url, c['username'], c['password'], self.config, session))
 
