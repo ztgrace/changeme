@@ -54,21 +54,40 @@ no_args = deepcopy(cli_args)
 no_args['target'] = None
 @raises(SystemExit)
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**no_args))
-def test_config_base(mock_args):
-    """ Run the config without any args """
+def test_no_args(mock_args):
     core.Config()
 
 
-@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**cli_args))
-def test_config_base(mock_args):
-    """ Run the config with a target """
+args = deepcopy(cli_args)
+args['target'] = '127.0.0.1'
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**args))
+def test_target(mock_args):
     core.Config()
 
 
-args = deepcopy(no_args)
+"""
+args = deepcopy(cli_args)
 args['targets'] = '/etc/hosts'
-@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**cli_args))
-def test_config_base(mock_args):
-    """ Run the config with a targets file """
-    config = core.Config()
+args['target'] = None
+print args
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**args))
+def test_targets(mock_args):
+    core.Config()
+"""
 
+args = deepcopy(cli_args)
+args['contributors'] = True
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**args))
+def test_contributors(mock_args):
+    config = core.Config()
+    creds = core.load_creds(config)
+    core.print_contributors(creds)
+
+
+args = deepcopy(cli_args)
+args['dump'] = True
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**args))
+def test_print_creds(mock_args):
+    config = core.Config()
+    creds = core.load_creds(config)
+    core.print_creds(creds)

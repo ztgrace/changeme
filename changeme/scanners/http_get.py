@@ -1,32 +1,53 @@
 import base64
+from requests import session
 from scanner import Scanner
 import re
+from time import sleep
 import urllib
 from urlparse import urlparse
 
 
 class HTTPGetScanner(Scanner):
 
-    def __init__(self, cred, target, username, password, config, session):
+    def __init__(self, cred, target, username, password, config, cookies):
         super(HTTPGetScanner, self).__init__(cred, target, config)
         self.cred = cred
         self.config = config
-        self.request = session
+        self.cookies = cookies
+        self.headers = dict()
+        self.request = session()
         self.response = None
+        self.password = password
         self.url = target
         self.username = username
-        self.password = password
+
+        headers = self.cred['auth'].get('headers', dict())
+        if headers:
+            for h in headers:
+                self.headers.update(h)
+        self.headers.update(self.config.useragent)
+
 
         # make the cred have only one u:p combo
         self.cred['auth']['credentials'] = [{'username': self.username, 'password': self.password}]
 
     def scan(self):
         self.debug("scan")
-        self._make_request()
-        # TODO handle 429 requests
-        return self.check_success()
+        try:
+            self._make_request()
+        except Exception as e:
+            self.error('Failed to connect to %s' % self.url)
+            self.debug('Exception: %s' % e.__str__().replace('\n', '|'))
 
-        return False
+        if self.response.status_code == 429:
+            self.warn('Status 429 received. Sleeping for %d seconds and trying again' % self.config.delay)
+            sleep(self.config.delay)
+            try:
+                self._make_request()
+            except Exception as e:
+                self.error('Failed to connect to %s' % self.url)
+
+        return self.check_success()
 
     def check_success(self):
         self.debug("check_success")
@@ -51,7 +72,11 @@ class HTTPGetScanner(Scanner):
         if match:
             self.config.logger.critical('[+] Found %s default cred %s:%s at %s' %
                             (self.cred['name'], self.username, self.password, self.url))
-            return self.cred['name'], self.username, self.password, self.request
+
+            return {'name': self.cred['name'],
+                    'username': self.username,
+                    'password': self.password,
+                    'url': self.url}
         else:
             self.config.logger.info( '[check_success] Invalid %s default cred %s:%s at %s' %
                          (self.cred['name'], self.username, self.password, self.url))
@@ -76,10 +101,10 @@ class HTTPGetScanner(Scanner):
         self.debug("[check_http] url: %s" % url)
         self.response = self.request.get(self.url,
                                          verify=False,
-                                         proxies=self.config['proxy'],
-                                         timeout=self.config['timeout'],
-                                         headers=self.config['headers']
-                                         )
+                                         proxies=self.config.proxy,
+                                         timeout=self.config.timeout,
+                                         headers=self.headers,
+                                         cookies=self.cookies)
 
     def _build_headers(self):
         self.cred['']
@@ -121,7 +146,6 @@ class HTTPGetScanner(Scanner):
                 return data_to_send
         else:  # raw post
             return candidate['auth']['credential']['raw']
-
 
     def _get_parameter_dict(self, auth):
         params = dict()

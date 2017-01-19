@@ -15,7 +15,6 @@ class HTTPPostScanner(HTTPGetScanner):
                                           verify=False,
                                           proxies=self.config.proxy,
                                           timeout=self.config.timeout,
-                                          headers=self.config.useragent,)
-
-
+                                          headers=self.headers,
+                                          cookies=self.cookies)
 

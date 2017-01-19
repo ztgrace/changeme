@@ -20,6 +20,7 @@ class ScanEngine(object):
         self.creds = creds
         self.config = config
         self.scanners = list()
+        #self.scanners = mp.Manager().Queue()
         self.targets = set() # a set() if unique hosts
         self.fingerprints = set()
         self.found_q = mp.Manager().Queue()
@@ -30,11 +31,31 @@ class ScanEngine(object):
         # Phase I - Fingerprint
         ###############################################################################
         self._build_targets()
-        self.fingerprint_targets()
+        procs = [mp.Process(target=self.fingerprint_targets) for i in range(self.config.threads)]
+        for proc in procs:
+            proc.start()
 
-        # TODO: Multithread
+        for proc in procs:
+            proc.join()
+
+        # Phase II - Scan
+        ###############################################################################
         for s in self.scanners:
-            result = s.scan()
+            s.scan()
+        """
+        TODO: Multithread
+        procs = [mp.Process(target=self._scan()) for i in range(self.config.threads)]
+        for proc in procs:
+            proc.start()
+
+        for proc in procs:
+            proc.join()
+        """
+
+    def _scan(self):
+        if not self.scanners.empty():
+            scanner = self.scanners.get().scan()
+            result = scanner.scan()
             if result:
                 self.found_q.put(result)
 
@@ -84,7 +105,7 @@ class ScanEngine(object):
                         for c in cred['auth']['credentials']:
                             for u in cred['auth']['url']:  # pass in the auth url
                                 u = "%s%s" % (HTTPGetScanner.get_base_url(res.url), u)
-                                self._build_scanner(cred, c, u, s, csrf=csrf)
+                                self._build_scanner(cred, c, u, s.cookies, csrf=csrf)
 
     def get_csrf_token(self, res, cred):
         name = cred['auth'].get('csrf', False)
@@ -132,12 +153,12 @@ class ScanEngine(object):
 
         self.config.logger.debug("[ScanEngine][_build_targets] %i targets" % len(self.targets))
 
-    def _build_scanner(self, cred, c, url, session, **moar):
+    def _build_scanner(self, cred, c, url, cookies, **moar):
         self.config.logger.debug("[ScanEngine][_build_scanner] building %s %s:%s" % (cred['name'], c['username'], c['password']))
         if cred['auth']['type'] == 'get':
-            self.scanners.append(HTTPGetScanner(cred, url, c['username'], c['password'], self.config, session))
-        elif cred['auth']['type'] == 'post':
-            self.scanners.append(HTTPPostScanner(cred, url, c['username'], c['password'], self.config, session, moar.get('csrf', None)))
+            self.scanners.append(HTTPGetScanner(cred, url, c['username'], c['password'], self.config, cookies))
+        elif cred['auth']['type'] == 'post' or cred['auth']['type'] == 'raw_post':
+            self.scanners.append(HTTPPostScanner(cred, url, c['username'], c['password'], self.config, cookies, moar.get('csrf', None)))
         elif cred['auth']['type'] == 'basic_auth':
-            self.scanners.append(HTTPBasicAuthScanner(cred, url, c['username'], c['password'], self.config, session))
+            self.scanners.append(HTTPBasicAuthScanner(cred, url, c['username'], c['password'], self.config, cookies))
 
