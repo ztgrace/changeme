@@ -103,11 +103,10 @@ class Config(object):
             self._file_exists(self.nmap)
 
         if self.proxy and re.match('^https?://[0-9\.]+:[0-9]{1,5}$', self.proxy):
-            self.proxy = {'http': self.proxy,
-                     'https': self.proxy}
-            logger.info('Setting proxy to %s' % self.proxy)
+            self.proxy = {'http': self.proxy, 'https': self.proxy}
+            self.logger.info('Setting proxy to %s' % self.proxy)
         elif self.proxy:
-            logger.error('Invalid proxy, must be http(s)://x.x.x.x:8080')
+            self.logger.error('Invalid proxy, must be http(s)://x.x.x.x:8080')
             sys.exit()
 
         if self.delay and self.delay != 0:

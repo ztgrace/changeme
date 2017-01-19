@@ -22,7 +22,7 @@ class ScanEngine(object):
         self.scanners = list()
         #self.scanners = mp.Manager().Queue()
         self.targets = set() # a set() if unique hosts
-        self.fingerprints = set()
+        self.fingerprints = mp.Manager().Queue()
         self.found_q = mp.Manager().Queue()
 
 
@@ -31,7 +31,9 @@ class ScanEngine(object):
         # Phase I - Fingerprint
         ###############################################################################
         self._build_targets()
-        procs = [mp.Process(target=self.fingerprint_targets) for i in range(self.config.threads)]
+        num_procs = self.config.threads if self.fingerprints.qsize() > self.config.threads else self.fingerprints.qsize()
+        self.config.logger.debug('[ScanEngine][scan] number of fingerprint procs: %i' % num_procs)
+        procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
         for proc in procs:
             proc.start()
 
@@ -40,8 +42,9 @@ class ScanEngine(object):
 
         # Phase II - Scan
         ###############################################################################
+        self.config.logger.debug("Running %i scanners" % len(self.scanners))
         for s in self.scanners:
-            s.scan()
+            s._scan()
         """
         TODO: Multithread
         procs = [mp.Process(target=self._scan()) for i in range(self.config.threads)]
@@ -63,49 +66,34 @@ class ScanEngine(object):
         self.config.logger.debug("[ScanEngine][fingerprint_targets]")
         s = requests.Session()
 
-        # Build a set of unique fingerprints
-        for c in self.creds:
-            fp = c['fingerprint']
-            for url in fp.get('url'):
-                hfp = HttpFingerprint(
-                    url,
-                    c.get('default_port', 80),
-                    c.get('ssl'),
-                    fp.get('headers', None),
-                    fp.get('cookie', None)
-                )
-                if hfp not in self.fingerprints:
-                    self.fingerprints.add(hfp)
-        self.config.logger.debug("[ScanEngine][fingerprint_targets] %i fingerprints" % len(self.fingerprints))
-
         # Scan all the fingerprints
         for target in self.targets:
-            for fp in self.fingerprints:
-                proto = 'http'
-                if fp.ssl is True:
-                    proto = 'https'
-                url = "%s://%s:%s%s" % (proto, target, fp.port, fp.url)
+            fp = self.fingerprints.get()
+            proto = 'http'
+            if fp.ssl is True:
+                proto = 'https'
+            url = "%s://%s:%s%s" % (proto, target, fp.port, fp.url)
 
-                try:
-                    res = s.get(
-                            url,
-                            timeout=self.config.timeout,
-                            verify=False,
-                            proxies=self.config.proxy,
-                            headers=fp.headers,
-                            cookies=fp.cookies
-                    )
-                except Exception as e:
-                    self.config.logger.debug('[ScanEngine][fingerprint_targets] Failed to connect to %s' % url)
-                    continue
+            try:
+                res = s.get(
+                        url,
+                        timeout=self.config.timeout,
+                        verify=False,
+                        proxies=self.config.proxy,
+                        headers=fp.headers,
+                        cookies=fp.cookies
+                )
+            except Exception as e:
+                self.config.logger.debug('[ScanEngine][fingerprint_targets] Failed to connect to %s' % url)
+                continue
 
-                for cred in self.creds:
-                    if HttpFingerprint.ismatch(cred, res, self.config.logger):
-                        csrf = self.get_csrf_token(res, cred)
-                        for c in cred['auth']['credentials']:
-                            for u in cred['auth']['url']:  # pass in the auth url
-                                u = "%s%s" % (HTTPGetScanner.get_base_url(res.url), u)
-                                self._build_scanner(cred, c, u, s.cookies, csrf=csrf)
+            for cred in self.creds:
+                if HttpFingerprint.ismatch(cred, res, self.config.logger):
+                    csrf = self.get_csrf_token(res, cred)
+                    for c in cred['auth']['credentials']:
+                        for u in cred['auth']['url']:  # pass in the auth url
+                            u = "%s%s" % (HTTPGetScanner.get_base_url(res.url), u)
+                            self._build_scanner(cred, c, u, s.cookies, csrf=csrf)
 
     def get_csrf_token(self, res, cred):
         name = cred['auth'].get('csrf', False)
@@ -152,6 +140,24 @@ class ScanEngine(object):
                     self.targets.add('%s:%s' % (h.address, s.port))
 
         self.config.logger.debug("[ScanEngine][_build_targets] %i targets" % len(self.targets))
+
+        fingerprints = set()
+        # Build a set of unique fingerprints
+        for c in self.creds:
+            fp = c['fingerprint']
+            for url in fp.get('url'):
+                hfp = HttpFingerprint(
+                    url,
+                    c.get('default_port', 80),
+                    c.get('ssl'),
+                    fp.get('headers', None),
+                    fp.get('cookie', None)
+                )
+                if hfp not in fingerprints:
+                    fingerprints.add(hfp)
+        for fp in fingerprints:
+            self.fingerprints.put(fp)
+        self.config.logger.debug("[ScanEngine][_build_targets] %i fingerprints" % len(fingerprints))
 
     def _build_scanner(self, cred, c, url, cookies, **moar):
         self.config.logger.debug("[ScanEngine][_build_scanner] building %s %s:%s" % (cred['name'], c['username'], c['password']))
