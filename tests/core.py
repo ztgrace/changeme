@@ -33,23 +33,6 @@ cli_args = {'category': None,
 def test_banner():
     core.banner(version.__version__)
 
-
-def test_debug_logger():
-    logger = core.init_logging(True, True, None)
-
-
-def test_verbose_logger():
-    logger = core.init_logging(True, False, None)
-
-
-def test_regular_logger():
-    logger = core.init_logging(False, False, None)
-
-
-def test_file_logger():
-    logger = core.init_logging(False, False, '/tmp/test.log')
-
-
 no_args = deepcopy(cli_args)
 no_args['target'] = None
 @raises(SystemExit)

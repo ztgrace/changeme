@@ -2,71 +2,14 @@ import argparse
 from cerberus import Validator
 from changeme import cred
 import logging
-from logutils import colorize
 import os
 import random
 import re
-import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import schema
 import sys
 import version
 import yaml
 
-
-def init_logging(verbose, debug, logfile):
-    """
-    Logging levels:
-        - Critical: Default credential found
-        - Error: error in the program
-        - Warning: Verbose data
-        - Info: more verbose
-        - Debug: Extra info for debugging purposes
-    """
-    global logger
-    # Set up our logging object
-    logger = logging.getLogger(__name__)
-
-    if debug:
-        logger.setLevel(logging.DEBUG)
-    elif verbose:
-        logger.setLevel(logging.INFO)
-    else:
-        logger.setLevel(logging.WARNING)
-
-    if logfile:
-        # Create file handler which logs even debug messages
-        #######################################################################
-        fh = logging.FileHandler(logfile)
-
-        # create formatter and add it to the handler
-        formatter = logging.Formatter(
-            '[%(asctime)s][%(levelname)s] %(message)s')
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-    # Set up the StreamHandler so we can write to the console
-    ###########################################################################
-    # create console handler with a higher log level
-    ch = colorize.ColorizingStreamHandler(sys.stdout)
-
-    # set custom colorings:
-    ch.level_map[logging.DEBUG] = [None, 2, False]
-    ch.level_map[logging.INFO] = [None, 'white', False]
-    ch.level_map[logging.WARNING] = [None, 'yellow', False]
-    ch.level_map[logging.ERROR] = [None, 'red', False]
-    ch.level_map[logging.CRITICAL] = [None, 'green', False]
-    formatter = logging.Formatter(
-        '[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-
-    # Adjust the loggers for requests and urllib3
-    logging.getLogger('requests').setLevel(logging.ERROR)
-    logging.getLogger('urllib3').setLevel(logging.ERROR)
-    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-    return logger
 
 def banner(version):
     b = """
@@ -87,10 +30,10 @@ def banner(version):
 
 class Config(object):
     def __init__(self):
-        self.logger = None
         self.parse_args()
 
     def _validate_args(self, ap):
+        logger = logging.getLogger('changeme')
         if (not self.subnet and not self.targets and not self.validate and not self.contributors and not self.dump
                 and not self.shodan_query and not self.nmap and not self.target):
             ap.print_help()
@@ -104,21 +47,26 @@ class Config(object):
 
         if self.proxy and re.match('^https?://[0-9\.]+:[0-9]{1,5}$', self.proxy):
             self.proxy = {'http': self.proxy, 'https': self.proxy}
-            self.logger.info('Setting proxy to %s' % self.proxy)
+            logger.info('Setting proxy to %s' % self.proxy)
         elif self.proxy:
-            self.logger.error('Invalid proxy, must be http(s)://x.x.x.x:8080')
+            logger.error('Invalid proxy, must be http(s)://x.x.x.x:8080')
             sys.exit()
 
         if self.delay and self.delay != 0:
             if isinstance(self.delay, int) and 0 <= self.delay <= 1000:
-                self.logger.debug('Delay is set to %d milliseconds' % self.delay)
+                logger.debug('Delay is set to %d milliseconds' % self.delay)
             else:
-                self.logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
+                logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
                                     type(self.delay))
+
+        if self.verbose:
+            logger.setLevel(logging.INFO)
+        if self.debug:
+            logger.setLevel(logging.DEBUG)
 
         # Drop logging level to INFO to see the fingerprint messages
         if self.fingerprint:
-            self.logger.setLevel(logging.INFO)
+            logger.setLevel(logging.INFO)
 
         self.useragent = {'User-Agent': self.useragent if self.useragent else get_useragent()}
 
@@ -153,7 +101,6 @@ class Config(object):
         for key in args:
             setattr(self, key, args[key])
 
-        self.logger = init_logging(self.verbose, self.debug, self.log)
         self._validate_args(ap)
 
     def _file_exists(self, f):
@@ -163,6 +110,7 @@ class Config(object):
 
 
 def load_creds(config):
+    logger = logging.getLogger('changeme')
     creds = list()
     total_creds = 0
     cred_names = list()
@@ -173,15 +121,14 @@ def load_creds(config):
                 parsed = parse_yaml(f)
                 if parsed:
                     if parsed['name'] in cred_names:
-                        config.logger.error(
-                            "[load_creds] %s: duplicate name %s" % (f, parsed['name']))
+                        logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
                     elif validate_cred(parsed, f):
 
                         if in_scope(config.name, config.category, parsed):
                             total_creds += len(parsed["auth"]["credentials"])
                             creds.append(parsed)
                             cred_names.append(parsed['name'])
-                            config.logger.debug('Loaded %s' % parsed['name'])
+                            logger.debug('Loaded %s' % parsed['name'])
 
     print('Loaded %i default credential profiles' % len(creds))
     print('Loaded %i default credentials\n' % total_creds)
@@ -193,7 +140,7 @@ def validate_cred(cred, f):
     v = Validator()
     valid = v.validate(cred, schema.changeme_schema)
     for e in v.errors:
-        logger.error("[validate_cred] Validation Error: %s, %s - %s" %
+        logging.getLogger('changeme').error("[validate_cred] Validation Error: %s, %s - %s" %
                      (f, e, v.errors[e]))
 
     return valid

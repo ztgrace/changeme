@@ -1,4 +1,5 @@
 from libnmap.parser import NmapParser as np
+import logging
 import multiprocessing as mp
 from netaddr import *
 import requests
@@ -19,8 +20,8 @@ class ScanEngine(object):
         """
         self.creds = creds
         self.config = config
-        self.scanners = list()
-        #self.scanners = mp.Manager().Queue()
+        self.log = logging.getLogger('changeme')
+        self.scanners = mp.Manager().Queue()
         self.targets = set() # a set() if unique hosts
         self.fingerprints = mp.Manager().Queue()
         self.found_q = mp.Manager().Queue()
@@ -32,7 +33,7 @@ class ScanEngine(object):
         ###############################################################################
         self._build_targets()
         num_procs = self.config.threads if self.fingerprints.qsize() > self.config.threads else self.fingerprints.qsize()
-        self.config.logger.debug('[ScanEngine][scan] number of fingerprint procs: %i' % num_procs)
+        self.log.debug('Number of fingerprint procs: %i' % num_procs)
         procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
         for proc in procs:
             proc.start()
@@ -42,58 +43,57 @@ class ScanEngine(object):
 
         # Phase II - Scan
         ###############################################################################
-        self.config.logger.debug("Running %i scanners" % len(self.scanners))
-        for s in self.scanners:
-            s._scan()
-        """
-        TODO: Multithread
-        procs = [mp.Process(target=self._scan()) for i in range(self.config.threads)]
+        num_procs = self.config.threads if self.scanners.qsize() > self.config.threads else self.scanners.qsize()
+        procs = [mp.Process(target=self._scan()) for i in range(num_procs)]
         for proc in procs:
             proc.start()
 
         for proc in procs:
             proc.join()
-        """
+
+        #while not self.found_q.empty():
+
 
     def _scan(self):
-        if not self.scanners.empty():
-            scanner = self.scanners.get().scan()
+        while not self.scanners.empty():
+            template = self.scanners.get()
+            scanner = self._build_scanner(template)
             result = scanner.scan()
             if result:
                 self.found_q.put(result)
 
     def fingerprint_targets(self):
-        self.config.logger.debug("[ScanEngine][fingerprint_targets]")
-        s = requests.Session()
+        while not self.fingerprints.empty():
+            s = requests.Session()
 
-        # Scan all the fingerprints
-        for target in self.targets:
-            fp = self.fingerprints.get()
-            proto = 'http'
-            if fp.ssl is True:
-                proto = 'https'
-            url = "%s://%s:%s%s" % (proto, target, fp.port, fp.url)
+            # Scan all the fingerprints
+            for target in self.targets:
+                fp = self.fingerprints.get()
+                proto = 'http'
+                if fp.ssl is True:
+                    proto = 'https'
+                url = '%s://%s:%s%s' % (proto, target, fp.port, fp.url)
 
-            try:
-                res = s.get(
-                        url,
-                        timeout=self.config.timeout,
-                        verify=False,
-                        proxies=self.config.proxy,
-                        headers=fp.headers,
-                        cookies=fp.cookies
-                )
-            except Exception as e:
-                self.config.logger.debug('[ScanEngine][fingerprint_targets] Failed to connect to %s' % url)
-                continue
+                try:
+                    res = s.get(
+                            url,
+                            timeout=self.config.timeout,
+                            verify=False,
+                            proxies=self.config.proxy,
+                            headers=fp.headers,
+                            cookies=fp.cookies
+                    )
+                except Exception as e:
+                    self.log.debug('Failed to connect to %s' % url)
+                    continue
 
-            for cred in self.creds:
-                if HttpFingerprint.ismatch(cred, res, self.config.logger):
-                    csrf = self.get_csrf_token(res, cred)
-                    for c in cred['auth']['credentials']:
-                        for u in cred['auth']['url']:  # pass in the auth url
-                            u = "%s%s" % (HTTPGetScanner.get_base_url(res.url), u)
-                            self._build_scanner(cred, c, u, s.cookies, csrf=csrf)
+                for cred in self.creds:
+                    if HttpFingerprint.ismatch(cred, res, self.log):
+                        csrf = self.get_csrf_token(res, cred)
+                        for c in cred['auth']['credentials']:
+                            for u in cred['auth']['url']:  # pass in the auth url
+                                u = '%s%s' % (HTTPGetScanner.get_base_url(res.url), u)
+                                self.scanners.put({'cred': cred, 'pair': c, 'url': u, 'cookies': s.cookies, 'csrf':csrf})
 
     def get_csrf_token(self, res, cred):
         name = cred['auth'].get('csrf', False)
@@ -102,17 +102,17 @@ class ScanEngine(object):
             try:
                 csrf = tree.xpath('//input[@name="%s"]/@value' % name)[0]
             except:
-                self.config.logger.error(
-                    "[get_csrf_token] failed to get CSRF token %s in %s" % (str(name), str(res.url)))
+                self.log.error(
+                    'Failed to get CSRF token %s in %s' % (str(name), str(res.url)))
                 return False
-            self.config.logger.debug('[get_csrf_token] got CSRF token %s: %s' % (name, csrf))
+            self.log.debug('Got CSRF token %s: %s' % (name, csrf))
         else:
             csrf = False
 
         return csrf
 
     def _build_targets(self):
-        self.config.logger.debug("[ScanEngine][_build_targets]")
+        self.log.debug('Building targets')
 
         if self.config.subnet:
             for ip in IPNetwork(self.config.subnet).iter_hosts():
@@ -133,13 +133,13 @@ class ScanEngine(object):
 
         if self.config.nmap:
             report = np.parse_fromfile(self.config.nmap)
-            self.config.logger.info('[ScanEngine][_build_targets] Loaded %i hosts from %s' %
+            self.log.info('Loaded %i hosts from %s' %
                                     (len(report.hosts), self.config.nmap))
             for h in report.hosts:
                 for s in h.services:
                     self.targets.add('%s:%s' % (h.address, s.port))
 
-        self.config.logger.debug("[ScanEngine][_build_targets] %i targets" % len(self.targets))
+        self.log.debug('%i targets' % len(self.targets))
 
         fingerprints = set()
         # Build a set of unique fingerprints
@@ -157,14 +157,23 @@ class ScanEngine(object):
                     fingerprints.add(hfp)
         for fp in fingerprints:
             self.fingerprints.put(fp)
-        self.config.logger.debug("[ScanEngine][_build_targets] %i fingerprints" % len(fingerprints))
+        self.log.debug('%i fingerprints' % len(fingerprints))
 
-    def _build_scanner(self, cred, c, url, cookies, **moar):
-        self.config.logger.debug("[ScanEngine][_build_scanner] building %s %s:%s" % (cred['name'], c['username'], c['password']))
+    def _build_scanner(self, template):
+        scanner = None
+        cred = template['cred']
+        url = template['url']
+        pair = template['pair']
+        cookies = template['cookies']
+        csrf = template.get('csrf', None)
+        self.log.debug('Building %s %s:%s' % (cred['name'], pair['username'], pair['password']))
+
         if cred['auth']['type'] == 'get':
-            self.scanners.append(HTTPGetScanner(cred, url, c['username'], c['password'], self.config, cookies))
+            scanner = HTTPGetScanner(cred, url, pair['username'], pair['password'], self.config, cookies)
         elif cred['auth']['type'] == 'post' or cred['auth']['type'] == 'raw_post':
-            self.scanners.append(HTTPPostScanner(cred, url, c['username'], c['password'], self.config, cookies, moar.get('csrf', None)))
+            scanner = HTTPPostScanner(cred, url, pair['username'], pair['password'], self.config, cookies, csrf)
         elif cred['auth']['type'] == 'basic_auth':
-            self.scanners.append(HTTPBasicAuthScanner(cred, url, c['username'], c['password'], self.config, cookies))
+            scanner = HTTPBasicAuthScanner(cred, url, pair['username'], pair['password'], self.config, cookies)
+
+        return scanner
 

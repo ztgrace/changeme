@@ -1,4 +1,5 @@
 import base64
+import logging
 from requests import session
 from scanner import Scanner
 import re
@@ -32,12 +33,12 @@ class HTTPGetScanner(Scanner):
         self.cred['auth']['credentials'] = [{'username': self.username, 'password': self.password}]
 
     def scan(self):
-        self.debug("scan")
         try:
             self._make_request()
         except Exception as e:
-            self.error('Failed to connect to %s' % self.url)
-            self.debug('Exception: %s' % e.__str__().replace('\n', '|'))
+            self.logger.error('Failed to connect to %s' % self.url)
+            self.logger.debug('Exception: %s' % e.__str__().replace('\n', '|'))
+            return None
 
         if self.response.status_code == 429:
             self.warn('Status 429 received. Sleeping for %d seconds and trying again' % self.config.delay)
@@ -45,12 +46,11 @@ class HTTPGetScanner(Scanner):
             try:
                 self._make_request()
             except Exception as e:
-                self.error('Failed to connect to %s' % self.url)
+                self.logger.error('Failed to connect to %s' % self.url)
 
         return self.check_success()
 
     def check_success(self):
-        self.debug("check_success")
         match = False
         success = self.cred['auth']['success']
         if self.cred['auth'].get('base64', None):
@@ -66,11 +66,8 @@ class HTTPGetScanner(Scanner):
             else:
                 match = True
 
-        else:
-            print "status code didn't match %s/%s" % (success.get('status'), self.response.status_code)
-
         if match:
-            self.config.logger.critical('[+] Found %s default cred %s:%s at %s' %
+            self.logger.critical('[+] Found %s default cred %s:%s at %s' %
                             (self.cred['name'], self.username, self.password, self.url))
 
             return {'name': self.cred['name'],
@@ -78,36 +75,34 @@ class HTTPGetScanner(Scanner):
                     'password': self.password,
                     'url': self.url}
         else:
-            self.config.logger.info( '[check_success] Invalid %s default cred %s:%s at %s' %
+            self.logger.info( '[check_success] Invalid %s default cred %s:%s at %s' %
                          (self.cred['name'], self.username, self.password, self.url))
             return False
 
     def _check_fingerprint(self):
-        self.debug("_check_fingerprint")
+        self.logger.debug("_check_fingerprint")
+        self.request = session()
         self.response = self.request.get(self.url,
                                          timeout=self.config.timeout,
                                          verify=False,
                                          proxies=self.config.proxy,
                                          cookies=self.fingerprint.cookies,
                                          headers=self.fingerprint.headers)
-        self.debug('_check_fingerprint', '%s - %i' % (self.url, self.response.status_code))
+        self.logger.debug('_check_fingerprint', '%s - %i' % (self.url, self.response.status_code))
         return self.fingerprint.match(self.response)
 
     def _make_request(self):
-        self.debug("_make_request")
+        self.logger.debug("_make_request")
         data = self.render_creds(self.cred, self.csrf)
         qs = urllib.urlencode(data)
         url = "%s?%s" % (self.url, qs)
-        self.debug("[check_http] url: %s" % url)
+        self.logger.debug("url: %s" % url)
         self.response = self.request.get(self.url,
                                          verify=False,
                                          proxies=self.config.proxy,
                                          timeout=self.config.timeout,
                                          headers=self.headers,
                                          cookies=self.cookies)
-
-    def _build_headers(self):
-        self.cred['']
 
     def render_creds(self, candidate, csrf):
         """
