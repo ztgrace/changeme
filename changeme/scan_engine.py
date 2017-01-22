@@ -34,24 +34,16 @@ class ScanEngine(object):
         self._build_targets()
         num_procs = self.config.threads if self.fingerprints.qsize() > self.config.threads else self.fingerprints.qsize()
         self.log.debug('Number of fingerprint procs: %i' % num_procs)
-        procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
+        procs = [mp.Process(target=self.do_scan()) for i in range(num_procs)]
         for proc in procs:
             proc.start()
 
         for proc in procs:
             proc.join()
 
-        # Phase II - Scan
-        ###############################################################################
-        num_procs = self.config.threads if self.scanners.qsize() > self.config.threads else self.scanners.qsize()
-        procs = [mp.Process(target=self._scan()) for i in range(num_procs)]
-        for proc in procs:
-            proc.start()
-
-        #for proc in procs:
-        #    proc.join()
-
-        #while not self.found_q.empty():
+    def do_scan(self):
+        self.fingerprint_targets()
+        self._scan()
 
 
     def _scan(self):

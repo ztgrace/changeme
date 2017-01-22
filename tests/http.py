@@ -22,9 +22,10 @@ def test_tomcat_fp_match_nmap(mock_args):
     s._build_targets()
     s.fingerprint_targets()
 
-    assert len(s.scanners) == 34
-    for x in s.scanners:
-        assert x.url == 'http://127.0.0.1:8080/manager/html' or x.url == 'http://127.0.0.1:8080/tomcat/manager/html'
+    assert s.scanners.qsize() == 34
+    while not s.scanners.empty():
+        x = s.scanners.get()
+        assert x['url'] == 'http://127.0.0.1:8080/manager/html' or x['url'] == 'http://127.0.0.1:8080/tomcat/manager/html'
 
 
 """
