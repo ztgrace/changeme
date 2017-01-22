@@ -2,7 +2,8 @@ import re
 
 
 class HttpFingerprint:
-    def __init__(self, url, port, ssl, headers, cookies):
+    def __init__(self, target, url, port, ssl, headers, cookies):
+        self.target = target
         self.url = url
         self.port = port
         self.ssl = ssl
@@ -10,11 +11,15 @@ class HttpFingerprint:
         self.cookies = cookies
 
     def __hash__(self):
-        return hash(str(self.url) + str(self.port) + str(self.ssl) + str(self.headers) + str(self.cookies))
+        return hash(str(self.target) + str(self.url) + str(self.port) + str(self.ssl) + str(self.headers) + str(self.cookies))
 
     def __eq__(self, other):
-        if self.url == other.url and self.port == other.port and self.ssl == other.ssl and self.headers == other.headers and self.cookies == other.cookies:
+        if self.target == other.target and self.url == other.url and self.port == other.port and self.ssl == other.ssl and self.headers == other.headers and self.cookies == other.cookies:
             return True
+
+    def full_URL(self):
+        proto = 'https' if self.ssl else 'http'
+        return '%s://%s:%s%s' % (proto, self.target, self.port, self.url)
 
         return False
 
