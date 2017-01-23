@@ -1,10 +1,14 @@
 import argparse
 from cerberus import Validator
-from changeme import cred
 import logging
+from logutils import colorize
 import os
 import random
 import re
+from report import Report
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from scan_engine import ScanEngine
 import schema
 import sys
 import version
@@ -28,9 +32,98 @@ def banner(version):
     return b
 
 
+def main():
+    print banner(version.__version__)
+
+    args = parse_args()
+    init_logging(args['args'].verbose, args['args'].debug, args['args'].log)
+    config = Config(args['args'], args['parser'])
+    creds = load_creds(config)
+    s = None
+
+    if config.contributors:
+        print_contributors(creds)
+        quit()
+
+    if config.dump:
+        print_creds(creds)
+        quit()
+
+    if not config.validate:
+        s = ScanEngine(creds, config)
+        s.scan()
+
+    report = Report(s.found_q, config.output)
+
+    if config.output:
+        report.render_csv()
+
+    return s
+
+def init_logging(verbose=False, debug=False, logfile=None):
+    """
+    Logging levels:
+        - Critical: Default credential found
+        - Error: error in the program
+        - Warning: Verbose data
+        - Info: more verbose
+        - Debug: Extra info for debugging purposes
+    """
+    # Set up our logging object
+    logger = logging.getLogger('changeme')
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    elif verbose:
+        logger.setLevel(logging.INFO)
+    else:
+        logger.setLevel(logging.WARNING)
+
+    if logfile:
+        # Create file handler which logs even debug messages
+        #######################################################################
+        fh = logging.FileHandler(logfile)
+
+        # create formatter and add it to the handler
+        formatter = logging.Formatter(
+            '[%(asctime)s][%(levelname)s] %(message)s')
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+    # Set up the StreamHandler so we can write to the console
+    ###########################################################################
+    # create console handler with a higher log level
+    ch = colorize.ColorizingStreamHandler(sys.stdout)
+
+    # set custom colorings:
+    ch.level_map[logging.DEBUG] = [None, 2, False]
+    ch.level_map[logging.INFO] = [None, 'white', False]
+    ch.level_map[logging.WARNING] = [None, 'yellow', False]
+    ch.level_map[logging.ERROR] = [None, 'red', False]
+    ch.level_map[logging.CRITICAL] = [None, 'green', False]
+    if debug:
+        formatter = logging.Formatter('[%(asctime)s][%(module)s][%(funcName)s] %(message)s', datefmt='%H:%M:%S')
+    else:
+        formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    # Adjust the loggers for requests and urllib3
+    logging.getLogger('requests').setLevel(logging.ERROR)
+    logging.getLogger('urllib3').setLevel(logging.ERROR)
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+    return logger
+
+
 class Config(object):
-    def __init__(self):
-        self.parse_args()
+    def __init__(self, args, arg_parser):
+        # Convert argparse Namespace to a dict and make the keys + values member variables of the config class
+        args = vars(args)
+        for key in args:
+            setattr(self, key, args[key])
+
+        self._validate_args(arg_parser)
 
     def _validate_args(self, ap):
         logger = logging.getLogger('changeme')
@@ -40,7 +133,7 @@ class Config(object):
             quit()
 
         if self.targets:
-            self._file_exists(self.target)
+            self._file_exists(self.targets)
 
         if self.nmap:
             self._file_exists(self.nmap)
@@ -70,44 +163,38 @@ class Config(object):
 
         self.useragent = {'User-Agent': self.useragent if self.useragent else get_useragent()}
 
-    def parse_args(self):
-        ap = argparse.ArgumentParser(description='Default credential scanner v%s' % version.__version__)
-        ap.add_argument('--category', '-c', type=str, help='Category of default creds to scan for', default=None)
-        ap.add_argument('--contributors', action='store_true', help='Display cred file contributors')
-        ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
-        ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in milliseconds to avoid 429 status codes default=500", default=500)
-        ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
-        ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
-        ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds')
-        ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
-        ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
-        ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse', default=None)
-        ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
-        ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
-        ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan', default=None)
-        ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
-        ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
-        ap.add_argument('--target', type=str, help='Specific target to scan (IP:PORT)', default=None)
-        ap.add_argument('--targets', type=str, help='File of targets to scan', default=None)
-        ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
-        ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
-        ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use", default=None)
-        ap.add_argument('--validate', action='store_true', help='Validate creds files', default=False)
-        ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output', default=False)
-        args = ap.parse_args()
-
-        # Convert argparse Namespace to a dict and make the keys + values member variables of the config class
-        args = vars(args)
-        for key in args:
-            setattr(self, key, args[key])
-
-        self._validate_args(ap)
-
     def _file_exists(self, f):
         if not os.path.isfile(f):
             self.logger.error("File %s not found" % f)
             sys.exit()
 
+
+def parse_args():
+    ap = argparse.ArgumentParser(description='Default credential scanner v%s' % version.__version__)
+    ap.add_argument('--category', '-c', type=str, help='Category of default creds to scan for', default=None)
+    ap.add_argument('--contributors', action='store_true', help='Display cred file contributors')
+    ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
+    ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in milliseconds to avoid 429 status codes default=500", default=500)
+    ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
+    ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
+    ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds')
+    ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
+    ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
+    ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse', default=None)
+    ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
+    ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
+    ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan', default=None)
+    ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
+    ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
+    ap.add_argument('--target', type=str, help='Specific target to scan (IP:PORT)', default=None)
+    ap.add_argument('--targets', type=str, help='File of targets to scan', default=None)
+    ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
+    ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
+    ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use", default=None)
+    ap.add_argument('--validate', action='store_true', help='Validate creds files', default=False)
+    ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output', default=False)
+    args = ap.parse_args()
+    return {'args': args, 'parser': ap}
 
 def load_creds(config):
     logger = logging.getLogger('changeme')

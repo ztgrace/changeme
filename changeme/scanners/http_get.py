@@ -53,9 +53,10 @@ class HTTPGetScanner(Scanner):
     def check_success(self):
         match = False
         success = self.cred['auth']['success']
+
         if self.cred['auth'].get('base64', None):
-            username = base64.b64decode(self.cred.username)
-            password = base64.b64decode(self.cred.password)
+            self.username = base64.b64decode(self.cred.username)
+            self.password = base64.b64decode(self.cred.password)
 
         if success.get('status') == self.response.status_code:
             if success.get('body'):
@@ -75,7 +76,7 @@ class HTTPGetScanner(Scanner):
                     'password': self.password,
                     'url': self.url}
         else:
-            self.logger.info( '[check_success] Invalid %s default cred %s:%s at %s' %
+            self.logger.info('Invalid %s default cred %s:%s at %s' %
                          (self.cred['name'], self.username, self.password, self.url))
             return False
 

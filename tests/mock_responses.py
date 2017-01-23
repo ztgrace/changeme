@@ -27,11 +27,23 @@ class MockResponses:
         'body': '<font size="+2">Tomcat Web Application Manager</font>',
         'adding_headers': {'Server': 'Apache-Coyote/1.1'}
     }
+
     jboss_fp = {
         'method': responses.GET,
         'url': 'http://127.0.0.1:8080/admin-console/login.seam',
         'status': 200,
         'body': '<p>Welcome to the JBoss AS 6 Admin Console.</p><input name="javax.faces.ViewState" value="foobar" />',
+        'adding_headers': {
+            'Server': 'Apache-Coyote/1.1',
+            'Set-Cookie': 'JSESSIONID=foobar'
+        }
+    }
+
+    jboss_fp_no_csrf = {
+        'method': responses.GET,
+        'url': 'http://127.0.0.1:8080/admin-console/login.seam',
+        'status': 200,
+        'body': '<p>Welcome to the JBoss AS 6 Admin Console.</p>',
         'adding_headers': {
             'Server': 'Apache-Coyote/1.1',
             'Set-Cookie': 'JSESSIONID=foobar'

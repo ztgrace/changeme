@@ -20,7 +20,7 @@ class ScanEngine(object):
         """
         self.creds = creds
         self.config = config
-        self.log = logging.getLogger('changeme')
+        self.logger = logging.getLogger('changeme')
         self.scanners = mp.Manager().Queue()
         self.targets = set()
         self.fingerprints = mp.Manager().Queue()
@@ -33,7 +33,7 @@ class ScanEngine(object):
         ###############################################################################
         self._build_targets()
         num_procs = self.config.threads if self.fingerprints.qsize() > self.config.threads else self.fingerprints.qsize()
-        self.log.debug('Number of fingerprint procs: %i' % num_procs)
+        self.logger.debug('Number of fingerprint procs: %i' % num_procs)
         procs = [mp.Process(target=self.do_scan()) for i in range(num_procs)]
         for proc in procs:
             proc.start()
@@ -44,7 +44,6 @@ class ScanEngine(object):
     def do_scan(self):
         self.fingerprint_targets()
         self._scan()
-
 
     def _scan(self):
         while not self.scanners.empty():
@@ -59,7 +58,6 @@ class ScanEngine(object):
             fp = self.fingerprints.get()
             s = requests.Session()
 
-            self.log.warning(self.fingerprints.qsize())
             url = fp.full_URL()
 
             try:
@@ -72,12 +70,15 @@ class ScanEngine(object):
                         cookies=fp.cookies
                 )
             except Exception as e:
-                self.log.debug('Failed to connect to %s' % url)
+                self.logger.debug('Failed to connect to %s' % url)
                 continue
 
             for cred in self.creds:
-                if HttpFingerprint.ismatch(cred, res, self.log):
+                if HttpFingerprint.ismatch(cred, res, self.logger):
                     csrf = self.get_csrf_token(res, cred)
+                    if cred['auth'].get('csrf', False) and not csrf:
+                        self.logger.error('Missing required CSRF token')
+                        continue
                     for c in cred['auth']['credentials']:
                         for u in cred['auth']['url']:  # pass in the auth url
                             u = '%s%s' % (HTTPGetScanner.get_base_url(res.url), u)
@@ -90,17 +91,17 @@ class ScanEngine(object):
             try:
                 csrf = tree.xpath('//input[@name="%s"]/@value' % name)[0]
             except:
-                self.log.error(
+                self.logger.error(
                     'Failed to get CSRF token %s in %s' % (str(name), str(res.url)))
                 return False
-            self.log.debug('Got CSRF token %s: %s' % (name, csrf))
+            self.logger.debug('Got CSRF token %s: %s' % (name, csrf))
         else:
             csrf = False
 
         return csrf
 
     def _build_targets(self):
-        self.log.debug('Building targets')
+        self.logger.debug('Building targets')
 
         if self.config.subnet:
             for ip in IPNetwork(self.config.subnet).iter_hosts():
@@ -121,14 +122,14 @@ class ScanEngine(object):
 
         if self.config.nmap:
             report = np.parse_fromfile(self.config.nmap)
-            self.log.info('Loaded %i hosts from %s' %
+            self.logger.info('Loaded %i hosts from %s' %
                                     (len(report.hosts), self.config.nmap))
             for h in report.hosts:
                 for s in h.services:
                     self.targets.add('%s:%s' % (h.address, s.port))
 
         # Load set of targets into queue
-        self.log.debug('%i targets' % len(self.targets))
+        self.logger.debug('%i targets' % len(self.targets))
 
         fingerprints = set()
         # Build a set of unique fingerprints
@@ -149,7 +150,7 @@ class ScanEngine(object):
 
         for fp in fingerprints:
             self.fingerprints.put(fp)
-        self.log.debug('%i fingerprints' % self.fingerprints.qsize())
+        self.logger.debug('%i fingerprints' % self.fingerprints.qsize())
 
     def _build_scanner(self, template):
         scanner = None
@@ -158,7 +159,7 @@ class ScanEngine(object):
         pair = template['pair']
         cookies = template['cookies']
         csrf = template.get('csrf', None)
-        self.log.debug('Building %s %s:%s' % (cred['name'], pair['username'], pair['password']))
+        self.logger.debug('Building %s %s:%s' % (cred['name'], pair['username'], pair['password']))
 
         if cred['auth']['type'] == 'get':
             scanner = HTTPGetScanner(cred, url, pair['username'], pair['password'], self.config, cookies)

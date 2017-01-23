@@ -8,7 +8,7 @@ class HTTPPostScanner(HTTPGetScanner):
         self.csrf = csrf
 
     def _make_request(self):
-        self.debug('_make_request')
+        self.logger.debug('_make_request')
         data = self.render_creds(self.cred, self.csrf)
         self.response = self.request.post(self.url,
                                           data,
