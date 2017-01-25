@@ -1,5 +1,6 @@
 from libnmap.parser import NmapParser as np
 import logging
+from lxml import html
 import multiprocessing as mp
 from netaddr import *
 import requests
@@ -8,7 +9,7 @@ from scanners.http_get import HTTPGetScanner
 from scanners.http_post import HTTPPostScanner
 from scanners.http_basic_auth import HTTPBasicAuthScanner
 import shodan
-from lxml import html
+from Queue import Empty
 
 
 class ScanEngine(object):
@@ -47,23 +48,32 @@ class ScanEngine(object):
 
     def _scan(self, scan_q, found_q):
         while not scan_q.empty():
-            template = scan_q.get_nowait()
-            if not template:  # handle a queue race condition and prevent deadlock
+            try:
+                template = scan_q.get_nowait()
+                if not template:  # handle a queue race condition and prevent deadlock
+                    continue
+            except Empty as e:
+                self.logger.debug('Caught exception: %s' % type(e).__name__)
                 continue
+
             scanner = self._build_scanner(template)
             result = scanner.scan()
             if result:
-                self.found_q.put(result)
+                found_q.put(result)
 
             scan_q.task_done()
 
     def fingerprint_targets(self, fp_q, scan_q):
         while not fp_q.empty():
-            fp = fp_q.get_nowait()
-            if not fp:  # handle a queue race condition and prevent deadlock
+            try:
+                fp = fp_q.get_nowait()
+                if not fp:  # handle a queue race condition and prevent deadlock
+                    continue
+            except Empty as e:
+                self.logger.debug('Caught exception: %s' % type(e).__name__)
                 continue
-            s = requests.Session()
 
+            s = requests.Session()
             url = fp.full_URL()
 
             try:
