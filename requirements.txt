@@ -9,3 +9,4 @@ cerberus
 shodan
 python-libnmap
 jinja2
+paramiko
