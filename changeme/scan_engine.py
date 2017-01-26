@@ -1,9 +1,7 @@
 from libnmap.parser import NmapParser as np
 import logging
-from lxml import html
 import multiprocessing as mp
 from netaddr import *
-import requests
 from scanners.http_fingerprint import HttpFingerprint
 from scanners.http_get import HTTPGetScanner
 from scanners.http_post import HTTPPostScanner
@@ -33,6 +31,10 @@ class ScanEngine(object):
         # Phase I - Fingerprint
         ###############################################################################
         self._build_targets()
+
+        if self.config.dryrun:
+            self.dry_run()
+
         num_procs = self.config.threads if self.fingerprints.qsize() > self.config.threads else self.fingerprints.qsize()
         self.logger.debug('Number of fingerprint procs: %i' % num_procs)
         procs = [mp.Process(target=self.do_scan, args=(self.fingerprints, self.scanners, self.found_q)) for i in range(num_procs)]
@@ -44,7 +46,8 @@ class ScanEngine(object):
 
     def do_scan(self, fp_q, scan_q, found_q):
         self.fingerprint_targets(fp_q, scan_q)
-        self._scan(scan_q, found_q)
+        if not self.config.fingerprint:
+            self._scan(scan_q, found_q)
 
     def _scan(self, scan_q, found_q):
         while not scan_q.empty():
@@ -73,50 +76,12 @@ class ScanEngine(object):
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
                 continue
 
-            s = requests.Session()
-            url = fp.full_URL()
-
-            try:
-                res = s.get(
-                        url,
-                        timeout=self.config.timeout,
-                        verify=False,
-                        proxies=self.config.proxy,
-                        headers=fp.headers,
-                        cookies=fp.cookies
-                )
-            except Exception as e:
-                self.logger.debug('Failed to connect to %s' % url)
-                continue
-
-            for cred in self.creds:
-                if HttpFingerprint.ismatch(cred, res, self.logger):
-                    csrf = self.get_csrf_token(res, cred)
-                    if cred['auth'].get('csrf', False) and not csrf:
-                        self.logger.error('Missing required CSRF token')
-                        continue
-                    for c in cred['auth']['credentials']:
-                        for u in cred['auth']['url']:  # pass in the auth url
-                            u = '%s%s' % (HTTPGetScanner.get_base_url(res.url), u)
-                            scan_q.put({'cred': cred, 'pair': c, 'url': u, 'cookies': s.cookies, 'csrf':csrf})
+            results = fp.fingerprint(self.logger)
+            if results:
+                for result in results:
+                    scan_q.put(result)
 
             fp_q.task_done()
-
-    def get_csrf_token(self, res, cred):
-        name = cred['auth'].get('csrf', False)
-        if name:
-            tree = html.fromstring(res.content)
-            try:
-                csrf = tree.xpath('//input[@name="%s"]/@value' % name)[0]
-            except:
-                self.logger.error(
-                    'Failed to get CSRF token %s in %s' % (str(name), str(res.url)))
-                return False
-            self.logger.debug('Got CSRF token %s: %s' % (name, csrf))
-        else:
-            csrf = False
-
-        return csrf
 
     def _build_targets(self):
         self.logger.debug('Building targets')
@@ -149,24 +114,12 @@ class ScanEngine(object):
         # Load set of targets into queue
         self.logger.debug('%i targets' % len(self.targets))
 
-        fingerprints = set()
+        fingerprints = list()
         # Build a set of unique fingerprints
-        for target in self.targets:
-            for c in self.creds:
-                fp = c['fingerprint']
-                for url in fp.get('url'):
-                    hfp = HttpFingerprint(
-                        target,
-                        url,
-                        c.get('default_port', 80),
-                        c.get('ssl'),
-                        fp.get('headers', None),
-                        fp.get('cookie', None)
-                    )
-                    if hfp not in fingerprints:
-                        fingerprints.add(hfp)
+        if 'http' in self.config.protocols:
+            fingerprints = fingerprints + HttpFingerprint.build_fingerprints(self.targets, self.creds, self.config)
 
-        for fp in fingerprints:
+        for fp in set(fingerprints):
             self.fingerprints.put(fp)
         self.logger.debug('%i fingerprints' % self.fingerprints.qsize())
 
@@ -188,3 +141,10 @@ class ScanEngine(object):
 
         return scanner
 
+    def dry_run(self):
+        self.logger.info("Dry run URLs:")
+        while not self.fingerprints.empty():
+            fp = self.fingerprints.get_nowait()
+            print fp.full_URL()
+            self.fingerprints.task_done()
+        quit()

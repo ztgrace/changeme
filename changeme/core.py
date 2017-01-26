@@ -41,6 +41,10 @@ def main():
     creds = load_creds(config)
     s = None
 
+    if config.mkcred:
+        schema.mkcred()
+        quit()
+
     if config.contributors:
         print_contributors(creds)
         quit()
@@ -53,12 +57,13 @@ def main():
         s = ScanEngine(creds, config)
         s.scan()
 
-    report = Report(s.found_q, config.output)
+        report = Report(s.found_q, config.output)
 
-    if config.output:
-        report.render_csv()
+        if config.output:
+            report.render_csv()
 
     return s
+
 
 def init_logging(verbose=False, debug=False, logfile=None):
     """
@@ -123,6 +128,7 @@ class Config(object):
         for key in args:
             setattr(self, key, args[key])
 
+        self.protocols = list()
         self._validate_args(arg_parser)
 
     def _validate_args(self, ap):
@@ -163,6 +169,8 @@ class Config(object):
 
         self.useragent = {'User-Agent': self.useragent if self.useragent else get_useragent()}
 
+        self.protocols.append('http')
+
     def _file_exists(self, f):
         if not os.path.isfile(f):
             self.logger.error("File %s not found" % f)
@@ -177,8 +185,9 @@ def parse_args():
     ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in milliseconds to avoid 429 status codes default=500", default=500)
     ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
     ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
-    ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds')
+    ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds', default=False)
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
+    ap.add_argument('--mkcred', action='store_true', help='Make cred file', default=False)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
     ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse', default=None)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)

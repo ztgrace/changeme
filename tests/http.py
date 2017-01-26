@@ -7,6 +7,7 @@ import csv
 import logging
 import mock
 from mock_responses import MockResponses
+from nose.tools import *
 import os
 import responses
 
@@ -171,3 +172,13 @@ def test_csv_output(mock_args):
             i += 1
 
     assert os.path.isfile(csv_args['log'])
+
+
+dr_args = deepcopy(cli_args)
+dr_args['dryrun'] = True
+@raises(SystemExit)
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**dr_args))
+def test_dryrun(mock_args):
+    reset_handlers()
+    se = core.main()
+    assert se.found_q.qsize() == 0

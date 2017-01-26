@@ -69,8 +69,8 @@ class HTTPGetScanner(Scanner):
                 match = True
 
         if match:
-            self.logger.critical('[+] %i Found %s default cred %s:%s at %s' %
-                            (os.getpid(), self.cred['name'], self.username, self.password, self.url))
+            self.logger.critical('[+] Found %s default cred %s:%s at %s' %
+                            (self.cred['name'], self.username, self.password, self.url))
 
             return {'name': self.cred['name'],
                     'username': self.username,
