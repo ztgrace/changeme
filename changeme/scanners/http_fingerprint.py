@@ -55,7 +55,7 @@ class HttpFingerprint:
 
                 sessionid = self._get_session_id(res, cred, logger)
                 if cred['auth'].get('sessionid') and not sessionid:
-                    logger.error("Missing session cookie %s for %s" % (cred['auth'].auth('sessionid'), res.url))
+                    logger.error("Missing session cookie %s for %s" % (cred['auth'].get('sessionid'), res.url))
                     return
 
                 for c in cred['auth']['credentials']:
