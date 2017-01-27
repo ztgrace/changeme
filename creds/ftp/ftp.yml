@@ -1,0 +1,12 @@
+auth:
+  credentials:
+  - username: anonymous
+    password: 
+  - username: ftp
+    password: ftp
+  - username: guest
+    password: guest
+category: ftp
+default_port: 21
+name: ftp
+contributor: AlessandroZ

@@ -1,0 +1,14 @@
+auth:
+  credentials:
+  - username: sa
+    password: 
+  - username: sa
+    password: sa
+  - username: sa
+    password: Password123
+  - username: sa
+    password: password
+category: mssql
+default_port: 1433
+name: MSSQL
+contributor: AlessandroZ

@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: root
+    password: password
+  - username: root
+    password: root
+category: ssh
+default_port: 22
+name: ssh
+contributor: AlessandroZ
