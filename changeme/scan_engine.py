@@ -3,9 +3,7 @@ import logging
 import multiprocessing as mp
 from netaddr import *
 from scanners.http_fingerprint import HttpFingerprint
-from scanners.http_get import HTTPGetScanner
-from scanners.http_post import HTTPPostScanner
-from scanners.http_basic_auth import HTTPBasicAuthScanner
+from scanners.ssh import SSH
 import shodan
 from Queue import Empty
 
@@ -20,10 +18,10 @@ class ScanEngine(object):
         self.creds = creds
         self.config = config
         self.logger = logging.getLogger('changeme')
-        self.scanners = mp.Manager().JoinableQueue()
+        self.scanners = mp.Queue()
         self.targets = set()
-        self.fingerprints = mp.Manager().JoinableQueue()
-        self.found_q = mp.Manager().Queue()
+        self.fingerprints = mp.Queue()
+        self.found_q = mp.Queue()
 
 
     def scan(self):
@@ -36,52 +34,49 @@ class ScanEngine(object):
             self.dry_run()
 
         num_procs = self.config.threads if self.fingerprints.qsize() > self.config.threads else self.fingerprints.qsize()
-        self.logger.debug('Number of fingerprint procs: %i' % num_procs)
-        procs = [mp.Process(target=self.do_scan, args=(self.fingerprints, self.scanners, self.found_q)) for i in range(num_procs)]
+        self.logger.debug('Number of procs: %i' % num_procs)
+        procs = [mp.Process(target=self.do_scan) for i in range(num_procs)]
         for proc in procs:
             proc.start()
 
         for proc in procs:
             proc.join()
 
-    def do_scan(self, fp_q, scan_q, found_q):
-        self.fingerprint_targets(fp_q, scan_q)
+    def do_scan(self):
+        self.fingerprint_targets()
         if not self.config.fingerprint:
-            self._scan(scan_q, found_q)
+            self._scan()
 
-    def _scan(self, scan_q, found_q):
-        while not scan_q.empty():
+    def _scan(self):
+        while not self.scanners.empty():
+            self.logger.debug('%i scanners remaining' % self.scanners.qsize())
             try:
-                template = scan_q.get_nowait()
-                if not template:  # handle a queue race condition and prevent deadlock
+                scanner = self.scanners.get()
+                if not scanner:  # handle a queue race condition and prevent deadlock
                     continue
             except Empty as e:
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
                 continue
 
-            scanner = self._build_scanner(template)
             result = scanner.scan()
             if result:
-                found_q.put(result)
+                self.found_q.put(result)
 
-            scan_q.task_done()
-
-    def fingerprint_targets(self, fp_q, scan_q):
-        while not fp_q.empty():
+    def fingerprint_targets(self):
+        while not self.fingerprints.empty():
+            self.logger.debug('%i fingerprints remaining' % self.fingerprints.qsize())
             try:
-                fp = fp_q.get_nowait()
+                fp = self.fingerprints.get()
                 if not fp:  # handle a queue race condition and prevent deadlock
                     continue
             except Empty as e:
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
                 continue
 
-            results = fp.fingerprint(self.logger)
+            results = fp.fingerprint()
             if results:
                 for result in results:
-                    scan_q.put(result)
-
-            fp_q.task_done()
+                    self.scanners.put(result)
 
     def _build_targets(self):
         self.logger.debug('Building targets')
@@ -119,32 +114,19 @@ class ScanEngine(object):
         if 'http' in self.config.protocols:
             fingerprints = fingerprints + HttpFingerprint.build_fingerprints(self.targets, self.creds, self.config)
 
+        fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
+
+        if 'ssh' in self.config.protocols:
+            for target in self.targets:
+                fingerprints.append(SSH(self.creds, target, '', '', self.config))
+
         for fp in set(fingerprints):
             self.fingerprints.put(fp)
         self.logger.debug('%i fingerprints' % self.fingerprints.qsize())
-
-    def _build_scanner(self, template):
-        scanner = None
-        cred = template['cred']
-        url = template['url']
-        pair = template['pair']
-        cookies = template['cookies']
-        csrf = template.get('csrf', None)
-        self.logger.debug('Building %s %s:%s' % (cred['name'], pair['username'], pair['password']))
-
-        if cred['auth']['type'] == 'get':
-            scanner = HTTPGetScanner(cred, url, pair['username'], pair['password'], self.config, cookies)
-        elif cred['auth']['type'] == 'post' or cred['auth']['type'] == 'raw_post':
-            scanner = HTTPPostScanner(cred, url, pair['username'], pair['password'], self.config, cookies, csrf)
-        elif cred['auth']['type'] == 'basic_auth':
-            scanner = HTTPBasicAuthScanner(cred, url, pair['username'], pair['password'], self.config, cookies)
-
-        return scanner
 
     def dry_run(self):
         self.logger.info("Dry run URLs:")
         while not self.fingerprints.empty():
             fp = self.fingerprints.get_nowait()
             print fp.full_URL()
-            self.fingerprints.task_done()
         quit()

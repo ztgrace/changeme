@@ -33,6 +33,9 @@ class HTTPGetScanner(Scanner):
         # make the cred have only one u:p combo
         self.cred['auth']['credentials'] = [{'username': self.username, 'password': self.password}]
 
+    def __reduce__(self):
+        return (self.__class__, (self.cred, self.target, self.username, self.password, self.config, self.cookies))
+
     def scan(self):
         try:
             self._make_request()

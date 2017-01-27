@@ -1,4 +1,7 @@
+from changeme.scanners.http_basic_auth import HTTPBasicAuthScanner
 from changeme.scanners.http_get import HTTPGetScanner
+from changeme.scanners.http_post import HTTPPostScanner
+import logging
 from lxml import html
 from netaddr import *
 import re
@@ -15,6 +18,16 @@ class HttpFingerprint:
         self.cookies = cookies
         self.config = config
         self.creds = creds
+        self.logger = logging.getLogger('changeme')
+
+    def __getstate__(self):
+        state = self.__dict__
+        state['logger'] = None # Need to clear the logger when serializing otherwise mp.Queue blows up
+        return state
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self.logger = logging.getLogger('changeme')
 
     def __hash__(self):
         return hash(str(self.target) + str(self.url) + str(self.port) + str(self.ssl) + str(self.headers) + str(self.cookies))
@@ -27,7 +40,7 @@ class HttpFingerprint:
         proto = 'https' if self.ssl else 'http'
         return '%s://%s:%s%s' % (proto, self.target, self.port, self.url)
 
-    def fingerprint(self, logger):
+    def fingerprint(self):
         scanners = list()
         s = requests.Session()
         url = self.full_URL()
@@ -42,82 +55,88 @@ class HttpFingerprint:
                 cookies=self.cookies
             )
         except Exception as e:
-            logger.debug('Failed to connect to %s' % url)
+            self.logger.debug('Failed to connect to %s' % url)
             return
 
         for cred in self.creds:
-            if self.ismatch(cred, res, logger):
+            if self.ismatch(cred, res):
 
-                csrf = self._get_csrf_token(res, cred, logger)
+                csrf = self._get_csrf_token(res, cred)
                 if cred['auth'].get('csrf', False) and not csrf:
-                    logger.error('Missing required CSRF token')
+                    self.logger.error('Missing required CSRF token')
                     return
 
-                sessionid = self._get_session_id(res, cred, logger)
+                sessionid = self._get_session_id(res, cred)
                 if cred['auth'].get('sessionid') and not sessionid:
-                    logger.error("Missing session cookie %s for %s" % (cred['auth'].get('sessionid'), res.url))
+                    self.logger.error("Missing session cookie %s for %s" % (cred['auth'].get('sessionid'), res.url))
                     return
 
-                for c in cred['auth']['credentials']:
+                for pair in cred['auth']['credentials']:
                     for u in cred['auth']['url']:  # pass in the auth url
                         u = '%s%s' % (HTTPGetScanner.get_base_url(res.url), u)
-                        scanners.append({'cred': cred, 'pair': c, 'url': u, 'cookies': s.cookies, 'csrf':csrf})
+                        self.logger.debug('Building %s %s:%s' % (cred['name'], pair['username'], pair['password']))
+
+                        if cred['auth']['type'] == 'get':
+                            scanners.append(HTTPGetScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies))
+                        elif cred['auth']['type'] == 'post' or cred['auth']['type'] == 'raw_post':
+                            scanners.append(HTTPPostScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies, csrf))
+                        elif cred['auth']['type'] == 'basic_auth':
+                            scanners.append(HTTPBasicAuthScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies))
 
         return scanners
 
-    def _get_csrf_token(self, res, cred, logger):
+    def _get_csrf_token(self, res, cred):
         name = cred['auth'].get('csrf', False)
         if name:
             tree = html.fromstring(res.content)
             try:
                 csrf = tree.xpath('//input[@name="%s"]/@value' % name)[0]
             except:
-                logger.error(
+                self.logger.error(
                     'Failed to get CSRF token %s in %s' % (str(name), str(res.url)))
                 return False
-            logger.debug('Got CSRF token %s: %s' % (name, csrf))
+            self.logger.debug('Got CSRF token %s: %s' % (name, csrf))
         else:
             csrf = False
 
         return csrf
 
-    def _get_session_id(self, res, cred, logger):
+    def _get_session_id(self, res, cred):
         cookie = cred['auth'].get('sessionid', False)
 
         if cookie:
             try:
                 value = res.cookies[cookie]
-                logger.debug('Got session cookie value: %s' % value)
+                self.logger.debug('Got session cookie value: %s' % value)
             except:
-                logger.error(
+                self.logger.error(
                     'Failed to get %s cookie from %s' % (cookie, res.url))
                 return False
             return {cookie: value}
         else:
-            logger.debug('No cookie')
+            self.logger.debug('No cookie')
             return False
 
-    @staticmethod
-    def ismatch(cred, response, logger):
+    def ismatch(self, cred, response):
         match = False
         fp = cred['fingerprint']
         basic_auth = fp.get('basic_auth_realm', None)
         if basic_auth and basic_auth in response.headers.get('WWW-Authenticate', list()):
-            logger.info('%s basic auth matched: %s' % (cred['name'], basic_auth))
+            self.logger.info('%s basic auth matched: %s' % (cred['name'], basic_auth))
             match = True
 
         server = response.headers.get('Server', None)
         fp_server = fp.get('server_header', None)
         if fp_server and server and fp_server in server:
-            logger.debug('%s server header matched: %s' % (cred['name'], fp_server))
+            self.logger.debug('%s server header matched: %s' % (cred['name'], fp_server))
             match = True
 
         body = fp.get('body')
         if body and re.search(body, response.text):
             match = True
-            logger.info('%s body matched: %s' % (cred['name'], body))
+            self.logger.info('%s body matched: %s' % (cred['name'], body))
         elif body:
-            logger.debug('%s body not matched' % cred['name'])
+            self.logger.debug('%s body not matched' % cred['name'])
             match = False
 
         return match

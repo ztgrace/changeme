@@ -1,53 +1,46 @@
-from scanner import Scanner
 import paramiko
+from scanner import Scanner
 import socket
 
 
 class SSH(Scanner):
 
-    def __init__(self, cred, target, config):
+    def __init__(self, cred, target, username, password, config):
         super(SSH, self).__init__(cred, target, config)
-        self.config = config
-        self.password_found = list()
-        self.target = target
+        self.password = password
+        self.port = self.cred['default_port']
+        self.username = username
 
     def scan(self):
-        self.logger.debug("[%s][scan]" % self._class_name())
-        if self._checkOpenPort(self.target, self.port):
-            for cred in self.creds:
-                if self._check_success(self.target, self.port, cred['username'], cred['password']):
-                    self.password_found.append(
-                        {
-                            'name': self.name,
-                            'username': cred['username'],
-                            'pasword': cred['password'],
-                            'url': '%s:%s' % (self.target, str(self.port))
-                        }
-                    )
-        return self._check_success()
+        return self.check_success()
 
-    def check_success(self, hostname, port, user, pwd):
+    def check_success(self):
         try:
-            ssh = paramiko.Transport((str(hostname), port))
-            ssh.connect(username=user, password=pwd)
+            ssh = paramiko.Transport((str(self.target), self.port))
+            ssh.connect(username=self.username, password=self.password)
             ssh.close()
-            self.config.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.name, user, pwd, '%s:%s' % (self.target, str(self.port))))
-            return True
+            self.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.name, self.username, self.password, '%s:%s' % (self.target, str(self.port))))
+            return {'name': self.cred['name'], 'username': self.username, 'password': self.password, 'target': self.target}
         except Exception, e:
-            self.config.logger.info('[check_success] Invalid %s default cred %s:%s at %s' % (self.name, user, pwd, '%s:%s' % (self.target, str(self.port))))
-            self.logger.debug('[check_success] error: %s' % str(e))
+            self.logger.info('Invalid %s default cred %s:%s at %s' % (self.name, self.username, self.password, '%s:%s' % (self.target, str(self.port))))
+            self.logger.debug('Error: %s' % str(e))
             return False
 
-    def _checkOpenPort(self, ip, port):
+    def fingerprint(self):
+        port = self.cred['default_port']
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(3)
-            result = sock.connect_ex((str(ip), port))
+            result = sock.connect_ex((str(self.target), port))
             sock.shutdown(2)
             if result == 0:
-                return True
+                self.logger.info('Port %i open' % port)
+                scanners = list()
+                for pair in self.cred['auth']['credentials']:
+                    scanners.append(SSH(self.cred, self.target, pair['username'], pair['password'], self.config))
+                return scanners
             else:
                 return False
         except Exception, e:
-            self.logger.debug('[checkOpenPort] %s' % str(e))
+            self.logger.debug(str(e))
             return False

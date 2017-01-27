@@ -291,6 +291,7 @@ def print_creds(creds):
         for i in cred['auth']['credentials']:
             print "  - %s:%s" % (i['username'], i['password'])
 
+
 def get_useragent():
     headers_useragents = [
         'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.3) Gecko/20090913 Firefox/3.5.3',
@@ -306,3 +307,4 @@ def get_useragent():
         'Opera/9.80 (Windows NT 5.2; U; ru) Presto/2.5.22 Version/10.51'
     ]
     return random.choice(headers_useragents)
+
