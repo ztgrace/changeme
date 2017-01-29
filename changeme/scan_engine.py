@@ -4,6 +4,7 @@ import multiprocessing as mp
 from netaddr import *
 from scanners.http_fingerprint import HttpFingerprint
 from scanners.ssh import SSH
+from scanners.ssh_key import SSHKey
 import shodan
 from Queue import Empty
 
@@ -66,7 +67,7 @@ class ScanEngine(object):
         while not self.fingerprints.empty():
             self.logger.debug('%i fingerprints remaining' % self.fingerprints.qsize())
             try:
-                fp = self.fingerprints.get()
+                fp = self.fingerprints.get_nowait()
                 if not fp:  # handle a queue race condition and prevent deadlock
                     continue
             except Empty as e:
@@ -116,9 +117,13 @@ class ScanEngine(object):
 
         fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
 
-        if 'ssh' in self.config.protocols:
+        if 'ssh' in self.config.protocols:  # catches ssh and ssh_key
             for target in self.targets:
-                fingerprints.append(SSH(self.creds, target, '', '', self.config))
+                for cred in self.creds:
+                    if cred['protocol'] == 'ssh':
+                        fingerprints.append(SSH(cred, target, '', '', self.config))
+                    elif cred['protocol'] == 'ssh_key':
+                        fingerprints.append(SSHKey(cred, target, '', '', self.config))
 
         for fp in set(fingerprints):
             self.fingerprints.put(fp)

@@ -3,8 +3,8 @@ from changeme.scanners.http_get import HTTPGetScanner
 
 class HTTPPostScanner(HTTPGetScanner):
 
-    def __init__(self, cred,target, username, password, config, session, csrf):
-        super(HTTPPostScanner, self).__init__(cred, target, username, password, config, session)
+    def __init__(self, cred, target, username, password, config, cookies, csrf):
+        super(HTTPPostScanner, self).__init__(cred, target, username, password, config, cookies)
         self.csrf = csrf
 
     def _make_request(self):

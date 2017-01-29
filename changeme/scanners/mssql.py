@@ -3,12 +3,13 @@ from impacket import tds
 
 class MSSQL(Scanner):
     
-    def __init__(self, data, target, config):
-
+    def __init__(self, cred, target, username, password, config)
         super(MSSQL, self).__init__(data, target, config)
-        self.config = config
-        self.password_found = list()
+        self.cred = cred
+        self.username = username
+        self.password = password
         self.target = target
+        self.config = config
 
     def scan(self):
         

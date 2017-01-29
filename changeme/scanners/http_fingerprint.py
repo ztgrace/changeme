@@ -119,25 +119,26 @@ class HttpFingerprint:
 
     def ismatch(self, cred, response):
         match = False
-        fp = cred['fingerprint']
-        basic_auth = fp.get('basic_auth_realm', None)
-        if basic_auth and basic_auth in response.headers.get('WWW-Authenticate', list()):
-            self.logger.info('%s basic auth matched: %s' % (cred['name'], basic_auth))
-            match = True
+        if cred['protocol'] == 'http':
+            fp = cred['fingerprint']
+            basic_auth = fp.get('basic_auth_realm', None)
+            if basic_auth and basic_auth in response.headers.get('WWW-Authenticate', list()):
+                self.logger.info('%s basic auth matched: %s' % (cred['name'], basic_auth))
+                match = True
 
-        server = response.headers.get('Server', None)
-        fp_server = fp.get('server_header', None)
-        if fp_server and server and fp_server in server:
-            self.logger.debug('%s server header matched: %s' % (cred['name'], fp_server))
-            match = True
+            server = response.headers.get('Server', None)
+            fp_server = fp.get('server_header', None)
+            if fp_server and server and fp_server in server:
+                self.logger.debug('%s server header matched: %s' % (cred['name'], fp_server))
+                match = True
 
-        body = fp.get('body')
-        if body and re.search(body, response.text):
-            match = True
-            self.logger.info('%s body matched: %s' % (cred['name'], body))
-        elif body:
-            self.logger.debug('%s body not matched' % cred['name'])
-            match = False
+            body = fp.get('body')
+            if body and re.search(body, response.text):
+                match = True
+                self.logger.info('%s body matched: %s' % (cred['name'], body))
+            elif body:
+                self.logger.debug('%s body not matched' % cred['name'])
+                match = False
 
         return match
 
@@ -147,6 +148,8 @@ class HttpFingerprint:
         # Build a set of unique fingerprints
         for target in targets:
             for c in creds:
+                if not c['protocol'] == 'http':
+                    continue
                 fp = c['fingerprint']
                 for url in fp.get('url'):
                     if not isinstance(target, IPAddress) and ":" in target and not int(target.split(":")[1]) == int(c.get('default_port')):

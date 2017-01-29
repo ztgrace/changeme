@@ -5,7 +5,7 @@ import os
 import urllib
 import changeme.core
 
-changeme_schema = {
+http_schema = {
     'auth': {
         'type': 'dict',
         'required': True,

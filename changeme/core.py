@@ -170,6 +170,8 @@ class Config(object):
         self.useragent = {'User-Agent': self.useragent if self.useragent else get_useragent()}
 
         self.protocols.append('http')
+        self.protocols.append('ssh')
+        self.protocols.append('ssh_key')
 
     def _file_exists(self, f):
         if not os.path.isfile(f):
@@ -205,22 +207,31 @@ def parse_args():
     args = ap.parse_args()
     return {'args': args, 'parser': ap}
 
+def get_protocol(filename):
+    return filename.split('/')[1]
+
 def load_creds(config):
+    # protocol is based off of the directory and category is a field in the cred file. That way you can
+    # have default creds across protocols for a single device like a printer
     logger = logging.getLogger('changeme')
     creds = list()
     total_creds = 0
     cred_names = list()
+    protocols = next(os.walk('creds'))[1]
+    print protocols
+    config.protocols = protocols
     for root, dirs, files in os.walk('creds'):
         for fname in files:
             f = os.path.join(root, fname)
+            protocol = get_protocol(f)
             if is_yaml(f):
                 parsed = parse_yaml(f)
                 if parsed:
                     if parsed['name'] in cred_names:
                         logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
-                    elif validate_cred(parsed, f):
-
+                    elif validate_cred(parsed, f, protocol):
                         if in_scope(config.name, config.category, parsed):
+                            parsed['protocol'] = protocol  # Add the protocol after the schema validation
                             total_creds += len(parsed["auth"]["credentials"])
                             creds.append(parsed)
                             cred_names.append(parsed['name'])
@@ -232,12 +243,15 @@ def load_creds(config):
     return creds
 
 
-def validate_cred(cred, f):
-    v = Validator()
-    valid = v.validate(cred, schema.changeme_schema)
-    for e in v.errors:
-        logging.getLogger('changeme').error("[validate_cred] Validation Error: %s, %s - %s" %
-                     (f, e, v.errors[e]))
+def validate_cred(cred, f, protocol):
+    valid = True
+    if protocol == 'http':
+        v = Validator()
+        valid = v.validate(cred, schema.http_schema)
+        for e in v.errors:
+            logging.getLogger('changeme').error("[validate_cred] Validation Error: %s, %s - %s" %
+                         (f, e, v.errors[e]))
+    # TODO: implement schema validators for other protocols
 
     return valid
 

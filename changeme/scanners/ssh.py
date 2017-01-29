@@ -16,15 +16,30 @@ class SSH(Scanner):
 
     def check_success(self):
         try:
-            ssh = paramiko.Transport((str(self.target), self.port))
-            ssh.connect(username=self.username, password=self.password)
-            ssh.close()
-            self.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.name, self.username, self.password, '%s:%s' % (self.target, str(self.port))))
-            return {'name': self.cred['name'], 'username': self.username, 'password': self.password, 'target': self.target}
+            evidence = self._check()
+            self.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
+            self.logger.debug('%s %s:%s evidence: %s' % (self.target, self.username, self.password, evidence))
+            return {'name': self.cred['name'],
+                    'username': self.username,
+                    'password': self.password,
+                    'target': self.target,
+                    'evidence': evidence}
+
         except Exception, e:
-            self.logger.info('Invalid %s default cred %s:%s at %s' % (self.name, self.username, self.password, '%s:%s' % (self.target, str(self.port))))
-            self.logger.debug('Error: %s' % str(e))
+            self.logger.info('Invalid %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
+            self.logger.debug('%s Exception: %s' % (type(e).__name__, str(e)))
+            import traceback
+            print traceback.print_exc()
             return False
+
+    def _check(self):
+        ssh = paramiko.Transport((str(self.target), self.port))
+        ssh.connect(username=self.username, password=self.password)
+        stdin, stdout, stderr = ssh.exec_command('uname -a')
+        evidence = stdout.readlines()
+        ssh.close()
+
+        return evidence
 
     def fingerprint(self):
         port = self.cred['default_port']
@@ -37,10 +52,14 @@ class SSH(Scanner):
                 self.logger.info('Port %i open' % port)
                 scanners = list()
                 for pair in self.cred['auth']['credentials']:
-                    scanners.append(SSH(self.cred, self.target, pair['username'], pair['password'], self.config))
+                    scanners.append(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))
                 return scanners
             else:
                 return False
         except Exception, e:
             self.logger.debug(str(e))
             return False
+
+    def _mkscanner(self, cred, target, u, p, config):
+        return SSH(cred, target, u, p, config)
+
