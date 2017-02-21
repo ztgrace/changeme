@@ -1,0 +1,29 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  csrf: csrf_token
+  post:
+    password: password
+    remember_me: '1'
+    username: username
+  sessionid: KB_SID
+  success:
+    body: 
+    - Dashboard for admin
+    status: 200
+  type: post
+  url:
+  - /?controller=AuthController&action=check
+  - /kanboard/?controller=AuthController&action=check
+category: web
+contributor: ztgrace, ThomasTJdev
+default_port: 80
+fingerprint:
+  body: /?controller=AuthController&amp;action=check
+  status: 200
+  url:
+  - /?controller=AuthController&action=login
+  - /kanboard/?controller=AuthController&action=login
+name: Kanboard_1037
+ssl: false

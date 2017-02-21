@@ -43,24 +43,28 @@ class HTTP(Scanner):
     def scan(self):
 
         self.logger.debug("[%s][scan]" % self._class_name())
-        for u in self.urls:
-            url = '%s://%s:%s%s' % (self.ssl, self.target, str(self.port), u)
-            s = requests.Session()
 
-            # Fingerprint target before scanning for a default password
-            try:
-                headers = self.useragent
-                if self.fingerprint.headers:
-                    headers.update(fp.headers)
-                    self.logger.debug("merged headers: %s" % headers)
-                res = s.get(url, timeout=self.config.timeout, verify=False, proxies=self.config.proxy, cookies=self.fingerprint.cookies, headers=headers)
-                self.logger.debug('[do_scan] %s - %i' % (url, res.status_code))
-            except Exception as e:
-                self.logger.debug('[do_scan] Failed to connect to %s' % (url,))
-                self.logger.debug(e)
-                continue
+        headers = self.useragent
+        if self.fingerprint.headers:
+            headers.update(fp.headers)
+            self.logger.debug("merged headers: %s" % headers)
+
+        # if fingerprint matches with the target, realize scan
+        if self.fingerprint.http_fingerprint(headers, self.ssl, self.target, str(self.port)):
             
-            if self.fingerprint.match(res):
+            self.logger.debug('[do_scan] Fingerprint matches successfully')
+
+            for u in self.urls:
+                url = '%s://%s:%s%s' % (self.ssl, self.target, str(self.port), u)
+                s = requests.Session()
+
+                try:
+                    res = s.get(url, timeout=self.config.timeout, verify=False, proxies=self.config.proxy, cookies=self.fingerprint.cookies, headers=headers)
+                except Exception as e:
+                    self.logger.debug('[do_scan] Failed to connect to %s' % url)
+                    self.logger.debug(e)
+                    continue
+
                 self.logger.debug('[do_scan] %s - %i' % (url, res.status_code))
        
                 # Only scan if a sessionid is required and we can get it

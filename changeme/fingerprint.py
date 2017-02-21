@@ -1,4 +1,5 @@
 import re
+import requests
 
 class Fingerprint:
 
@@ -59,3 +60,21 @@ class Fingerprint:
             match = False
 
         return match
+
+    def http_fingerprint(self, headers, ssl, target, port):
+
+        for url in self.urls:
+            s = requests.Session()
+            url = '%s://%s:%s%s' % (ssl, target, str(port), url)
+            try:
+                res = s.get(url, timeout=self.config.timeout, verify=False, proxies=self.config.proxy, cookies=self.cookies, headers=headers)
+                self.config.logger.debug('[do_scan] [http fingerprint] %s - %i' % (url, res.status_code))
+            except Exception as e:
+                self.config.logger.debug('[do_scan] [http fingerprint] Failed to connect to %s' % url)
+                self.config.logger.debug(e)
+                continue
+
+            if self.match(res):
+                return True
+
+        return False
