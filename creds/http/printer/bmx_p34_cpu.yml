@@ -1,0 +1,19 @@
+auth:
+  credentials:
+  - username: USER
+    password: USER
+  success:
+    status: 200
+  type: basic_auth
+  url:
+  - /secure/system/rdelite.htm
+category: printer
+contributor: AlessandroZ
+default_port: 80
+fingerprint:
+  status: 200
+  body: 'Server BMX P34'
+  url:
+  - /html/english/index.htm
+name: BMX P34 CPU
+ssl: false
