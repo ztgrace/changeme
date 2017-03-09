@@ -29,7 +29,6 @@ class HTTPGetScanner(Scanner):
                 self.headers.update(h)
         self.headers.update(self.config.useragent)
 
-
         # make the cred have only one u:p combo
         self.cred['auth']['credentials'] = [{'username': self.username, 'password': self.password}]
 
@@ -73,15 +72,15 @@ class HTTPGetScanner(Scanner):
 
         if match:
             self.logger.critical('[+] Found %s default cred %s:%s at %s' %
-                            (self.cred['name'], self.username, self.password, self.url))
+                                 (self.cred['name'], self.username, self.password, self.url))
 
             return {'name': self.cred['name'],
                     'username': self.username,
                     'password': self.password,
-                    'url': self.url}
+                    'target': self.url}
         else:
             self.logger.info('Invalid %s default cred %s:%s at %s' %
-                         (self.cred['name'], self.username, self.password, self.url))
+                             (self.cred['name'], self.username, self.password, self.url))
             return False
 
     def _check_fingerprint(self):

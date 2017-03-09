@@ -22,7 +22,7 @@ class HttpFingerprint:
 
     def __getstate__(self):
         state = self.__dict__
-        state['logger'] = None # Need to clear the logger when serializing otherwise mp.Queue blows up
+        state['logger'] = None  # Need to clear the logger when serializing otherwise mp.Queue blows up
         return state
 
     def __setstate__(self, d):

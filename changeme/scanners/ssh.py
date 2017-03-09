@@ -28,16 +28,15 @@ class SSH(Scanner):
         except Exception, e:
             self.logger.info('Invalid %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
             self.logger.debug('%s Exception: %s' % (type(e).__name__, str(e)))
-            import traceback
-            print traceback.print_exc()
             return False
 
     def _check(self):
-        ssh = paramiko.Transport((str(self.target), self.port))
-        ssh.connect(username=self.username, password=self.password)
-        stdin, stdout, stderr = ssh.exec_command('uname -a')
-        evidence = stdout.readlines()
-        ssh.close()
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.MissingHostKeyPolicy())  # ignore unknown hosts
+        c.connect(hostname=str(self.target), username=self.username, password=self.password)
+        stdin, stdout, stderr = c.exec_command('uname -a')
+        evidence = stdout.readlines()[0]
+        c.close()
 
         return evidence
 
@@ -62,4 +61,3 @@ class SSH(Scanner):
 
     def _mkscanner(self, cred, target, u, p, config):
         return SSH(cred, target, u, p, config)
-

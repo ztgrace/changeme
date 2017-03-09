@@ -1,8 +1,9 @@
 from scanner import Scanner
 import telnetlib
 
-class TELNET(Scanner):
-    
+
+class Telnet(Scanner):
+
     def __init__(self, data, target, config):
 
         super(TELNET, self).__init__(data, target, config)
@@ -13,16 +14,16 @@ class TELNET(Scanner):
 
     def scan(self):
         self.logger.debug("[%s][scan]" % self._class_name())
-        
+
         for cred in self.creds:
             if self._connexion(self.target, self.port):
                 if self._check_success(cred['username'], cred['password']):
 
                     self.password_found.append(
                         {
-                            'name': self.name, 
-                            'username': cred['username'], 
-                            'pasword': cred['password'], 
+                            'name': self.name,
+                            'username': cred['username'],
+                            'pasword': cred['password'],
                             'url': '%s:%s' % (self.target, str(self.port))
                         }
                     )
@@ -48,7 +49,7 @@ class TELNET(Scanner):
             if password:
                 self.telnet.read_until("Password: ")
                 self.telnet.write(password + "\n")
-            
+
             # self.telnet.write("ls\n")
             self.telnet.write("exit\n")
             # self.telnet.read_all()

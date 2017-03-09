@@ -1,5 +1,6 @@
 import csv
 import logging
+from tabulate import tabulate
 
 
 class Report:
@@ -7,7 +8,6 @@ class Report:
         self.results = self._convert_q2list(queue)
         self.output = output
         self.logger = logging.getLogger('changeme')
-
 
     def render_csv(self,):
         with open(self.output, 'wb') as fout:
@@ -22,6 +22,19 @@ class Report:
             writer.writerows(self.results)
 
         self.logger.critical("%i credentials written to %s" % (len(self.results), self.output))
+
+    def print_results(self):
+        if len(self.results) > 0:
+            print
+            print
+            self.logger.critical('Found %i default credentials' % len(self.results))
+            print
+            print tabulate(self.results, headers={'name': 'Name',
+                                                  'username': 'Username',
+                                                  'password': 'Password',
+                                                  'target': 'Target',
+                                                  'evidence': 'Evidence'})
+            print
 
     def _convert_q2list(self, q):
         items = list()

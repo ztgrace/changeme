@@ -17,4 +17,3 @@ class HTTPPostScanner(HTTPGetScanner):
                                           timeout=self.config.timeout,
                                           headers=self.headers,
                                           cookies=self.cookies)
-

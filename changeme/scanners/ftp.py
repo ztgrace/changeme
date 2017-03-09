@@ -1,8 +1,8 @@
 from scanner import Scanner
 import ftplib
 
+
 class FTP(Scanner):
-    
     def __init__(self, data, target, config):
 
         super(FTP, self).__init__(data, target, config)
@@ -16,9 +16,9 @@ class FTP(Scanner):
             if self._check_success(self.target, self.port, cred['username'], cred['password']):
                 self.password_found.append(
                     {
-                        'name': self.name, 
-                        'username': cred['username'], 
-                        'pasword': cred['password'], 
+                        'name': self.name,
+                        'username': cred['username'],
+                        'pasword': cred['password'],
                         'url': '%s:%s' % (self.target, str(self.port))
                     }
                 )
@@ -34,7 +34,7 @@ class FTP(Scanner):
                 ftp.login()
             else:
                 ftp.login(user, pwd)
-            
+
             ftp.quit()
             self.config.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.name, user, str(pwd), '%s:%s' % (self.target, str(self.port))))
             return True

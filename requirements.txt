@@ -11,3 +11,4 @@ python-libnmap
 jinja2
 paramiko
 impacket
+tabulate

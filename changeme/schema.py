@@ -130,7 +130,6 @@ http_schema = {
     'name': {'type': 'string', 'required': True},
     'ssl': {'type': 'boolean', 'required': True},
     'references': {'type': 'list', 'required': False},
-    #'protocol': {'type': 'string', 'required': True},
 }
 
 
@@ -189,7 +188,6 @@ def mkcred():
         fp['server_header'] = server_header
 
     parameters['fingerprint'] = fp
-
 
     # Authentication
     ###############################################################################
@@ -261,11 +259,9 @@ def mkcred():
 
     auth['credentials'] = creds
 
-
     success = dict()
     success['status'] = int(raw_input('HTTP status code of success (200, 302): '))
     success['body'] = raw_input('Unique string in page of a successful login (Logout</a>): ')
-
 
     auth['success'] = success
     parameters['auth'] = auth
@@ -280,5 +276,3 @@ def mkcred():
     print yaml.dump(parameters, default_flow_style=False)
 
     changeme.core.validate_cred(parameters, fname)
-
-

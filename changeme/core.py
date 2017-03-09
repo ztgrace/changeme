@@ -55,9 +55,13 @@ def main():
 
     if not config.validate:
         s = ScanEngine(creds, config)
-        s.scan()
+        try:
+            s.scan()
+        except IOError:
+            logging.getLogger('changeme').debug('Caught IOError exception')
 
         report = Report(s.found_q, config.output)
+        report.print_results()
 
         if config.output:
             report.render_csv()
@@ -128,13 +132,12 @@ class Config(object):
         for key in args:
             setattr(self, key, args[key])
 
-        self.protocols = list()
         self._validate_args(arg_parser)
 
     def _validate_args(self, ap):
         logger = logging.getLogger('changeme')
-        if (not self.subnet and not self.targets and not self.validate and not self.contributors and not self.dump
-                and not self.shodan_query and not self.nmap and not self.target):
+        if (not self.subnet and not self.targets and not self.validate and not self.contributors and not self.dump and
+                not self.shodan_query and not self.nmap and not self.target):
             ap.print_help()
             quit()
 
@@ -156,7 +159,7 @@ class Config(object):
                 logger.debug('Delay is set to %d milliseconds' % self.delay)
             else:
                 logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
-                                    type(self.delay))
+                             type(self.delay))
 
         if self.verbose:
             logger.setLevel(logging.INFO)
@@ -169,9 +172,10 @@ class Config(object):
 
         self.useragent = {'User-Agent': self.useragent if self.useragent else get_useragent()}
 
-        self.protocols.append('http')
-        self.protocols.append('ssh')
-        self.protocols.append('ssh_key')
+        if ',' in self.protocols:
+            self.protocols = self.protocols.split(',')
+
+        logger.debug(self.protocols)
 
     def _file_exists(self, f):
         if not os.path.isfile(f):
@@ -194,6 +198,7 @@ def parse_args():
     ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse', default=None)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
     ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
+    ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key", default='http')
     ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan', default=None)
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
@@ -207,8 +212,10 @@ def parse_args():
     args = ap.parse_args()
     return {'args': args, 'parser': ap}
 
+
 def get_protocol(filename):
     return filename.split('/')[1]
+
 
 def load_creds(config):
     # protocol is based off of the directory and category is a field in the cred file. That way you can
@@ -218,8 +225,6 @@ def load_creds(config):
     total_creds = 0
     cred_names = list()
     protocols = next(os.walk('creds'))[1]
-    print protocols
-    config.protocols = protocols
     for root, dirs, files in os.walk('creds'):
         for fname in files:
             f = os.path.join(root, fname)
@@ -230,8 +235,8 @@ def load_creds(config):
                     if parsed['name'] in cred_names:
                         logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
                     elif validate_cred(parsed, f, protocol):
-                        if in_scope(config.name, config.category, parsed):
-                            parsed['protocol'] = protocol  # Add the protocol after the schema validation
+                        parsed['protocol'] = protocol  # Add the protocol after the schema validation
+                        if in_scope(config.name, config.category, parsed, protocols):
                             total_creds += len(parsed["auth"]["credentials"])
                             creds.append(parsed)
                             cred_names.append(parsed['name'])
@@ -250,7 +255,7 @@ def validate_cred(cred, f, protocol):
         valid = v.validate(cred, schema.http_schema)
         for e in v.errors:
             logging.getLogger('changeme').error("[validate_cred] Validation Error: %s, %s - %s" %
-                         (f, e, v.errors[e]))
+                                                (f, e, v.errors[e]))
     # TODO: implement schema validators for other protocols
 
     return valid
@@ -277,12 +282,14 @@ def is_yaml(f):
     return isyaml
 
 
-def in_scope(name, category, cred):
+def in_scope(name, category, cred, protocols):
     add = True
 
     if name and not name.lower() in cred['name'].lower():
         add = False
     elif category and not cred['category'] == category:
+        add = False
+    elif cred['protocol'] not in protocols:
         add = False
 
     return add
@@ -321,4 +328,3 @@ def get_useragent():
         'Opera/9.80 (Windows NT 5.2; U; ru) Presto/2.5.22 Version/10.51'
     ]
     return random.choice(headers_useragents)
-
