@@ -53,7 +53,7 @@ def test_tomcat_match_nmap(mock_args):
 
     responses.reset()
     responses.add(**MockResponses.tomcat_auth)
-    s._scan()
+    s._scan(s.scanners, s.found_q)
     assert s.found_q.qsize() == 17
 
 
@@ -81,7 +81,7 @@ def test_jboss_scan_fail(mock_args):
     se.fingerprint_targets(se.fingerprints, se.scanners)
     assert se.scanners.qsize() == 1
 
-    se._scan()
+    se._scan(se.scanners, se.found_q)
     assert se.found_q.qsize() == 0
 
 
