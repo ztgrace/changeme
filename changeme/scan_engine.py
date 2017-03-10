@@ -22,8 +22,10 @@ class ScanEngine(object):
         self.config = config
         self.logger = logging.getLogger('changeme')
         self.scanners = mp.JoinableQueue()
+        self.total_scanners = 0
         self.targets = set()
         self.fingerprints = mp.JoinableQueue()
+        self.total_fps = 0
         self.found_q = mp.Queue()
 
     def scan(self):
@@ -52,6 +54,7 @@ class ScanEngine(object):
         # Phase II - Scan
         ######################################################################
         num_procs = self.config.threads if self.scanners.qsize() > self.config.threads else self.scanners.qsize()
+        self.total_scanners = self.scanners.qsize()
 
         # put terminator in queue
         for i in xrange(num_procs):
@@ -70,7 +73,10 @@ class ScanEngine(object):
 
     def _scan(self, scanq, foundq):
         while True:
-            self.logger.debug('%i scanners remaining' % self.scanners.qsize())
+            remaining = self.scanners.qsize()
+            self.logger.debug('%i scanners remaining' % remaining)
+            self._print_status(self.total_scanners, remaining, "scanning")
+                
             try:
                 scanner = scanq.get(True, 2)
                 if scanner is None:
@@ -87,7 +93,10 @@ class ScanEngine(object):
 
     def fingerprint_targets(self, fpq, scannerq):
         while True:
-            self.logger.debug('%i fingerprints remaining' % self.fingerprints.qsize())
+            remaining = fpq.qsize()
+            self.logger.debug('%i fingerprints remaining' % remaining)
+            self._print_status(self.total_fps, remaining, "fingerprinting")
+
             try:
                 fp = fpq.get(True, 2)
                 if fp is None:
@@ -139,6 +148,9 @@ class ScanEngine(object):
             fingerprints = fingerprints + HttpFingerprint.build_fingerprints(self.targets, self.creds, self.config)
 
         fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
+        # Debug
+        for f in fingerprints:
+            self.logger.debug(f.url)
 
         self.logger.info('Configured protocols: %s' % self.config.protocols)
         if 'ssh' in self.config.protocols:  # catches ssh and ssh_key
@@ -151,6 +163,7 @@ class ScanEngine(object):
 
         for fp in set(fingerprints):
             self.fingerprints.put(fp)
+        self.total_fps = self.fingerprints.qsize()
         self.logger.debug('%i fingerprints' % self.fingerprints.qsize())
 
     def dry_run(self):
@@ -159,3 +172,9 @@ class ScanEngine(object):
             fp = self.fingerprints.get_nowait()
             print fp.full_URL()
         quit()
+
+    def _print_status(self, total, left, stage):
+        percentage = 10
+        if left % (total / percentage) == 0:
+            self.logger.info("%s complete with %s" % (int(left/float(total)*100), stage))
+

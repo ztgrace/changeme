@@ -275,4 +275,4 @@ def mkcred():
 
     print yaml.dump(parameters, default_flow_style=False)
 
-    changeme.core.validate_cred(parameters, fname)
+    changeme.core.validate_cred(parameters, fname, parameters['category'])

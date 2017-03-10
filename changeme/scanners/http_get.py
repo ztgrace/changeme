@@ -97,7 +97,7 @@ class HTTPGetScanner(Scanner):
 
     def _make_request(self):
         self.logger.debug("_make_request")
-        data = self.render_creds(self.cred, self.csrf)
+        data = self.render_creds(self.cred)
         qs = urllib.urlencode(data)
         url = "%s?%s" % (self.url, qs)
         self.logger.debug("url: %s" % url)
@@ -108,7 +108,7 @@ class HTTPGetScanner(Scanner):
                                          headers=self.headers,
                                          cookies=self.cookies)
 
-    def render_creds(self, candidate, csrf):
+    def render_creds(self, candidate, csrf=None):
         """
             Return a list of dicts with post/get data and creds.
 
