@@ -11,7 +11,7 @@ class Report:
 
     def render_csv(self,):
         with open(self.output, 'wb') as fout:
-            fieldnames = ["name", "username", "password", "url"]
+            fieldnames = ["name", "username", "password", "target"]
             writer = csv.DictWriter(
                 fout,
                 quoting=csv.QUOTE_ALL,
