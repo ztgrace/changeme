@@ -43,7 +43,7 @@ def test_tomcat_match_nmap(mock_args):
     scanners = list()
     while not s.scanners.empty():
         scanner = s.scanners.get()
-        assert scanner['url'] == 'http://127.0.0.1:8080/manager/html' or scanner['url'] == 'http://127.0.0.1:8080/tomcat/manager/html'
+        assert scanner.url == 'http://127.0.0.1:8080/manager/html' or scanner.url == 'http://127.0.0.1:8080/tomcat/manager/html'
         scanners.append(scanner)
 
     assert len(scanners) == 34

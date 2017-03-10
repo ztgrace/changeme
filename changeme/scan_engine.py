@@ -72,7 +72,7 @@ class ScanEngine(object):
         while True:
             self.logger.debug('%i scanners remaining' % self.scanners.qsize())
             try:
-                scanner = scanq.get()
+                scanner = scanq.get(True, 2)
                 if scanner is None:
                     scanq.task_done()
                     break
@@ -86,16 +86,21 @@ class ScanEngine(object):
             scanq.task_done()
 
     def fingerprint_targets(self, fpq, scannerq):
+        self.logger.warning("a")
         while True:
             self.logger.debug('%i fingerprints remaining' % self.fingerprints.qsize())
             try:
-                fp = fpq.get()
+                self.logger.warning("b")
+                fp = fpq.get(True, 2)
+                self.logger.warning("d")
+                self.logger.warning(fp)
                 if fp is None:
                     fpq.task_done()
                     break
             except Empty as e:
+                self.logger.warning("c")
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
-                continue
+                return
 
             results = fp.fingerprint()
             if results:

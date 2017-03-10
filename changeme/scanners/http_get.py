@@ -40,9 +40,7 @@ class HTTPGetScanner(Scanner):
             self._make_request()
         except Exception as e:
             self.logger.error('Failed to connect to %s' % self.url)
-            self.logger.debug('Exception: %s' % e.__str__().replace('\n', '|'))
-            import traceback
-            traceback.print_exc()
+            self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
             return None
 
         if self.response.status_code == 429:
