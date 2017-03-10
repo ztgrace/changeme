@@ -137,7 +137,7 @@ class Config(object):
     def _validate_args(self, ap):
         logger = logging.getLogger('changeme')
         if (not self.subnet and not self.targets and not self.validate and not self.contributors and not self.dump and
-                not self.shodan_query and not self.nmap and not self.target):
+                not self.shodan_query and not self.nmap and not self.target and not self.mkcred):
             ap.print_help()
             quit()
 

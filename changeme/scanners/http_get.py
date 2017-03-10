@@ -41,6 +41,8 @@ class HTTPGetScanner(Scanner):
         except Exception as e:
             self.logger.error('Failed to connect to %s' % self.url)
             self.logger.debug('Exception: %s' % e.__str__().replace('\n', '|'))
+            import traceback
+            traceback.print_exc()
             return None
 
         if self.response.status_code == 429:
@@ -117,10 +119,14 @@ class HTTPGetScanner(Scanner):
             regular GET or POST and a string if its a raw POST.
         """
         b64 = candidate['auth'].get('base64', None)
-        config = candidate['auth'].get('post', candidate['auth'].get(
-            'get', candidate['auth'].get('raw_post', None)))
+        type = candidate['auth'].get('type')
+        config = None
+        if type == 'post':
+            config = candidate['auth'].get('post',None) 
+        if type == 'get':
+            config = candidate['auth'].get('get',None) 
 
-        if not candidate['auth']['type'] == 'raw_post':
+        if not type == 'raw_post':
             data = self._get_parameter_dict(candidate['auth'])
 
             if csrf:
@@ -144,7 +150,7 @@ class HTTPGetScanner(Scanner):
                 data_to_send = dict(data.items() + cred_data.items())
                 return data_to_send
         else:  # raw post
-            return candidate['auth']['credential']['raw']
+            return None
 
     def _get_parameter_dict(self, auth):
         params = dict()

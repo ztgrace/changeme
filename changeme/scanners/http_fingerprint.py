@@ -1,6 +1,7 @@
 from changeme.scanners.http_basic_auth import HTTPBasicAuthScanner
 from changeme.scanners.http_get import HTTPGetScanner
 from changeme.scanners.http_post import HTTPPostScanner
+from changeme.scanners.http_raw_post import HTTPRawPostScanner
 import logging
 from lxml import html
 from netaddr import *
@@ -78,8 +79,10 @@ class HttpFingerprint:
 
                         if cred['auth']['type'] == 'get':
                             scanners.append(HTTPGetScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies))
-                        elif cred['auth']['type'] == 'post' or cred['auth']['type'] == 'raw_post':
+                        elif cred['auth']['type'] == 'post':
                             scanners.append(HTTPPostScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies, csrf))
+                        elif cred['auth']['type'] == 'raw_post':
+                            scanners.append(HTTPRawPostScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies, csrf, pair['raw']))
                         elif cred['auth']['type'] == 'basic_auth':
                             scanners.append(HTTPBasicAuthScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies))
 
@@ -145,6 +148,7 @@ class HttpFingerprint:
     @staticmethod
     def build_fingerprints(targets, creds, config):
         fingerprints = list()
+        logger = logging.getLogger('changeme')
         # Build a set of unique fingerprints
         for target in targets:
             for c in creds:
@@ -152,6 +156,7 @@ class HttpFingerprint:
                     continue
                 fp = c['fingerprint']
                 for url in fp.get('url'):
+                    logger.debug(url)
                     if not isinstance(target, IPAddress) and ":" in target and not int(target.split(":")[1]) == int(c.get('default_port')):
                         # Only scan open ports from an nmap file
                         continue
@@ -169,6 +174,7 @@ class HttpFingerprint:
                         config,
                         creds,
                     )
+                    logger.debug('Adding %s to fingerprint list' % hfp.full_URL())
                     fingerprints.append(hfp)
 
         return fingerprints

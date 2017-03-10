@@ -1,0 +1,22 @@
+auth:
+  credentials:
+  - password: admin
+    raw: '{"username":"admin","password":"admin"}'
+    username: admin
+  success:
+    body: 
+    - '{"sessionid":'
+    status: 200
+  type: raw_post
+  url:
+  - /login
+category: web
+contributor: ztgrace
+default_port: 8889
+fingerprint:
+  body: <title>DataStax OpsCenter Login</title>
+  status: 200
+  url:
+  - /opscenter/login.html
+name: DataStax OpsCenter 6.0.x
+ssl: false

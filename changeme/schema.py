@@ -160,7 +160,7 @@ def mkcred():
 
     get_data('contributor', 'Your name or handle: ')
     get_data('name', 'Name of service (JBoss, Tomcat): ')
-    get_data('category', 'Category of service (web, printer): ')
+    get_data('category', 'Category of service (http, printer): ')
     get_data('default_port', 'Default port: ', integer=True)
     get_data('ssl', 'Does the service use ssl (y/n): ', boolean=True)
 
