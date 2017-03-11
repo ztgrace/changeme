@@ -160,7 +160,8 @@ def mkcred():
 
     get_data('contributor', 'Your name or handle: ')
     get_data('name', 'Name of service (JBoss, Tomcat): ')
-    get_data('category', 'Category of service (http, printer): ')
+    get_data('protocol', 'Protocol of service (http, ssh, ftp): ')
+    get_data('category', 'Category of service (general, printer, phone): ')
     get_data('default_port', 'Default port: ', integer=True)
     get_data('ssl', 'Does the service use ssl (y/n): ', boolean=True)
 
@@ -181,7 +182,7 @@ def mkcred():
 
     fp['status'] = int(fp_status)
     if fp_body:
-        fp['body'] = fp_body
+        fp['body'] = [fp_body]
     if basic_auth_realm:
         fp['basic_auth_realm'] = basic_auth_realm
     if server_header:
@@ -258,6 +259,7 @@ def mkcred():
             creds.append({'username': user, 'password': passwd})
 
     auth['credentials'] = creds
+    auth['headers'] = headers
 
     success = dict()
     success['status'] = int(raw_input('HTTP status code of success (200, 302): '))
@@ -270,7 +272,7 @@ def mkcred():
     fname = parameters['name'].lower().replace(' ', '_').replace('/', '_') + '.yml'
     print 'Writing config to %s' % fname
 
-    with open(os.path.join('creds', parameters['category'], fname), 'w') as fout:
+    with open(os.path.join('creds', parameters['protocol'], parameters['category'], fname), 'w') as fout:
         fout.write(yaml.dump(parameters, default_flow_style=False))
 
     print yaml.dump(parameters, default_flow_style=False)

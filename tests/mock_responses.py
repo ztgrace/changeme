@@ -126,3 +126,23 @@ class MockResponses:
         'status': 200,
         'body': '<?xml version="1.0" encoding="UTF-8" ?><Result><Success>1</Success><UserLevel>0</UserLevel><UserGroup>Admin</UserGroup></Result>'
     }
+
+    elasticsearch = {
+        'method': responses.GET,
+        'url': 'http://127.0.0.1:9200/',
+        'status': 200,
+        'body': """{
+  "name" : "foo",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "1C4hbDs6TRetjINxrOKBZw",
+  "version" : {
+    "number" : "5.0.2",
+    "build_hash" : "f6b4951",
+    "build_date" : "2016-11-24T10:07:18.101Z",
+    "build_snapshot" : false,
+    "lucene_version" : "6.2.1"
+  },
+  "tagline" : "You Know, for Search"
+}"""
+    }
+

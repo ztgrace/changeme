@@ -182,3 +182,15 @@ def test_dryrun(mock_args):
     reset_handlers()
     se = core.main()
     assert se.found_q.qsize() == 0
+
+
+es_args = deepcopy(cli_args)
+es_args['name'] = "elasticsearch"
+@responses.activate
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**es_args))
+def test_es_scan_success(mock_args):
+    responses.reset()
+    responses.add(**MockResponses.elasticsearch)
+    reset_handlers()
+    se = core.main()
+    assert se.found_q.qsize() == 1

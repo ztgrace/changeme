@@ -44,6 +44,7 @@ class ScanEngine(object):
             self.fingerprints.put(None)
 
         self.logger.debug('Number of procs: %i' % num_procs)
+        self.total_fps = self.fingerprints.qsize()
         procs = [mp.Process(target=self.fingerprint_targets, args=(self.fingerprints, self.scanners)) for i in range(num_procs)]
         for proc in procs:
             proc.start()
@@ -75,8 +76,7 @@ class ScanEngine(object):
         while True:
             remaining = self.scanners.qsize()
             self.logger.debug('%i scanners remaining' % remaining)
-            self._print_status(self.total_scanners, remaining, "scanning")
-                
+
             try:
                 scanner = scanq.get(True, 2)
                 if scanner is None:
@@ -95,7 +95,6 @@ class ScanEngine(object):
         while True:
             remaining = fpq.qsize()
             self.logger.debug('%i fingerprints remaining' % remaining)
-            self._print_status(self.total_fps, remaining, "fingerprinting")
 
             try:
                 fp = fpq.get(True, 2)
@@ -172,9 +171,3 @@ class ScanEngine(object):
             fp = self.fingerprints.get_nowait()
             print fp.full_URL()
         quit()
-
-    def _print_status(self, total, left, stage):
-        percentage = 10
-        if left % (total / percentage) == 0:
-            self.logger.info("%s complete with %s" % (int(left/float(total)*100), stage))
-
