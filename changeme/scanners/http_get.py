@@ -120,9 +120,9 @@ class HTTPGetScanner(Scanner):
         type = candidate['auth'].get('type')
         config = None
         if type == 'post':
-            config = candidate['auth'].get('post',None) 
+            config = candidate['auth'].get('post', None)
         if type == 'get':
-            config = candidate['auth'].get('get',None) 
+            config = candidate['auth'].get('get', None)
 
         if not type == 'raw_post':
             data = self._get_parameter_dict(candidate['auth'])
