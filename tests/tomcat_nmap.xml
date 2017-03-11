@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.30 scan initiated Tue Jan 17 21:26:24 2017 as: nmap -p 8080 -oX tests/tomcat_nmap -sV -v -n 192.168.59.103 -->
+<nmaprun scanner="nmap" args="nmap -p 8080 -oX tests/tomcat_nmap -sV -v -n 192.168.59.103" start="1484709984" startstr="Tue Jan 17 21:26:24 2017" version="7.30" xmloutputversion="1.04">
+<scaninfo type="syn" protocol="tcp" numservices="1" services="8080"/>
+<verbose level="1"/>
+<debugging level="0"/>
+<taskbegin task="ARP Ping Scan" time="1484709984"/>
+<taskend task="ARP Ping Scan" time="1484709984" extrainfo="1 total hosts"/>
+<taskbegin task="SYN Stealth Scan" time="1484709984"/>
+<taskend task="SYN Stealth Scan" time="1484709984" extrainfo="1 total ports"/>
+<taskbegin task="Service scan" time="1484709984"/>
+<taskend task="Service scan" time="1484709990" extrainfo="1 service on 1 host"/>
+<taskbegin task="NSE" time="1484709990"/>
+<taskend task="NSE" time="1484709990"/>
+<taskbegin task="NSE" time="1484709990"/>
+<taskend task="NSE" time="1484709990"/>
+<host starttime="1484709984" endtime="1484709990"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.59.103" addrtype="ipv4"/>
+<address addr="08:00:27:F7:00:F2" addrtype="mac" vendor="Oracle VirtualBox virtual NIC"/>
+<hostnames>
+</hostnames>
+<ports><port protocol="tcp" portid="8080"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="http" product="Apache Tomcat/Coyote JSP engine" version="1.1" method="probed" conf="10"><cpe>cpe:/a:apache:coyote_http_connector:1.1</cpe></service></port>
+</ports>
+<times srtt="357" rttvar="3753" to="100000"/>
+</host>
+<runstats><finished time="1484709990" timestr="Tue Jan 17 21:26:30 2017" elapsed="6.63" summary="Nmap done at Tue Jan 17 21:26:30 2017; 1 IP address (1 host up) scanned in 6.63 seconds" exit="success"/><hosts up="1" down="0" total="1"/>
+</runstats>
+</nmaprun>
