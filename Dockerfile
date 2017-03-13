@@ -11,6 +11,10 @@ RUN apk add --no-cache --virtual .changeme-deps \
         py-pip \
     && apk add --no-cache --virtual .build-deps \
         libxml2-dev \
+        python-dev \
+	    libffi-dev \
+	    musl-dev \
+	    openssl-dev \
         gcc \
     && pip install -r /changeme/requirements.txt \
     && apk del .build-deps \
