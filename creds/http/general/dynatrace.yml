@@ -14,7 +14,8 @@ contributor: BuckyGoat
 default_port: 8020
 fingerprint:
   basic_auth_realm: dynaTrace Server
-  body: dynaTrace Server Webinterface
+  body: 
+  - dynaTrace Server Webinterface
   status: 401
   url:
   - /rest/html/management/dashboards

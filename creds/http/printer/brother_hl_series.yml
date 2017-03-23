@@ -14,7 +14,8 @@ contributor: ztgrace
 default_port: 80
 fingerprint:
   basic_auth_realm: Printer Config
-  body: <TITLE>Brother HL-[0-9]+[A-Z]{2} series</TITLE>
+  body: 
+  - <TITLE>Brother HL-[0-9]+[A-Z]{2} series</TITLE>
   status: 401
   url:
   - /admin/password.html

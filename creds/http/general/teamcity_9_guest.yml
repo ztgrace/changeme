@@ -14,7 +14,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: Log in to TeamCity
+  body:
+    - Log in to TeamCity
   status: 200
   url:
   - /login.html

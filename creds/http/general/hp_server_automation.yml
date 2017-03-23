@@ -19,7 +19,8 @@ category: web
 contributor: ztgrace
 default_port: 443
 fingerprint:
-  body: <title>Hewlett-Packard Server Automation System Web Client</title>
+  body:
+    - <title>Hewlett-Packard Server Automation System Web Client</title>
   status: 200
   url:
   - /

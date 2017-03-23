@@ -18,7 +18,8 @@ category: webcam
 contributor: ztgrace
 default_port: 81
 fingerprint:
-  body: GetXml\("login.xml\?"\+param,OnLoginAckOK,OnLoginAckFail\);
+  body:
+    - GetXml\("login.xml\?"\+param,OnLoginAckOK,OnLoginAckFail\);
   status: 200
   url:
   - /

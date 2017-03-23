@@ -25,7 +25,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: Network Performance Management Console
+  body:
+    - Network Performance Management Console
   status: 200
   url:
   - /SingleSignOn/SignIn.aspx?SsoProductCode=npc&SsoRedirectUrl=%2fnpc%2fdefault.aspx

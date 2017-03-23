@@ -23,7 +23,8 @@ category: web
 contributor: ztgrace
 default_port: 8080
 fingerprint:
-  body: '<title>Jaspersoft: Login</title>'
+  body:
+    - '<title>Jaspersoft: Login</title>'
   status: 200
   url:
   - /login.html

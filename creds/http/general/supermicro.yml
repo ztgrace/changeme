@@ -16,7 +16,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: '<h3><script>document.writeln\(lang.LANG_LOGIN_PROMPT\);</script></h3>'
+  body:
+    - '<h3><script>document.writeln\(lang.LANG_LOGIN_PROMPT\);</script></h3>'
   status: 200
   url:
   - /

@@ -19,7 +19,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: <title>APM WebView</title>
+  body:
+    - <title>APM WebView</title>
   status: 200
   url:
   - /

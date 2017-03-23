@@ -21,7 +21,8 @@ category: printer
 contributor: ztgrace
 default_port: 8000
 fingerprint:
-  body: '<title>Default Authentication : iR-ADV'
+  body:
+    - '<title>Default Authentication : iR-ADV'
   status: 200
   url:
   - /rps/

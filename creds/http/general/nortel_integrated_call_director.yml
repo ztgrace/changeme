@@ -17,7 +17,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: <title>ICD</title>
+  body:
+    - <title>ICD</title>
   status: 200
   url:
   - /

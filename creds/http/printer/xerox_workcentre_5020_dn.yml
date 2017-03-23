@@ -13,7 +13,8 @@ category: printer
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: Xerox WorkCentre 5020/DN
+  body:
+    - Xerox WorkCentre 5020/DN
   status: 200
   url:
   - /prop.htm

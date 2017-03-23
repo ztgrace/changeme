@@ -14,7 +14,8 @@ category: web
 contributor: ztgrace
 default_port: 443
 fingerprint:
-  body: <title>Haivision</title>
+  body:
+    - <title>Haivision</title>
   server_header: lighttpd/1.4.35
   status: 200
   url:

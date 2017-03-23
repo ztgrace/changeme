@@ -16,7 +16,8 @@ category: http
 contributor: ztgrace
 default_port: 9200
 fingerprint:
-  body: '"tagline" : "You Know, for Search"'
+  body:
+    - '"tagline" : "You Know, for Search"'
   status: 200
   url:
   - /

@@ -19,7 +19,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: Welcome to SonarQube Dashboard
+  body:
+    - Welcome to SonarQube Dashboard
   status: 200
   url:
   - /

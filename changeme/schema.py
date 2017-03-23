@@ -97,7 +97,7 @@ http_schema = {
         'type': 'dict',
         'required': True,
         'schema': {
-            'body': {'type': 'string', 'required': False},
+            'body': {'type': 'list', 'required': False},
             'server_header': {'type': 'string', 'required': False},
             'cookie': {
                 'type': 'list',

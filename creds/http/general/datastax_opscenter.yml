@@ -14,7 +14,8 @@ category: web
 contributor: ztgrace
 default_port: 8889
 fingerprint:
-  body: <title>DataStax OpsCenter Login</title>
+  body:
+    - <title>DataStax OpsCenter Login</title>
   status: 200
   url:
   - /opscenter/login.html

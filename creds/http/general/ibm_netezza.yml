@@ -18,7 +18,8 @@ category: web
 contributor: ztgrace
 default_port: 443
 fingerprint:
-  body: <title>IBM Netezza
+  body:
+    - <title>IBM Netezza
   status: 200
   url:
   - /com.netezza.portal.Portal/index.html

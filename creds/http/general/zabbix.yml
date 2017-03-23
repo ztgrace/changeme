@@ -20,7 +20,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: by Zabbix SIA
+  body:
+    - by Zabbix SIA
   status: 200
   url:
   - /zabbix/index.php

@@ -42,7 +42,8 @@ category: web
 contributor: AlessandroZ
 default_port: 7001
 fingerprint:
-  body: Oracle WebLogic Server Administration Console
+  body:
+    - Oracle WebLogic Server Administration Console
   status: 200
   url:
   - /console/login/LoginForm.jsp

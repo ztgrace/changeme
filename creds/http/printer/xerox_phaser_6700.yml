@@ -20,7 +20,8 @@ category: printer
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: XEROX Phaser 6700
+  body:
+    - XEROX Phaser 6700
   status: 200
   url:
   - /header.php?tab=status

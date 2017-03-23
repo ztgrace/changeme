@@ -20,7 +20,8 @@ category: web
 contributor: ztgrace
 default_port: 443
 fingerprint:
-  body: IBM UrbanCode Deploy
+  body:
+    - IBM UrbanCode Deploy
   status: 200
   url:
   - /

@@ -21,7 +21,8 @@ category: web
 contributor: ztgrace
 default_port: 4848
 fingerprint:
-  body: Log In to GlassFish Administration Console
+  body:
+    - Log In to GlassFish Administration Console
   status: 200
   url:
   - /

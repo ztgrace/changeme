@@ -18,7 +18,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: Mediant 1000
+  body:
+    - Mediant 1000
   status: 200
   url:
   - /

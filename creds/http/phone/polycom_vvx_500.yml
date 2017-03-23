@@ -15,7 +15,8 @@ category: phone
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: Polycom Web Configuration Utility
+  body:
+    - Polycom Web Configuration Utility
   status: 200
   url:
   - /login.htm

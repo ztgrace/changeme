@@ -22,7 +22,8 @@ category: printer
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: title="Web Image Monitor"
+  body:
+    - title="Web Image Monitor"
   cookie:
   - cookieOnOffChecker: 'on'
   status: 200

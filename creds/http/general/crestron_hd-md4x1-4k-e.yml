@@ -18,7 +18,8 @@ category: web
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: <title>HD-MD4x1-4K-E</title>
+  body:
+    - <title>HD-MD4x1-4K-E</title>
   status: 200
   url:
   - /

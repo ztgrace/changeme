@@ -17,7 +17,8 @@ category: webcam
 contributor: ztgrace
 default_port: 80
 fingerprint:
-  body: '--- VIDEO WEB SERVER ---'
+  body:
+    - '--- VIDEO WEB SERVER ---'
   status: 200
   url:
   - /

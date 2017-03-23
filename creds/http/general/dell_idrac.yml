@@ -17,7 +17,8 @@ category: web
 contributor: ztgrace
 default_port: 443
 fingerprint:
-  body: <title>Integrated Dell Remote Access Controller
+  body:
+    - <title>Integrated Dell Remote Access Controller
   status: 200
   url:
   - /login.html

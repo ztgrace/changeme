@@ -14,7 +14,8 @@ category: web
 contributor: ztgrace
 default_port: 8081
 fingerprint:
-  body: <title>Nexus Repository Manager</title>
+  body:
+    - <title>Nexus Repository Manager</title>
   status: 200
   url:
   - /

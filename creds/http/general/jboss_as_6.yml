@@ -20,7 +20,8 @@ category: web
 contributor: ztgrace
 default_port: 8080
 fingerprint:
-  body: Welcome to the JBoss AS 6 Admin Console
+  body:
+    - Welcome to the JBoss AS 6 Admin Console
   status: 200
   url:
   - /admin-console/login.seam

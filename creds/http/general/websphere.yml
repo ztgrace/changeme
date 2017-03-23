@@ -18,7 +18,8 @@ category: web
 contributor: BuckyGoat
 default_port: 8080
 fingerprint:
-  body: Administrative Console Login
+  body:
+    - Administrative Console Login
   status: 200
   url:
   - /console/portal/Server/Web%20Server

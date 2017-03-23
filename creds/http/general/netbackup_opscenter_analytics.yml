@@ -20,7 +20,8 @@ category: web
 contributor: ztgrace
 default_port: 443
 fingerprint:
-  body: <title>Symantec NetBackup OpsCenter Analytics</title>
+  body:
+    - <title>Symantec NetBackup OpsCenter Analytics</title>
   status: 200
   url:
   - /opscenter/
