@@ -214,7 +214,7 @@ def parse_args():
 
 
 def get_protocol(filename):
-    return filename.split('/')[1]
+    return filename.split(os.path.sep)[1]
 
 
 def load_creds(config):
