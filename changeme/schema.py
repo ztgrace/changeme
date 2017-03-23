@@ -130,6 +130,7 @@ http_schema = {
     'name': {'type': 'string', 'required': True},
     'ssl': {'type': 'boolean', 'required': True},
     'references': {'type': 'list', 'required': False},
+    'versions': {'type': 'list', 'required': False},
 }
 
 
