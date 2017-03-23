@@ -12,16 +12,14 @@ from urlparse import urlparse
 class HTTPGetScanner(Scanner):
 
     def __init__(self, cred, target, username, password, config, cookies):
-        super(HTTPGetScanner, self).__init__(cred, target, config)
+        super(HTTPGetScanner, self).__init__(cred, target, config, username, password)
         self.cred = cred
         self.config = config
         self.cookies = cookies
         self.headers = dict()
         self.request = session()
         self.response = None
-        self.password = password
         self.url = target
-        self.username = username
 
         headers = self.cred['auth'].get('headers', dict())
         if headers:

@@ -135,13 +135,15 @@ class HttpFingerprint:
                 self.logger.debug('%s server header matched: %s' % (cred['name'], fp_server))
                 match = True
 
-            body = fp.get('body')
-            if body and re.search(body, response.text):
-                match = True
-                self.logger.info('%s body matched: %s' % (cred['name'], body))
-            elif body:
-                self.logger.debug('%s body not matched' % cred['name'])
-                match = False
+            body = fp.get('body', None)
+            if body:
+                for b in body:
+                    if re.search(b, response.text):
+                        match = True
+                        self.logger.info('%s body matched: %s' % (cred['name'], b))
+                    elif body:
+                        self.logger.debug('%s body not matched' % cred['name'])
+                        match = False
 
         return match
 

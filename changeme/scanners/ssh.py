@@ -6,10 +6,8 @@ import socket
 class SSH(Scanner):
 
     def __init__(self, cred, target, username, password, config):
-        super(SSH, self).__init__(cred, target, config)
-        self.password = password
+        super(SSH, self).__init__(cred, target, config, username, password)
         self.port = self.cred['default_port']
-        self.username = username
 
     def scan(self):
         return self.check_success()
@@ -40,24 +38,7 @@ class SSH(Scanner):
 
         return evidence
 
-    def fingerprint(self):
-        port = self.cred['default_port']
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(3)
-            result = sock.connect_ex((str(self.target), port))
-            sock.shutdown(2)
-            if result == 0:
-                self.logger.info('Port %i open' % port)
-                scanners = list()
-                for pair in self.cred['auth']['credentials']:
-                    scanners.append(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))
-                return scanners
-            else:
-                return False
-        except Exception, e:
-            self.logger.debug(str(e))
-            return False
+
 
     def _mkscanner(self, cred, target, u, p, config):
         return SSH(cred, target, u, p, config)

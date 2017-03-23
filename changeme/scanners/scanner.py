@@ -1,8 +1,9 @@
 import logging
+import socket
 
 
 class Scanner(object):
-    def __init__(self, cred, target, config):
+    def __init__(self, cred, target, config, username, password):
         """
 
         :param cred:
@@ -12,13 +13,31 @@ class Scanner(object):
         self.cred = cred
         self.target = target
         self.config = config
+        self.username = username
+        self.password = password
         self.logger = logging.getLogger('changeme')
 
     def scan(self):
         raise NotImplementedError("A Scanner class needs to implement a scan method.")
 
     def fingerprint(self):
-        raise NotImplementedError("A Scanner class needs to implement a fingerprint method.")
+        port = self.cred['default_port']
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(3)
+            result = sock.connect_ex((str(self.target), port))
+            sock.shutdown(2)
+            if result == 0:
+                self.logger.info('Port %i open' % port)
+                scanners = list()
+                for pair in self.cred['auth']['credentials']:
+                    scanners.append(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))
+                return scanners
+            else:
+                return False
+        except Exception, e:
+            self.logger.debug(str(e))
+            return False
 
     def check_success(self):
         raise NotImplementedError("A Scanner class needs to implement a check_success method.")
