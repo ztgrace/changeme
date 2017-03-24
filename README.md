@@ -10,6 +10,10 @@ changeme keeps credential data separate from code. All credentials are stored in
 
 ## Installation
 
+changeme has only been tested on Linux and has known issues on Windows and OS X/macOS. Use docker to run changeme on the unsupported platforms.
+
+For mssql support, `unixodbc-dev` needs to be installed prior to installing the `pyodbc`.
+
 Use `pip` to install the python modules: `pip install -r requirements.txt`
 
 ## Usage Examples
@@ -26,6 +30,12 @@ Use [Shodan](https://www.shodan.io/) to populate a targets list and check them f
 
 Scan for SSH and known SSH keys `./changeme.py -s 192.168.59.0/24 --protocols ssh,ssh_key`
 
+## Known Issues
+
+The ftp, mssql, and telnet scanners are broken.
+
+Additionally, anything filed under https://github.com/ztgrace/changeme/issues as a bug.
+
 ## Bugs and Enhancements
 
 Bugs and enhancements are tracked at [https://github.com/ztgrace/changeme/issues](https://github.com/ztgrace/changeme/issues).
@@ -40,4 +50,8 @@ Please see the [wiki](https://github.com/ztgrace/changeme/wiki) for more details
 
 Thanks for code contributions and suggestions.
 
+* @AlessandroZ
 * @m0ther_
+* @GraphX
+* @Equinox21_
+* https://github.com/ztgrace/changeme/graphs/contributors

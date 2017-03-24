@@ -2,8 +2,10 @@ from libnmap.parser import NmapParser as np
 import logging
 import multiprocessing as mp
 from netaddr import *
-import platform
 from scanners.http_fingerprint import HttpFingerprint
+from scanners.mssql import MSSQL
+from scanners.mysql import MySQL
+from scanners.postgres import Postgres
 from scanners.ssh import SSH
 from scanners.ssh_key import SSHKey
 import shodan
@@ -152,13 +154,23 @@ class ScanEngine(object):
             self.logger.debug(f.url)
 
         self.logger.info('Configured protocols: %s' % self.config.protocols)
-        if 'ssh' in self.config.protocols:  # catches ssh and ssh_key
-            for target in self.targets:
-                for cred in self.creds:
-                    if cred['protocol'] == 'ssh' and 'ssh' in self.config.protocols:
-                        fingerprints.append(SSH(cred, target, '', '', self.config))
-                    elif cred['protocol'] == 'ssh_key' and 'ssh_key' in self.config.protocols:
-                        fingerprints.append(SSHKey(cred, target, '', '', self.config))
+        for target in self.targets:
+            for cred in self.creds:
+                if cred['protocol'] == 'ssh' and 'ssh' in self.config.protocols:
+                    fingerprints.append(SSH(cred, target, self.config, '', ''))
+
+                if cred['protocol'] == 'ssh_key' and 'ssh_key' in self.config.protocols:
+                    fingerprints.append(SSHKey(cred, target, self.config, '', ''))
+
+                if cred['protocol'] == 'postgres' and 'postgres' in self.config.protocols:
+                    fingerprints.append(Postgres(cred, target, self.config, '', ''))
+
+                if cred['protocol'] == 'mysql' and 'mysql' in self.config.protocols:
+                    fingerprints.append(MySQL(cred, target, self.config, '', ''))
+
+                if cred['protocol'] == 'mssql' and 'mssql' in self.config.protocols:
+                    fingerprints.append(MSSQL(cred, target, self.config, '', ''))
+
 
         for fp in set(fingerprints):
             self.fingerprints.put(fp)

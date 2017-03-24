@@ -40,7 +40,23 @@ class Scanner(object):
             return False
 
     def check_success(self):
-        raise NotImplementedError("A Scanner class needs to implement a check_success method.")
+        try:
+            evidence = self._check()
+            self.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
+            self.logger.debug('%s %s:%s evidence: %s' % (self.target, self.username, self.password, evidence))
+            return {'name': self.cred['name'],
+                    'username': self.username,
+                    'password': self.password,
+                    'target': self.target,
+                    'evidence': evidence}
+
+        except Exception, e:
+            self.logger.info('Invalid %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
+            self.logger.debug('%s Exception: %s' % (type(e).__name__, str(e)))
+            return False
+
+    def _check(self):
+        raise NotImplementedError("A Scanner class needs to implement a _check method.")
 
     def __getstate__(self):
         state = self.__dict__

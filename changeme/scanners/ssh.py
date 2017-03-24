@@ -12,22 +12,6 @@ class SSH(Scanner):
     def scan(self):
         return self.check_success()
 
-    def check_success(self):
-        try:
-            evidence = self._check()
-            self.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
-            self.logger.debug('%s %s:%s evidence: %s' % (self.target, self.username, self.password, evidence))
-            return {'name': self.cred['name'],
-                    'username': self.username,
-                    'password': self.password,
-                    'target': self.target,
-                    'evidence': evidence}
-
-        except Exception, e:
-            self.logger.info('Invalid %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
-            self.logger.debug('%s Exception: %s' % (type(e).__name__, str(e)))
-            return False
-
     def _check(self):
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.MissingHostKeyPolicy())  # ignore unknown hosts
