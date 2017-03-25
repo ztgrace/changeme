@@ -5,7 +5,8 @@ import mock
 from nose.tools import *
 
 
-cli_args = {'category': None,
+cli_args = {'all': False,
+            'category': None,
             'contributors': False,
             'debug': True,
             'delay': 500,
