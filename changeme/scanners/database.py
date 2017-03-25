@@ -11,9 +11,6 @@ class Database(Scanner):
         self.database = None
         self.query = None
 
-    def scan(self):
-        return self.check_success()
-
     def _check(self):
         url = "%s://%s:%s@%s:%s/%s" % (self.protocol, self.username, self.password, self.target, self.port, self.database)
         engine = sqlalchemy.create_engine(url)

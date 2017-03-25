@@ -18,7 +18,7 @@ class Scanner(object):
         self.logger = logging.getLogger('changeme')
 
     def scan(self):
-        raise NotImplementedError("A Scanner class needs to implement a scan method.")
+        return self.check_success()
 
     def fingerprint(self):
         port = self.cred['default_port']

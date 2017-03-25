@@ -8,9 +8,13 @@ I wrote changeme out of frustration with commercial vulnerability scanners missi
 
 changeme keeps credential data separate from code. All credentials are stored in [yaml](http://yaml.org/) files so they can be both easily read by humans and processed by changeme. Credential files can be created by using the `./changeme.py --mkcred` tool and answering a few questions.
 
+changeme supports the http/https, mssql, mysql, postgres, ssh and ssh w/key protocols. Use `./changeme.py --dump` to output all of the currently available credentials.
+
 ## Installation
 
 changeme has only been tested on Linux and has known issues on Windows and OS X/macOS. Use docker to run changeme on the unsupported platforms.
+
+Stable versions of changeme can be found on the [releases](https://github.com/ztgrace/changeme/releases) page.
 
 For mssql support, `unixodbc-dev` needs to be installed prior to installing the `pyodbc`.
 

@@ -2,6 +2,7 @@ from libnmap.parser import NmapParser as np
 import logging
 import multiprocessing as mp
 from netaddr import *
+from scanners.ftp import FTP
 from scanners.http_fingerprint import HttpFingerprint
 from scanners.mssql import MSSQL
 from scanners.mysql import MySQL
@@ -171,6 +172,8 @@ class ScanEngine(object):
                 if cred['protocol'] == 'mssql' and 'mssql' in self.config.protocols:
                     fingerprints.append(MSSQL(cred, target, self.config, '', ''))
 
+                if cred['protocol'] == 'ftp' and 'ftp' in self.config.protocols:
+                    fingerprints.append(FTP(cred, target, self.config, '', ''))
 
         for fp in set(fingerprints):
             self.fingerprints.put(fp)
