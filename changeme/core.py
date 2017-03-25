@@ -175,6 +175,9 @@ class Config(object):
         if ',' in self.protocols:
             self.protocols = self.protocols.split(',')
 
+        if self.all:
+            self.protocols = 'all'
+
         logger.debug(self.protocols)
 
     def _file_exists(self, f):
@@ -185,6 +188,7 @@ class Config(object):
 
 def parse_args():
     ap = argparse.ArgumentParser(description='Default credential scanner v%s' % version.__version__)
+    ap.add_argument('--all', '-a', action='store_true', help='Scan for all protocols', default=False)
     ap.add_argument('--category', '-c', type=str, help='Category of default creds to scan for', default=None)
     ap.add_argument('--contributors', action='store_true', help='Display cred file contributors')
     ap.add_argument('--debug', '-d', action='store_true', help='Debug output')

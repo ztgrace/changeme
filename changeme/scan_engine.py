@@ -146,7 +146,7 @@ class ScanEngine(object):
 
         fingerprints = list()
         # Build a set of unique fingerprints
-        if 'http' in self.config.protocols:
+        if 'http' in self.config.protocols or self.config.all:
             fingerprints = fingerprints + HttpFingerprint.build_fingerprints(self.targets, self.creds, self.config)
 
         fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
@@ -157,22 +157,22 @@ class ScanEngine(object):
         self.logger.info('Configured protocols: %s' % self.config.protocols)
         for target in self.targets:
             for cred in self.creds:
-                if cred['protocol'] == 'ssh' and 'ssh' in self.config.protocols:
+                if cred['protocol'] == 'ssh' and 'ssh' in self.config.protocols or self.config.all:
                     fingerprints.append(SSH(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'ssh_key' and 'ssh_key' in self.config.protocols:
+                if cred['protocol'] == 'ssh_key' and 'ssh_key' in self.config.protocols or self.config.all:
                     fingerprints.append(SSHKey(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'postgres' and 'postgres' in self.config.protocols:
+                if cred['protocol'] == 'postgres' and 'postgres' in self.config.protocols or self.config.all:
                     fingerprints.append(Postgres(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'mysql' and 'mysql' in self.config.protocols:
+                if cred['protocol'] == 'mysql' and 'mysql' in self.config.protocols or self.config.all:
                     fingerprints.append(MySQL(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'mssql' and 'mssql' in self.config.protocols:
+                if cred['protocol'] == 'mssql' and 'mssql' in self.config.protocols or self.config.all:
                     fingerprints.append(MSSQL(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'ftp' and 'ftp' in self.config.protocols:
+                if cred['protocol'] == 'ftp' and 'ftp' in self.config.protocols or self.config.all:
                     fingerprints.append(FTP(cred, target, self.config, '', ''))
 
         for fp in set(fingerprints):
