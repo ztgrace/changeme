@@ -22,8 +22,8 @@ Use `pip` to install the python modules: `pip install -r requirements.txt`
 
 ## Docker
 
-1 Build the docker container: `docker build -t changeme .`
-2 Run changeme from inside the container: `docker run -it changeme changeme.py -h`
+1. Build the docker container: `docker build -t changeme .`
+2. Run changeme from inside the container: `docker run -it changeme changeme.py -h`
 
 ## Usage Examples
 
