@@ -20,6 +20,11 @@ For mssql support, `unixodbc-dev` needs to be installed prior to installing the 
 
 Use `pip` to install the python modules: `pip install -r requirements.txt`
 
+## Docker
+
+1 Build the docker container: `docker build -t changeme .`
+2 Run changeme from inside the container: `docker run -it changeme changeme.py -h`
+
 ## Usage Examples
 
 Scan a subnet for default creds: `./changeme.py -s 192.168.59.0/24`
