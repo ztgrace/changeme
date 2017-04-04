@@ -1,0 +1,28 @@
+auth:
+  credentials:
+  - username: ubnt
+    password: ubnt
+  post:
+    username: username
+    password: password
+  sessionid: PHPSESSID
+  success:
+    body:
+      - Please wait while the application loads
+    status: 200
+  type: post
+  url:
+    - /
+  headers:
+    - Content-Type: application/x-www-form-urlencoded
+category: web
+contributor: Gijutsu
+fingerprint:
+  body:
+    - <title>EdgeOS</title>
+  status: 200
+  url:
+    - /
+name: Ubiquiti EdgeOS
+default_port: 443
+ssl: true
