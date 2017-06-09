@@ -22,8 +22,17 @@ Use `pip` to install the python modules: `pip install -r requirements.txt`
 
 ## Docker
 
+A convenient way of running changeme is to do so inside a Docker container. You can run a pre-built container from Docker Hub, or build your own using the instructions below.
+
+### Run changeme in Docker
+
+1. Download the container: `docker pull ztgrace/changeme`
+2. Run the container: `docker run -it ztgrace/changeme /bin/bash`
+
+### Build from 
+
 1. Build the docker container: `docker build -t changeme .`
-2. Run changeme from inside the container: `docker run -it changeme changeme.py -h`
+2. Run changeme from inside the container: `docker run -it changeme /bin/bash'
 
 ## Usage Examples
 

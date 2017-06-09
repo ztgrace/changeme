@@ -24,5 +24,6 @@ RUN apk add --no-cache --virtual .changeme-deps \
     && ln -s /changeme/changeme.py /usr/local/bin/
 
 ENV HOME /changeme
+ENV PS1 "\033[00;34mchangeme>\033[0m "
 WORKDIR /changeme
 CMD ./changeme.py
