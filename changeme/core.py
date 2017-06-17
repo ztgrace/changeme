@@ -312,7 +312,7 @@ def print_contributors(creds):
 
 def print_creds(creds):
     for cred in creds:
-        print "\n%s" % cred['name']
+        print "\n%s (%s)" % (cred['name'], cred['category'])
         for i in cred['auth']['credentials']:
             print "  - %s:%s" % (i['username'], i['password'])
 

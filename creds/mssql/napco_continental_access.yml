@@ -1,0 +1,21 @@
+auth:
+  credentials:
+  - username: sa
+    password: cic
+  - username: cic
+    password: cic
+  - username: sa
+    password: cic!23456789
+  - username: cic
+    password: cic!23456789
+  - username: sa
+    password: Cic!23456789
+  - username: cic
+    password: Cic!23456789
+category: mssql
+default_port: 1433
+name: Napco Continental Access
+contributor: ztgrace
+references:
+  - http://www.napcosecurity.com/download/tg04L2RevB.pdf
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

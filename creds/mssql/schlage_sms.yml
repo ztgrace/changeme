@@ -1,0 +1,14 @@
+auth:
+  credentials:
+  - username: sa
+    password: SECAdmin1
+  - username: SMSAdmin
+    password: SECAdmin1
+category: mssql
+default_port: 1433
+name: Schlage SMS
+contributor: ztgrace
+references:
+  - http://protechsecurity.us/wp-content/uploads/2013/12/IR-Schlage-Security-Management-System-V5.3.pdf
+  - http://us.allegion.com/content/dam/allegion-us-2/web-documents-2/UserGuide/Schlage_Campus_Lock_Keycard_Center_User_Guide_108225.pdf
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

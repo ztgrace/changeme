@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: mcUser
+    password: medocheck123
+category: mssql
+default_port: 1433
+name: medo.check
+contributor: ztgrace
+references:
+  - http://www.medocheck.com/site/assets/files/1440/kurzanleitung_mysql-server_fuer_medo_check.pdf
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

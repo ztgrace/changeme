@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: PracticeUser1
+category: mssql
+default_port: 1433
+name: MSSQL
+contributor: ztgrace
+references:
+  - https://support.cch.com/kb/solution.aspx/sw29540
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

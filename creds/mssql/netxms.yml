@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: admin
+    password: netxms
+category: mssql
+default_port: 1433
+name: NetXMS
+contributor: ztgrace
+references:
+  - https://wiki.netxms.org/wiki/Server_Installation_Guide
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

@@ -1,0 +1,25 @@
+auth:
+  credentials:
+  - username: aaAdmin
+    password: pwAdmin
+  - username: aaPower
+    password: pwPower
+  - username: aaUser
+    password: pwUser
+  - username: aadbo
+    password: pwddbo
+  - username: wwUser
+    password: wwUser
+  - username: wwPower
+    password: wwPower
+  - username: wwAdmin
+    password: wwAdmin
+  - username: wwdbo
+    password: wwdbo
+category: mssql
+default_port: 1433
+name: Wonderware Historian
+contributor: ztgrace
+references:
+  - http://platforma.astor.com.pl/files/getfile/id/3781
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

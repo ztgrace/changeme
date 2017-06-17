@@ -1,0 +1,13 @@
+auth:
+  credentials:
+  - username: ADMIN
+    password: AIMS
+  - username: FB
+    password: AIMS
+category: mssql
+default_port: 1433
+name: Lasa AIMS
+contributor: ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - http://www.lasa.org.uk/uploads/aims/Installation_Guides/SQL_Server_Installation_Guide.pdf

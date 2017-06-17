@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: $ei$micMicro
+category: mssql
+default_port: 1433
+name: IHS Kingdom
+contributor: ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - http://www.seismicmicro.com/productreleasedocumentation/kingdom/installationguide.pdf

@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: Cardio.Perfect
+category: mssql
+default_port: 1433
+name: WelchAllyn CardioPerfect
+contributor: ztgrace
+references:
+  - https://www.welchallyn.com/content/dam/welchallyn/documents/sap-documents/LIT/80013/80013928LITPDF.pdf
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

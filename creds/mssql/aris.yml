@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: ARIS9
+    password: '*ARIS!1dm9n#'
+category: mssql
+default_port: 1433
+name: Aris
+contributor: ztgrace
+references:
+  - https://www.ariscommunity.com/system/files/ARIS%20Server%20Installation%20and%20Administration%20Guide_0_0.pdf
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

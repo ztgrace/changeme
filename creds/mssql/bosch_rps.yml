@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: RPSsql12345
+category: mssql
+default_port: 1433
+name: Bosch RPS
+contributor: ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - http://resource.boschsecurity.com/documents/RPS_InGuide_Installation_Manual_enUS_2596022155.pdf

@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: M3d!aP0rtal
+category: mssql
+default_port: 1433
+name: MediaPortal
+contributor: ztgrace
+references:
+  - https://www.team-mediaportal.com/wiki/display/MediaPortal1/SQL+Server+2008
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

@@ -1,0 +1,16 @@
+auth:
+  credentials:
+  - username: maxadmin
+    password: maxadmin
+  - username: mxintadm
+    password: mxintadm
+  - username: maxreg
+    password: maxreg
+category: mssql
+default_port: 1433
+name: IBM Maximo
+contributor: ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - https://www-01.ibm.com/support/docview.wss?uid=swg21645570
+  - https://www.ibm.com/support/knowledgecenter/en/SSLKT6_7.5.0/com.ibm.mam.doc/install_was/t_ccmdb_manconfigfoundinst.html

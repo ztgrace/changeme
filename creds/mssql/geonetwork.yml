@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: admin
+    password: gnos
+category: mssql
+default_port: 1433
+name: GeoNetwork
+contributor: ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - http://geonetwork-opensource.org/manuals/2.10.4/eng/users/quickstartguide/installing/index.html

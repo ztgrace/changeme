@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: skf_admin1
+category: mssql
+default_port: 1433
+name: SKF @ptitude Analyst
+contributor: AlessandroZ, ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - http://www.skf.com/binary/79-267781/AA_2013_323124d0_IM-EN.pdf

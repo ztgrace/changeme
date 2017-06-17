@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: gts
+    password: opengts
+category: mssql
+default_port: 1433
+name: OpenGTS
+contributor: ztgrace
+references:
+  - http://opengts.sourceforge.net/OpenGTS_Config.pdf
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

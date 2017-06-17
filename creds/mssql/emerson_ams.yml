@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: 42Emerson42Eme
+category: mssql
+default_port: 1433
+name: Emerson AMS
+contributor: ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - http://www.emerson.com/documents/automation/39924.pdf

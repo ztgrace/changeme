@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: splendidcrm2005
+category: mssql
+default_port: 1433
+name: SplendidCRM
+contributor: ztgrace
+references:
+  - http://www.splendidcrm.com/Documentation/tabid/233/rvdwktid/deployment-guide-528/Default.aspx
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

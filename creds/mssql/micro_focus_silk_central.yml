@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: SilkCentral12!34
+category: mssql
+default_port: 1433
+name: Micro Focus Silk Central
+contributor: ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - http://documentation.microfocus.com/help/index.jsp?topic=%2Fcom.microfocus.sctm.doc%2FSCTM-CBA0F2AF-DATABASESETTINGSPAGE-REF.html

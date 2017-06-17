@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: wasadmin
+    password: wasadmin
+category: mssql
+default_port: 1433
+name: IBM WAS
+contributor: ztgrace
+references:
+  - https://www.ibm.com/support/knowledgecenter/en/SSQP76_8.7.0/com.ibm.odm.distrib.config.was/config_ds_res_was/tsk_was_before_res_config.html
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

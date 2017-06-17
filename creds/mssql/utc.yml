@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: SecurityMaster08
+category: mssql
+default_port: 1433
+name: UTC FCWnx
+contributor: ztgrace
+references:
+  - http://www.bernationalcontrols.com/support_docs/Access/Lenel/Facility%20Commander%20Wnx%207.7%20User%20Manual.pdf
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

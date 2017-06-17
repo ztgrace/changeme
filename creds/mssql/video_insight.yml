@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: V4in$ight
+category: mssql
+default_port: 1433
+name: Video Insight
+contributor: ztgrace
+references:
+  - http://www.video-insight.com/kb/pdf.php?cat=15&id=111&artlang=en
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

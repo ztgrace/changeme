@@ -1,0 +1,13 @@
+auth:
+  credentials:
+  - username: sa
+    password: Dr8gedog
+  - username: sa
+    password: dr8gedog
+category: mssql
+default_port: 1433
+name: TimeForce
+contributor: ztgrace
+references:
+  - https://www.mytimeforce.com/images/videos/support/training/kb/docs/internal/support/time/TIMEFORCE1Migration.pdf
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

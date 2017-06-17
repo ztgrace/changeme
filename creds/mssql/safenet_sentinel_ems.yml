@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: DBA!sa@EMSDB123
+category: mssql
+default_port: 1433
+name: SafeNet Sentinel EMS
+contributor: ztgrace
+references:
+  - http://sentinelldk.safenet-inc.com/LDKdocs/Install/Installation%20Guide/Troubleshooting/Troubleshooting.htm
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

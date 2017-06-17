@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: LENEL
+    password: MULTIMEDIA
+category: mssql
+default_port: 1433
+name: Lenel OnGuard
+contributor: ztgrace
+references:
+  - http://kb.lenel.com/cd/12/articlesImport/1098.PDF
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt

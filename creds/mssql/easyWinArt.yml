@@ -1,0 +1,11 @@
+auth:
+  credentials:
+  - username: sa
+    password: $easyWinArt4
+category: mssql
+default_port: 1433
+name: easyWinArt
+contributor: ztgrace
+references:
+  - https://github.com/govolution/betterdefaultpasslist/blob/master/mssql.txt
+  - http://www.auftragsbearbeitung-warenwirtschaft-pps.de/p/Handbuch/Installation/Installationsanleitung/
