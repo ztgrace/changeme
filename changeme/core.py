@@ -342,7 +342,7 @@ def get_useragent():
 
 def check_for_interrupted_scan(config):
     logger = logging.getLogger('changeme')
-    if os.path.isfile(PERSISTENT_QUEUE):
+    if os.path.isfile(PERSISTENT_QUEUE) and not config.fresh:
         scanners = FIFOSQLiteQueue(path=".", multithreading=True, name="scanners")
         fingerprints = FIFOSQLiteQueue(path=".", multithreading=True, name="fingerprints")
         logger.debug("scanners: %i, fp: %i" % (scanners.qsize(), fingerprints.qsize()))
