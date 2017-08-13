@@ -93,7 +93,7 @@ class HttpFingerprint:
         if name:
             tree = html.fromstring(res.content)
             try:
-                csrf = tree.xpath('//input[@name="%s"]/@value' % name)[0]
+                csrf = str(tree.xpath('//input[@name="%s"]/@value' % name)[0])
             except:
                 self.logger.error(
                     'Failed to get CSRF token %s in %s' % (str(name), str(res.url)))

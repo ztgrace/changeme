@@ -25,12 +25,25 @@ def reset_handlers():
 
 fp_args = deepcopy(cli_args)
 fp_args['nmap'] = 'tests/tomcat_nmap.xml'
+fp_args['name'] = 'Tomcat'
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**fp_args))
 def test_tomcat_match_nmap(mock_args):
-    responses.add(**MockResponses.tomcat_fp)
+    def tomcat_callback(request):
+        if request.headers.get('Authorization', False):
+            return (200, MockResponses.tomcat_auth['adding_headers'], MockResponses.tomcat_auth['body'])
+        else:
+            return (401, MockResponses.tomcat_fp['adding_headers'], '')
+
+    responses.add_callback(
+        responses.GET,
+        MockResponses.tomcat_fp['url'],
+        callback=tomcat_callback,
+    )
 
     reset_handlers()
+    os.remove(core.PERSISTENT_QUEUE)
+
     args = core.parse_args()
     core.init_logging(args['args'].verbose, args['args'].debug, args['args'].log)
     config = core.Config(args['args'], args['parser'])
@@ -41,13 +54,13 @@ def test_tomcat_match_nmap(mock_args):
 
     # Queue is not serializeable so we can't copy it using deepcopy
     scanners = list()
-    while not s.scanners.empty():
+    assert s.scanners.qsize() == 34
+    while s.scanners.qsize() > 0:
         scanner = s.scanners.get()
         assert scanner.url == 'http://127.0.0.1:8080/manager/html' or scanner.url == 'http://127.0.0.1:8080/tomcat/manager/html'
         scanners.append(scanner)
 
-    assert len(scanners) == 34
-
+    # Load the scanners back into the queue
     for scanner in scanners:
         s.scanners.put(scanner)
 
@@ -56,6 +69,19 @@ def test_tomcat_match_nmap(mock_args):
     s._scan(s.scanners, s.found_q)
     assert s.found_q.qsize() == 17
 
+
+fp_args = deepcopy(cli_args)
+fp_args['fingerprint'] = True
+fp_args['name'] = 'Tomcat'
+@responses.activate
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**fp_args))
+def test_tomcat_fingerprint(mock_args):
+    responses.add(**MockResponses.tomcat_fp)
+    reset_handlers()
+    se = core.main()
+    print "Scanners:",se.scanners.qsize()
+    assert se.scanners.qsize() == 34
+    os.remove(core.PERSISTENT_QUEUE)
 
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**cli_args))

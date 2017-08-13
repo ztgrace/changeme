@@ -131,6 +131,7 @@ http_schema = {
     'ssl': {'type': 'boolean', 'required': True},
     'references': {'type': 'list', 'required': False},
     'versions': {'type': 'list', 'required': False},
+    'protocol': {'type': 'string', 'required': False},
 }
 
 
@@ -183,7 +184,9 @@ def mkcred():
 
     fp['status'] = int(fp_status)
     if fp_body:
-        fp['body'] = [fp_body]
+        b = list()
+        b.append(fp_body)
+        fp['body'] = b
     if basic_auth_realm:
         fp['basic_auth_realm'] = basic_auth_realm
     if server_header:
@@ -264,7 +267,8 @@ def mkcred():
 
     success = dict()
     success['status'] = int(raw_input('HTTP status code of success (200, 302): '))
-    success['body'] = raw_input('Unique string in page of a successful login (Logout</a>): ')
+    success['body'] = list()
+    success['body'].append(raw_input('Unique string in page of a successful login (Logout</a>): '))
 
     auth['success'] = success
     parameters['auth'] = auth
@@ -273,7 +277,11 @@ def mkcred():
     fname = parameters['name'].lower().replace(' ', '_').replace('/', '_') + '.yml'
     print 'Writing config to %s' % fname
 
-    with open(os.path.join('creds', parameters['protocol'], parameters['category'], fname), 'w') as fout:
+    cdir = os.path.join('creds', parameters['protocol'], parameters['category'], fname)
+    if not os.path.isdir(cdir):
+        os.makedirs(cdir)
+
+    with open(os.path.join(cdir, fname), 'w') as fout:
         fout.write(yaml.dump(parameters, default_flow_style=False))
 
     print yaml.dump(parameters, default_flow_style=False)

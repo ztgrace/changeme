@@ -1,6 +1,4 @@
 import base64
-import logging
-import os
 from requests import session
 from scanner import Scanner
 import re

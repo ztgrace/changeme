@@ -1,21 +1,38 @@
+from pysnmp.hlapi import *
 from scanner import Scanner
-import ftplib
 
 
-class FTP(Scanner):
+class SNMP(Scanner):
     def __init__(self, cred, target, username, password, config):
-        super(FTP, self).__init__(cred, target, config, username, password)
+        super(SNMP, self).__init__(cred, target, config, username, password)
         self.port = self.cred['default_port']
 
-    def _check(self):
-        ftp = ftplib.FTP()
-        ftp.connect(str(self.target), self.port)
+    def fingerprint(self):
+        scanners = list()
+        for pair in self.cred['auth']['credentials']:
+            scanners.append(self._mkscanner(self.cred, self.target, None, pair['password'], self.config))
+        return scanners
 
-        ftp.login(self.username, self.password)
-        evidence = ftp.retrlines('LIST')
-        ftp.quit()
+    def _check(self):
+        iterator = getCmd(SnmpEngine(),
+                          CommunityData(self.password),
+                          UdpTransportTarget((str(self.target), 161)),
+                          ContextData(),
+                          ObjectType(ObjectIdentity('SNMPv2-MIB', 'sysDescr', 0)))
+
+        errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
+
+        evidence = ""
+        if errorIndication:
+            self.logger.debug(errorIndication)
+        elif errorStatus:
+            self.logger.debug('%s at %s' % (errorStatus.prettyPrint(),
+                                errorIndex and varBinds[int(errorIndex) - 1][0] or '?'))
+        else:
+            for varBind in varBinds:
+                evidence += ' = '.join([x.prettyPrint() for x in varBind])
 
         return evidence
 
     def _mkscanner(self, cred, target, u, p, config):
-        return FTP(cred, target, u, p, config)
+        return SNMP(cred, target, u, p, config)

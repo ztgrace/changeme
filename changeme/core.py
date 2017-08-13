@@ -3,6 +3,7 @@ from cerberus import Validator
 import logging
 from logutils import colorize
 import os
+from persistqueue import FIFOSQLiteQueue
 import random
 import re
 from report import Report
@@ -14,6 +15,7 @@ import sys
 import version
 import yaml
 
+PERSISTENT_QUEUE = "data.db" # Instantiated in the scan_engine class
 
 def banner(version):
     b = """
@@ -54,6 +56,7 @@ def main():
         quit()
 
     if not config.validate:
+        check_for_interrupted_scan(config)
         s = ScanEngine(creds, config)
         try:
             s.scan()
@@ -161,14 +164,15 @@ class Config(object):
                 logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
                              type(self.delay))
 
+        # Drop logging level to INFO to see the fingerprint messages
+        if self.fingerprint:
+            logger.setLevel(logging.INFO)
+
         if self.verbose:
             logger.setLevel(logging.INFO)
         if self.debug:
             logger.setLevel(logging.DEBUG)
 
-        # Drop logging level to INFO to see the fingerprint messages
-        if self.fingerprint:
-            logger.setLevel(logging.INFO)
 
         self.useragent = {'User-Agent': self.useragent if self.useragent else get_useragent()}
 
@@ -194,8 +198,9 @@ def parse_args():
     ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
     ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in milliseconds to avoid 429 status codes default=500", default=500)
     ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
-    ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
+    ap.add_argument('--dryrun', action='store_true', help='Print urls to be scan, but don\'t scan them')
     ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds', default=False)
+    ap.add_argument('--fresh', action='store_true', help='Flush any previous scans and start fresh', default=False)
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--mkcred', action='store_true', help='Make cred file', default=False)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
@@ -203,6 +208,7 @@ def parse_args():
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
     ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
     ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key", default='http')
+    ap.add_argument('--resume', '-r', action='store_true', help='Resume previous scan', default=False)
     ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan', default=None)
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
@@ -332,3 +338,31 @@ def get_useragent():
         'Opera/9.80 (Windows NT 5.2; U; ru) Presto/2.5.22 Version/10.51'
     ]
     return random.choice(headers_useragents)
+
+
+def check_for_interrupted_scan(config):
+    logger = logging.getLogger('changeme')
+    if os.path.isfile(PERSISTENT_QUEUE):
+        scanners = FIFOSQLiteQueue(path=".", multithreading=True, name="scanners")
+        fingerprints = FIFOSQLiteQueue(path=".", multithreading=True, name="fingerprints")
+        logger.debug("scanners: %i, fp: %i" % (scanners.qsize(), fingerprints.qsize()))
+        if scanners.qsize() > 0 or fingerprints.qsize() > 0:
+            logger.error('A previous scan was interrupted. Type R to resume or N to start a fresh scan')
+            answer = ''
+            while not (answer == 'R' or answer == 'N'):
+                answer = raw_input('> ')
+                if answer.upper() == 'N':
+                    os.remove(PERSISTENT_QUEUE)
+                else:
+                    logger.debug("Resuming previous scan")
+                    config.resume = True
+        else:
+            os.remove(PERSISTENT_QUEUE)
+
+
+
+
+
+
+
+

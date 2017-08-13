@@ -38,7 +38,7 @@ class Report:
 
     def _convert_q2list(self, q):
         items = list()
-        while not q.empty():
+        while not q.qsize() == 0:
             i = q.get()
             items.append(i)
 
