@@ -4,6 +4,7 @@ from changeme import core
 from core import cli_args
 from copy import deepcopy
 import csv
+import json
 import logging
 import mock
 from mock_responses import MockResponses
@@ -198,6 +199,28 @@ def test_csv_output(mock_args):
             i += 1
 
     assert os.path.isfile(csv_args['log'])
+
+
+json_args = deepcopy(cli_args)
+json_args['output'] = '/tmp/output.json'
+json_args['json'] = True
+@responses.activate
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**json_args))
+def test_json_output(mock_args):
+    responses.add(**MockResponses.jboss_fp)
+    responses.add(**MockResponses.jboss_auth)
+    reset_handlers()
+    se = core.main()
+    assert se.found_q.qsize() == 1
+
+    assert os.path.isfile(json_args['output'])
+    i = 0
+    with open(json_args['output'], 'rb') as json_file:
+        j = json.loads(json_file.read())
+        assert j["results"][0]['name']      == 'JBoss AS 6'
+        assert j['results'][0]['username']  == 'admin'
+        assert j['results'][0]['password']  == 'admin'
+        assert j['results'][0]['target']    == 'http://127.0.0.1:8080/admin-console/login.seam'
 
 
 dr_args = deepcopy(cli_args)

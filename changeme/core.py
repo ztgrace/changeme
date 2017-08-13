@@ -66,7 +66,9 @@ def main():
         report = Report(s.found_q, config.output)
         report.print_results()
 
-        if config.output:
+        if config.output and config.json:
+            report.render_json()
+        elif config.output:
             report.render_csv()
 
     return s
@@ -201,6 +203,7 @@ def parse_args():
     ap.add_argument('--dryrun', action='store_true', help='Print urls to be scan, but don\'t scan them')
     ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds', default=False)
     ap.add_argument('--fresh', action='store_true', help='Flush any previous scans and start fresh', default=False)
+    ap.add_argument('--json', '-j', action='store_true', help='Output results file in json format', default=False)
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--mkcred', action='store_true', help='Make cred file', default=False)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)

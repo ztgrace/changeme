@@ -1,4 +1,5 @@
 import csv
+import json
 import logging
 from tabulate import tabulate
 
@@ -20,6 +21,15 @@ class Report:
             )
             writer.writeheader()
             writer.writerows(self.results)
+
+        self.logger.critical("%i credentials written to %s" % (len(self.results), self.output))
+
+    def render_json(self):
+        results = dict()
+        results["results"] = self.results
+        j = json.dumps(results)
+        with open(self.output, 'wb') as fout:
+            fout.write(j)
 
         self.logger.critical("%i credentials written to %s" % (len(self.results), self.output))
 

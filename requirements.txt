@@ -1,5 +1,6 @@
 cerberus
 jinja2
+json
 logutils
 lxml
 netaddr
