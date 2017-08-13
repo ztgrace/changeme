@@ -342,18 +342,26 @@ def get_useragent():
 
 def check_for_interrupted_scan(config):
     logger = logging.getLogger('changeme')
-    if os.path.isfile(PERSISTENT_QUEUE) and not config.fresh:
+    if config.fresh:
+        logger.debug("Forcing a fresh scan")
+        os.remove(PERSISTENT_QUEUE)
+    elif config.resume:
+        logger.debug("Resuming previous scan")
+        return
+
+    if os.path.isfile(PERSISTENT_QUEUE):
         scanners = FIFOSQLiteQueue(path=".", multithreading=True, name="scanners")
         fingerprints = FIFOSQLiteQueue(path=".", multithreading=True, name="fingerprints")
         logger.debug("scanners: %i, fp: %i" % (scanners.qsize(), fingerprints.qsize()))
         if scanners.qsize() > 0 or fingerprints.qsize() > 0:
-            logger.error('A previous scan was interrupted. Type R to resume or N to start a fresh scan')
+            logger.error('A previous scan was interrupted. Type R to resume or F to start a fresh scan')
             answer = ''
-            while not (answer == 'R' or answer == 'N'):
-                answer = raw_input('> ')
-                if answer.upper() == 'N':
+            while not (answer == 'R' or answer == 'F'):
+                answer = raw_input('(R/F) > ')
+                if answer.upper() == 'F':
+                    logger.debug("Forcing a fresh scan")
                     os.remove(PERSISTENT_QUEUE)
-                else:
+                elif answer.upper() == 'R':
                     logger.debug("Resuming previous scan")
                     config.resume = True
         else:
