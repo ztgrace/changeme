@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
-import yaml
-import os
-import urllib
 import changeme.core
+import os
+try:
+    # Python 3
+    from urllib.parse import unquote_plus
+except ImportError:
+    # Python 2
+    from urllib import unquote_plus
+import yaml
 
 http_schema = {
     'auth': {
@@ -149,7 +154,7 @@ def mkcred():
     auth_types = ['post', 'basic_auth', 'get', 'raw_post']
 
     def get_data(field, prompt, boolean=False, integer=False):
-        result = raw_input(prompt).strip()
+        result = input(prompt).strip()
         if boolean and result.lower() == 'y':
             result = True
         elif boolean:
@@ -172,15 +177,15 @@ def mkcred():
     fp = dict()
 
     # Fingerprint url is confiured as a list so we can have more than one path
-    path = raw_input('Path to the fingerprint page (/index.php): ')
+    path = input('Path to the fingerprint page (/index.php): ')
     path_list = list()
     path_list.append(path)
     fp['url'] = path_list
 
-    fp_status = raw_input('HTTP status code of fingerprint (401, 200): ')
-    fp_body = raw_input('Unique string in the fingerprint page (Welcome to ***): ')
-    server_header = raw_input('Server header (if unique): ')
-    basic_auth_realm = raw_input('Basic Auth Realm: ')
+    fp_status = input('HTTP status code of fingerprint (401, 200): ')
+    fp_body = input('Unique string in the fingerprint page (Welcome to ***): ')
+    server_header = input('Server header (if unique): ')
+    basic_auth_realm = input('Basic Auth Realm: ')
 
     fp['status'] = int(fp_status)
     if fp_body:
@@ -199,26 +204,26 @@ def mkcred():
     auth = dict()
     headers = list()
     auth_urls = list()
-    url = raw_input('Authentication URL (/login.php): ')
+    url = input('Authentication URL (/login.php): ')
     auth_urls.append(url)
     auth['url'] = auth_urls
 
     while True:
-        t = raw_input('Type of authentication method (post, basic_auth, get, raw_post): ')
+        t = input('Type of authentication method (post, basic_auth, get, raw_post): ')
         if t in auth_types:
             auth['type'] = t
             break
         else:
-            print 'Invalid auth type'
+            print('Invalid auth type')
 
     if auth['type'] == 'post' or auth['type'] == 'get':
         form = dict()
-        form['username'] = raw_input('Name of username field: ')
-        form['password'] = raw_input('Name of password field: ')
-        form_params = raw_input('Post parameters, query string or raw post (json, xml): ')
+        form['username'] = input('Name of username field: ')
+        form['password'] = input('Name of password field: ')
+        form_params = input('Post parameters, query string or raw post (json, xml): ')
 
         if form_params:
-            form_params = urllib.unquote_plus(form_params)  # decode the parameters
+            form_params = unquote_plus(form_params)  # decode the parameters
             for f in form_params.split('&'):
                 fname = f.split('=')[0]
                 fvalue = f.split('=')[1]
@@ -232,32 +237,32 @@ def mkcred():
 
         auth[auth['type']] = form
     while True:
-        header = raw_input('Pleae enter any custom header needed. Hit enter if done or not needed \n Example: Content-Type: application/json: ')
+        header = input('Pleae enter any custom header needed. Hit enter if done or not needed \n Example: Content-Type: application/json: ')
         if len(header) > 0:
             if len(header.split(':')) == 2:
                 h = header.split(':')
                 header = {h[0]: h[1]}
                 headers.append(header)
             else:
-                print 'Invalid header.  Headers must be in the format "Header_name: header_value"\n'
+                print('Invalid header.  Headers must be in the format "Header_name: header_value"\n')
         else:
             break
-    csrf = raw_input('Name of csrf field: ')
+    csrf = input('Name of csrf field: ')
     if csrf:
         auth['csrf'] = csrf
 
-    sessionid = raw_input('Name of session cookie: ')
+    sessionid = input('Name of session cookie: ')
     if sessionid:
         auth['sessionid'] = sessionid
 
     creds = list()
-    num_creds = raw_input('How many default creds for this service (1, 2, 3): ')
+    num_creds = input('How many default creds for this service (1, 2, 3): ')
     for i in range(0, int(num_creds)):
-        user = raw_input('Username %i: ' % (i + 1))
-        passwd = raw_input('Password %i: ' % (i + 1))
+        user = input('Username %i: ' % (i + 1))
+        passwd = input('Password %i: ' % (i + 1))
 
         if auth['type'] == 'raw_post':
-            raw = raw_input('Raw post %i: ' % (i + 1))
+            raw = input('Raw post %i: ' % (i + 1))
             creds.append({'username': user, 'password': passwd, 'raw': raw})
         else:
             creds.append({'username': user, 'password': passwd})
@@ -266,16 +271,16 @@ def mkcred():
     auth['headers'] = headers
 
     success = dict()
-    success['status'] = int(raw_input('HTTP status code of success (200, 302): '))
+    success['status'] = int(input('HTTP status code of success (200, 302): '))
     success['body'] = list()
-    success['body'].append(raw_input('Unique string in page of a successful login (Logout</a>): '))
+    success['body'].append(input('Unique string in page of a successful login (Logout</a>): '))
 
     auth['success'] = success
     parameters['auth'] = auth
 
-    print
+    print()
     fname = parameters['name'].lower().replace(' ', '_').replace('/', '_') + '.yml'
-    print 'Writing config to %s' % fname
+    print('Writing config to %s' % fname)
 
     cdir = os.path.join('creds', parameters['protocol'], parameters['category'], fname)
     if not os.path.isdir(cdir):
@@ -284,6 +289,6 @@ def mkcred():
     with open(os.path.join(cdir, fname), 'w') as fout:
         fout.write(yaml.dump(parameters, default_flow_style=False))
 
-    print yaml.dump(parameters, default_flow_style=False)
+    print(yaml.dump(parameters, default_flow_style=False))
 
     changeme.core.validate_cred(parameters, fname, parameters['category'])

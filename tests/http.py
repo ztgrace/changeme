@@ -43,7 +43,10 @@ def test_tomcat_match_nmap(mock_args):
     )
 
     reset_handlers()
-    os.remove(core.PERSISTENT_QUEUE)
+    try:
+        os.remove(core.PERSISTENT_QUEUE)
+    except OSError:
+        pass
 
     args = core.parse_args()
     core.init_logging(args['args'].verbose, args['args'].debug, args['args'].log)
@@ -80,7 +83,7 @@ def test_tomcat_fingerprint(mock_args):
     responses.add(**MockResponses.tomcat_fp)
     reset_handlers()
     se = core.main()
-    print "Scanners:",se.scanners.qsize()
+    print("Scanners:",se.scanners.qsize())
     assert se.scanners.qsize() == 34
     os.remove(core.PERSISTENT_QUEUE)
 
@@ -166,7 +169,7 @@ def test_targets_scan_success(mock_args):
     responses.reset()
     responses.add(**MockResponses.idrac_fp)
     responses.add(**MockResponses.idrac_auth)
-    with open(targets_args['targets'], 'wb') as fout:
+    with open(targets_args['targets'], 'w') as fout:
         fout.write('127.0.0.1' + '\n')
 
     reset_handlers()
@@ -188,7 +191,7 @@ def test_csv_output(mock_args):
 
     assert os.path.isfile(csv_args['output'])
     i = 0
-    with open(csv_args['output'], 'rb') as csvfile:
+    with open(csv_args['output'], 'r') as csvfile:
         reader = csv.reader(csvfile)
         for line in reader:
             if i == 1:
@@ -215,7 +218,7 @@ def test_json_output(mock_args):
 
     assert os.path.isfile(json_args['output'])
     i = 0
-    with open(json_args['output'], 'rb') as json_file:
+    with open(json_args['output'], 'r') as json_file:
         j = json.loads(json_file.read())
         assert j["results"][0]['name']      == 'JBoss AS 6'
         assert j['results'][0]['username']  == 'admin'

@@ -1,0 +1,8 @@
+auth:
+  credentials:
+  - username: pi
+    password: raspberry
+category: ssh
+default_port: 22
+name: Raspberry Pi
+contributor: ztgrace

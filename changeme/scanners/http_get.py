@@ -1,10 +1,15 @@
 import base64
 from requests import session
-from scanner import Scanner
+from .scanner import Scanner
 import re
 from time import sleep
-import urllib
-from urlparse import urlparse
+try:
+    # Python 3
+    from urllib.parse import urlencode, urlparse
+except ImportError:
+    # Python 2
+    from urllib import urlencode
+    from urlparse import urlparse
 
 
 class HTTPGetScanner(Scanner):
@@ -94,7 +99,7 @@ class HTTPGetScanner(Scanner):
     def _make_request(self):
         self.logger.debug("_make_request")
         data = self.render_creds(self.cred)
-        qs = urllib.urlencode(data)
+        qs = urlencode(data)
         url = "%s?%s" % (self.url, qs)
         self.logger.debug("url: %s" % url)
         self.response = self.request.get(self.url,
@@ -141,7 +146,7 @@ class HTTPGetScanner(Scanner):
                 cred_data[config['username']] = username
                 cred_data[config['password']] = password
 
-                data_to_send = dict(data.items() + cred_data.items())
+                data_to_send = dict(list(data.items()) + list(cred_data.items()))
                 return data_to_send
         else:  # raw post
             return None
@@ -149,7 +154,7 @@ class HTTPGetScanner(Scanner):
     def _get_parameter_dict(self, auth):
         params = dict()
         data = auth.get('post', auth.get('get', None))
-        for k in data.keys():
+        for k in list(data.keys()):
             if k not in ('username', 'password', 'url'):
                 params[k] = data[k]
 

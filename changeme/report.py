@@ -11,7 +11,7 @@ class Report:
         self.logger = logging.getLogger('changeme')
 
     def render_csv(self,):
-        with open(self.output, 'wb') as fout:
+        with open(self.output, 'w') as fout:
             fieldnames = ["name", "username", "password", "target"]
             writer = csv.DictWriter(
                 fout,
@@ -28,23 +28,23 @@ class Report:
         results = dict()
         results["results"] = self.results
         j = json.dumps(results)
-        with open(self.output, 'wb') as fout:
+        with open(self.output, 'w') as fout:
             fout.write(j)
 
         self.logger.critical("%i credentials written to %s" % (len(self.results), self.output))
 
     def print_results(self):
         if len(self.results) > 0:
-            print
-            print
+            print("")
+            print("")
             self.logger.critical('Found %i default credentials' % len(self.results))
-            print
-            print tabulate(self.results, headers={'name': 'Name',
+            print("")
+            print(tabulate(self.results, headers={'name': 'Name',
                                                   'username': 'Username',
                                                   'password': 'Password',
                                                   'target': 'Target',
-                                                  'evidence': 'Evidence'})
-            print
+                                                  'evidence': 'Evidence'}))
+            print("")
 
     def _convert_q2list(self, q):
         items = list()

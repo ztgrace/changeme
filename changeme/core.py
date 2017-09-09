@@ -6,13 +6,13 @@ import os
 from persistqueue import FIFOSQLiteQueue
 import random
 import re
-from report import Report
+from .report import Report
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from scan_engine import ScanEngine
-import schema
+from .scan_engine import ScanEngine
+from . import schema
 import sys
-import version
+from . import version
 import yaml
 
 PERSISTENT_QUEUE = "data.db" # Instantiated in the scan_engine class
@@ -35,7 +35,7 @@ def banner(version):
 
 
 def main():
-    print banner(version.__version__)
+    print(banner(version.__version__))
 
     args = parse_args()
     init_logging(args['args'].verbose, args['args'].debug, args['args'].log)
@@ -246,7 +246,8 @@ def load_creds(config):
                 parsed = parse_yaml(f)
                 if parsed:
                     if parsed['name'] in cred_names:
-                        logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
+                        #logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
+                        pass
                     elif validate_cred(parsed, f, protocol):
                         parsed['protocol'] = protocol  # Add the protocol after the schema validation
                         if in_scope(config.name, config.category, parsed, protocols):
@@ -255,8 +256,8 @@ def load_creds(config):
                             cred_names.append(parsed['name'])
                             logger.debug('Loaded %s' % parsed['name'])
 
-    print('Loaded %i default credential profiles' % len(creds))
-    print('Loaded %i default credentials\n' % total_creds)
+    print(('Loaded %i default credential profiles' % len(creds)))
+    print(('Loaded %i default credentials\n' % total_creds))
 
     return creds
 
@@ -313,17 +314,17 @@ def print_contributors(creds):
     for cred in creds:
         contributors.add(cred['contributor'])
 
-    print "Thank you to our contributors!"
+    print("Thank you to our contributors!")
     for i in contributors:
-        print i
-    print
+        print(i)
+    print()
 
 
 def print_creds(creds):
     for cred in creds:
-        print "\n%s (%s)" % (cred['name'], cred['category'])
+        print("\n%s (%s)" % (cred['name'], cred['category']))
         for i in cred['auth']['credentials']:
-            print "  - %s:%s" % (i['username'], i['password'])
+            print("  - %s:%s" % (i['username'], i['password']))
 
 
 def get_useragent():
@@ -347,7 +348,7 @@ def check_for_interrupted_scan(config):
     logger = logging.getLogger('changeme')
     if config.fresh:
         logger.debug("Forcing a fresh scan")
-        os.remove(PERSISTENT_QUEUE)
+        remove_queues()
     elif config.resume:
         logger.debug("Resuming previous scan")
         return
@@ -363,12 +364,22 @@ def check_for_interrupted_scan(config):
                 answer = raw_input('(R/F) > ')
                 if answer.upper() == 'F':
                     logger.debug("Forcing a fresh scan")
-                    os.remove(PERSISTENT_QUEUE)
+                    remove_queues()
                 elif answer.upper() == 'R':
                     logger.debug("Resuming previous scan")
                     config.resume = True
         else:
-            os.remove(PERSISTENT_QUEUE)
+            remove_queues()
+
+
+def remove_queues():
+    logger = logging.getLogger('changeme')
+    try:
+        os.remove(PERSISTENT_QUEUE)
+        logger.debug("%s removed" % PERSISTENT_QUEUE)
+    except OSError:
+        logger.debug("%s didn't exist" % PERSISTENT_QUEUE)
+        pass
 
 
 

@@ -3,14 +3,14 @@ import logging
 import multiprocessing as mp
 from netaddr import *
 from persistqueue import FIFOSQLiteQueue
-from scanners.ftp import FTP
-from scanners.http_fingerprint import HttpFingerprint
-from scanners.mssql import MSSQL
-from scanners.mysql import MySQL
-from scanners.postgres import Postgres
-from scanners.snmp import SNMP
-from scanners.ssh import SSH
-from scanners.ssh_key import SSHKey
+from .scanners.ftp import FTP
+from .scanners.http_fingerprint import HttpFingerprint
+from .scanners.mssql import MSSQL
+from .scanners.mysql import MySQL
+from .scanners.postgres import Postgres
+from .scanners.snmp import SNMP
+from .scanners.ssh import SSH
+from .scanners.ssh_key import SSHKey
 import shodan
 import time
 
@@ -148,25 +148,25 @@ class ScanEngine(object):
         self.logger.info('Configured protocols: %s' % self.config.protocols)
         for target in self.targets:
             for cred in self.creds:
-                if cred['protocol'] == 'ssh' and 'ssh' in self.config.protocols or self.config.all:
+                if cred['protocol'] == 'ssh' and ('ssh' in self.config.protocols or self.config.all):
                     fingerprints.append(SSH(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'ssh_key' and 'ssh_key' in self.config.protocols or self.config.all:
+                if cred['protocol'] == 'ssh_key' and ('ssh_key' in self.config.protocols or self.config.all):
                     fingerprints.append(SSHKey(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'postgres' and 'postgres' in self.config.protocols or self.config.all:
+                if cred['protocol'] == 'postgres' and ('postgres' in self.config.protocols or self.config.all):
                     fingerprints.append(Postgres(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'mysql' and 'mysql' in self.config.protocols or self.config.all:
+                if cred['protocol'] == 'mysql' and ('mysql' in self.config.protocols or self.config.all):
                     fingerprints.append(MySQL(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'mssql' and 'mssql' in self.config.protocols or self.config.all:
+                if cred['protocol'] == 'mssql' and ('mssql' in self.config.protocols or self.config.all):
                     fingerprints.append(MSSQL(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'ftp' and 'ftp' in self.config.protocols or self.config.all:
+                if cred['protocol'] == 'ftp' and ('ftp' in self.config.protocols or self.config.all):
                     fingerprints.append(FTP(cred, target, self.config, '', ''))
 
-                if cred['protocol'] == 'snmp' and 'snmp' in self.config.protocols or self.config.all:
+                if cred['protocol'] == 'snmp' and ('snmp' in self.config.protocols or self.config.all):
                     fingerprints.append(SNMP(cred, target, self.config, '', ''))
 
         for fp in set(fingerprints):
@@ -178,5 +178,5 @@ class ScanEngine(object):
         self.logger.info("Dry run URLs:")
         while self.fingerprints.qsize() > 0:
             fp = self.fingerprints.get()
-            print fp.full_URL()
+            print(fp.full_URL())
         quit()

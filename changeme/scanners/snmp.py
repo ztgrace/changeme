@@ -1,5 +1,5 @@
 from pysnmp.hlapi import *
-from scanner import Scanner
+from .scanner import Scanner
 
 
 class SNMP(Scanner):

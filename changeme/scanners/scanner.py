@@ -11,7 +11,12 @@ class Scanner(object):
         :param config:
         """
         self.cred = cred
-        self.target = target
+        if ":" in target and not "http" in target:
+                self.target = target.split(":")[0]
+                self.port = target.split(":")[1]
+        else:
+            self.target = target
+            self.port = self.cred['default_port']
         self.config = config
         self.username = username
         self.password = password
@@ -25,6 +30,7 @@ class Scanner(object):
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(3)
+            self.logger.error((str(self.target), port))
             result = sock.connect_ex((str(self.target), port))
             sock.shutdown(2)
             if result == 0:
@@ -35,7 +41,7 @@ class Scanner(object):
                 return scanners
             else:
                 return False
-        except Exception, e:
+        except Exception as e:
             self.logger.debug(str(e))
             return False
 
@@ -50,9 +56,10 @@ class Scanner(object):
                     'target': self.target,
                     'evidence': evidence}
 
-        except Exception, e:
+        except Exception as e:
             self.logger.info('Invalid %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
             self.logger.debug('%s Exception: %s' % (type(e).__name__, str(e)))
+            self.logger.debug('%s: %s' % (self.__class__, self.cred))
             return False
 
     def _check(self):

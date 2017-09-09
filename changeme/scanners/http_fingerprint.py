@@ -75,7 +75,7 @@ class HttpFingerprint:
                 for pair in cred['auth']['credentials']:
                     for u in cred['auth']['url']:  # pass in the auth url
                         u = '%s%s' % (HTTPGetScanner.get_base_url(res.url), u)
-                        self.logger.debug('Building %s %s:%s' % (cred['name'], pair['username'], pair['password']))
+                        self.logger.debug('Building %s %s:%s, %s' % (cred['name'], pair['username'], pair['password'], u))
 
                         if cred['auth']['type'] == 'get':
                             scanners.append(HTTPGetScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies))

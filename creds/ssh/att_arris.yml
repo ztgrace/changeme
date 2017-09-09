@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: remotessh
+    password: 5SaP9I26
+category: ssh
+default_port: 22
+name: AT&T Arris NVG589 & NVG599 (SharknAT&To)
+contributor: ztgrace
+references:
+  - https://www.nomotion.net/blog/sharknatto/

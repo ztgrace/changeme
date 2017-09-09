@@ -1,4 +1,4 @@
-from scanner import Scanner
+from .scanner import Scanner
 import sqlalchemy
 
 

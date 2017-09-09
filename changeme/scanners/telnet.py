@@ -1,4 +1,4 @@
-from scanner import Scanner
+from .scanner import Scanner
 import telnetlib
 
 
@@ -31,6 +31,6 @@ class Telnet(Scanner):
             telnet.write("exit\n")
             # telnet.read_all()
             return True
-        except Exception, e:
+        except Exception as e:
             self.logger.debug('[check_success] error: %s' % str(e))
             return False

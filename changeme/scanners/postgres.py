@@ -1,4 +1,4 @@
-from database import Database
+from .database import Database
 
 class Postgres(Database):
     def __init__(self, cred, target, username, password, config):
