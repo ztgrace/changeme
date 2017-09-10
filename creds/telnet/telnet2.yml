@@ -1,289 +1,289 @@
 auth:
-	credentials:
-	 - username: admin
-	  password: admin
-	 - username: root
-	  password: jauntech
-	 - username: root
-	  password: root
-	 - username: root
-	  password: xc3511
-	 - username: support
-	  password: 1234
-	 - username: guest
-	  password: 12345
-	 - username: root
-	  password: vizxv
-	 - username: root
-	  password: Zte521
-	 - username: support
-	  password: support
-	 - username: admin
-	  password: 1234567890
-	 - username: guest
-	  password: 123456
-	 - username: root
-	  password: 1234qwer
-	 - username: guest
-	  password: guest
-	 - username: root
-	  password: default
-	 - username: default
-	  password: 
-	 - username: root
-	  password: anko
-	 - username: adm
-	  password: 
-	 - username: admin
-	  password: pass
-	 - username: guest
-	  password: 
-	 - username: root
-	  password: admin
-	 - username: support
-	  password: 123456
-	 - username: root
-	  password: juantech
-	 - username: root
-	  password: 
-	 - username: daemon
-	  password: 
-	 - username: Administrator
-	  password: 
-	 - username: operator
-	  password: operator
-	 - username: root
-	  password: 123456
-	 - username: root
-	  password: oelinux123
-	 - username: admin
-	  password: service
-	 - username: user
-	  password: user
-	 - username: root
-	  password: 1234567890
-	 - username: root
-	  password: 888888
-	 - username: admin
-	  password: support
-	 - username: root
-	  password: 7ujMko0admin
-	 - username: telnet
-	  password: telnet
-	 - username: admin
-	  password: 
-	 - username: admin
-	  password: 1234
-	 - username: admin
-	  password: 1111
-	 - username: support
-	  password: zlxx.
-	 - username: user
-	  password: 
-	 - username: support
-	  password: admin
-	 - username: admin
-	  password: 7ujMko0admin
-	 - username: root
-	  password: xmhdipc
-	 - username: admin
-	  password: password
-	 - username: admin
-	  password: tech
-	 - username: mg3500
-	  password: merlin
-	 - username: root
-	  password: admin1234
-	 - username: root
-	  password: 7ujMko0vizxv
-	 - username: root
-	  password: pass
-	 - username: ubnt
-	  password: ubnt
-	 - username: admin
-	  password: admin123
-	 - username: root
-	  password: zte9x15
-	 - username: supervisor
-	  password: supervisor
-	 - username: admin
-	  password: smcadmin
-	 - username: PlcmSpIp
-	  password: PlcmSpIp
-	 - username: admin
-	  password: 11111111
-	 - username: root
-	  password: dreambox
-	 - username: root
-	  password: 12345
-	 - username: root
-	  password: 1111
-	 - username: admin
-	  password: admin1234
-	 - username: root
-	  password: 000000
-	 - username: root
-	  password: 1234
-	 - username: tech
-	  password: tech
-	 - username: guest
-	  password: 1111
-	 - username: admin
-	  password: switch
-	 - username: guest
-	  password: xc3511
-	 - username: root
-	  password: antslq
-	 - username: admin
-	  password: 123456
-	 - username: support
-	  password: 12345
-	 - username: support
-	  password: login
-	 - username: root
-	  password: ikwd
-	 - username: admin
-	  password: default
-	 - username: root
-	  password: zlxx.
-	 - username: root
-	  password: avtech
-	 - username: root
-	  password: comcom
-	 - username: root
-	  password: hi3518
-	 - username: root
-	  password: klv123
-	 - username: root
-	  password: realtek
-	 - username: root
-	  password: jvbzd
-	 - username: root
-	  password: ahetzip8
-	 - username: root
-	  password: b120root
-	 - username: root
-	  password: user
-	 - username: root
-	  password: PASSWORD
-	 - username: root
-	  password: pa55w0rd
-	 - username: root
-	  password: LSiuY7pOmZG2s
-	 - username: root
-	  password: changeme
-	 - username: root
-	  password: maxided
-	 - username: root
-	  password: calvin
-	 - username: root
-	  password: davox
-	 - username: root
-	  password: blender
-	 - username: root
-	  password: password
-	 - username: root
-	  password: Serv4EMC
-	 - username: root
-	  password: attack
-	 - username: root
-	  password: tini
-	 - username: root
-	  password: fivranne
-	 - username: root
-	  password: ROOT500
-	 - username: root
-	  password: tslinux
-	 - username: root
-	  password: ascend
-	 - username: root
-	  password: cms500
-	 - username: admin
-	  password: fliradmin
-	 - username: admin
-	  password: wbox
-	 - username: admin
-	  password: jvc
-	 - username: admin
-	  password: meinsma
-	 - username: admin
-	  password: atlantis
-	 - username: admin
-	  password: epicrouter
-	 - username: root
-	  password: ggdaseuaimhrke
-	 - username: admin
-	  password: cisco
-	 - username: admin
-	  password: P@55w0rd!
-	 - username: root
-	  password: iDirect
-	 - username: admin
-	  password: michaelangelo
-	 - username: admin
-	  password: my_DEMARC
-	 - username: admin
-	  password: adslroot
-	 - username: admin
-	  password: administrator
-	 - username: admin
-	  password: AitbISP4eCiG
-	 - username: root
-	  password: orion99
-	 - username: root
-	  password: 3ep5w2u
-	 - username: admin
-	  password: 7ujMko0vizxv
-	 - username: mother
-	  password: fucker
-	 - username: admin
-	  password: ubnt
-	 - username: admin
-	  password: admin
-	 - username: root
-	  password: 666666
-	 - username: root
-	  password: GMB182
-	 - username: user
-	  password: 123456
-	 - username: root
-	  password: abc123
-	 - username: root
-	  password: 123qwe
-	 - username: oracle
-	  password: oracle
-	 - username: admin
-	  password: oelinux123
-	 - username: root
-	  password: coolphoenix579
-	 - username: root
-	  password: 1q2w3e4r5
-	 - username: alpine
-	  password: alpine
-	 - username: root
-	  password: alpine
-	 - username: root
-	  password: bananapi
-	 - username: root
-	  password: openvpnas
-	 - username: root
-	  password: openssh
-	 - username: root
-	  password: 54321
-	 - username: root
-	  password: ikwb
-	 - username: supervisor
-	  password: zyad1234
-	 - username: default
-	  password: default
-	 - username: default
-	  password: antslq
-	 - username: support
-	  password: 123
-	 - username: default
-	  password: password
-	 - username: root
-	  password: klv1234
+  credentials:
+  - username: admin
+    password: admin
+  - username: root
+    password: jauntech
+  - username: root
+    password: root
+  - username: root
+    password: xc3511
+  - username: support
+    password: 1234
+  - username: guest
+    password: 12345
+  - username: root
+    password: vizxv
+  - username: root
+    password: Zte521
+  - username: support
+    password: support
+  - username: admin
+    password: 1234567890
+  - username: guest
+    password: 123456
+  - username: root
+    password: 1234qwer
+  - username: guest
+    password: guest
+  - username: root
+    password: default
+  - username: default
+    password: 
+  - username: root
+    password: anko
+  - username: adm
+    password: 
+  - username: admin
+    password: pass
+  - username: guest
+    password: 
+  - username: root
+    password: admin
+  - username: support
+    password: 123456
+  - username: root
+    password: juantech
+  - username: root
+    password: 
+  - username: daemon
+    password: 
+  - username: Administrator
+    password: 
+  - username: operator
+    password: operator
+  - username: root
+    password: 123456
+  - username: root
+    password: oelinux123
+  - username: admin
+    password: service
+  - username: user
+    password: user
+  - username: root
+    password: 1234567890
+  - username: root
+    password: 888888
+  - username: admin
+    password: support
+  - username: root
+    password: 7ujMko0admin
+  - username: telnet
+    password: telnet
+  - username: admin
+    password: 
+  - username: admin
+    password: 1234
+  - username: admin
+    password: 1111
+  - username: support
+    password: zlxx.
+  - username: user
+    password: 
+  - username: support
+    password: admin
+  - username: admin
+    password: 7ujMko0admin
+  - username: root
+    password: xmhdipc
+  - username: admin
+    password: password
+  - username: admin
+    password: tech
+  - username: mg3500
+    password: merlin
+  - username: root
+    password: admin1234
+  - username: root
+    password: 7ujMko0vizxv
+  - username: root
+    password: pass
+  - username: ubnt
+    password: ubnt
+  - username: admin
+    password: admin123
+  - username: root
+    password: zte9x15
+  - username: supervisor
+    password: supervisor
+  - username: admin
+    password: smcadmin
+  - username: PlcmSpIp
+    password: PlcmSpIp
+  - username: admin
+    password: 11111111
+  - username: root
+    password: dreambox
+  - username: root
+    password: 12345
+  - username: root
+    password: 1111
+  - username: admin
+    password: admin1234
+  - username: root
+    password: 000000
+  - username: root
+    password: 1234
+  - username: tech
+    password: tech
+  - username: guest
+    password: 1111
+  - username: admin
+    password: switch
+  - username: guest
+    password: xc3511
+  - username: root
+    password: antslq
+  - username: admin
+    password: 123456
+  - username: support
+    password: 12345
+  - username: support
+    password: login
+  - username: root
+    password: ikwd
+  - username: admin
+    password: default
+  - username: root
+    password: zlxx.
+  - username: root
+    password: avtech
+  - username: root
+    password: comcom
+  - username: root
+    password: hi3518
+  - username: root
+    password: klv123
+  - username: root
+    password: realtek
+  - username: root
+    password: jvbzd
+  - username: root
+    password: ahetzip8
+  - username: root
+    password: b120root
+  - username: root
+    password: user
+  - username: root
+    password: PASSWORD
+  - username: root
+    password: pa55w0rd
+  - username: root
+    password: LSiuY7pOmZG2s
+  - username: root
+    password: changeme
+  - username: root
+    password: maxided
+  - username: root
+    password: calvin
+  - username: root
+    password: davox
+  - username: root
+    password: blender
+  - username: root
+    password: password
+  - username: root
+    password: Serv4EMC
+  - username: root
+    password: attack
+  - username: root
+    password: tini
+  - username: root
+    password: fivranne
+  - username: root
+    password: ROOT500
+  - username: root
+    password: tslinux
+  - username: root
+    password: ascend
+  - username: root
+    password: cms500
+  - username: admin
+    password: fliradmin
+  - username: admin
+    password: wbox
+  - username: admin
+    password: jvc
+  - username: admin
+    password: meinsma
+  - username: admin
+    password: atlantis
+  - username: admin
+    password: epicrouter
+  - username: root
+    password: ggdaseuaimhrke
+  - username: admin
+    password: cisco
+  - username: admin
+    password: P@55w0rd!
+  - username: root
+    password: iDirect
+  - username: admin
+    password: michaelangelo
+  - username: admin
+    password: my_DEMARC
+  - username: admin
+    password: adslroot
+  - username: admin
+    password: administrator
+  - username: admin
+    password: AitbISP4eCiG
+  - username: root
+    password: orion99
+  - username: root
+    password: 3ep5w2u
+  - username: admin
+    password: 7ujMko0vizxv
+  - username: mother
+    password: fucker
+  - username: admin
+    password: ubnt
+  - username: admin
+    password: admin
+  - username: root
+    password: 666666
+  - username: root
+    password: GMB182
+  - username: user
+    password: 123456
+  - username: root
+    password: abc123
+  - username: root
+    password: 123qwe
+  - username: oracle
+    password: oracle
+  - username: admin
+    password: oelinux123
+  - username: root
+    password: coolphoenix579
+  - username: root
+    password: 1q2w3e4r5
+  - username: alpine
+    password: alpine
+  - username: root
+    password: alpine
+  - username: root
+    password: bananapi
+  - username: root
+    password: openvpnas
+  - username: root
+    password: openssh
+  - username: root
+    password: 54321
+  - username: root
+    password: ikwb
+  - username: supervisor
+    password: zyad1234
+  - username: default
+    password: default
+  - username: default
+    password: antslq
+  - username: support
+    password: 123
+  - username: default
+    password: password
+  - username: root
+    password: klv1234
  category: telnet
 default_port: 23
 name: telnet
