@@ -8,6 +8,7 @@ import random
 import re
 from .report import Report
 import requests
+from requests import ConnectionError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from .scan_engine import ScanEngine
 from . import schema
@@ -375,9 +376,15 @@ def remove_queues():
 
 
 def check_version():
-    res = requests.get('https://raw.githubusercontent.com/ztgrace/changeme/master/changeme/version.py')
-    latest = res.text.split(' = ')[1].replace("'", '')
     logger = logging.getLogger('changeme')
+
+    try:
+        res = requests.get('https://raw.githubusercontent.com/ztgrace/changeme/master/changeme/version.py')
+    except ConnectionError:
+        logger.debug("Unable to retrieve latest changeme version.")
+        return
+
+    latest = res.text.split(' = ')[1].replace("'", '')
     if not version.__version__ == latest:
         logger.warning('Your version of changeme is out of date. Local version: %s, Latest: %s' % (str(version.__version__), latest))
 
