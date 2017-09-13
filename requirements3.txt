@@ -2,6 +2,7 @@ cerberus
 jinja2
 logutils
 lxml
+mock
 netaddr
 nose
 paramiko

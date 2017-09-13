@@ -1,5 +1,4 @@
 from changeme.target import Target
-from netaddr import IPNetwork
 from os import remove
 
 """
