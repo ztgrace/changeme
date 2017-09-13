@@ -39,6 +39,7 @@ def main():
 
     args = parse_args()
     init_logging(args['args'].verbose, args['args'].debug, args['args'].log)
+    check_version()
     config = Config(args['args'], args['parser'])
     creds = load_creds(config)
     s = None
@@ -373,9 +374,10 @@ def remove_queues():
         pass
 
 
-
-
-
-
-
+def check_version():
+    res = requests.get('https://raw.githubusercontent.com/ztgrace/changeme/master/changeme/version.py')
+    latest = res.text.split(' = ')[1].replace("'", '')
+    logger = logging.getLogger('changeme')
+    if not version.__version__ == latest:
+        logger.warning('Your version of changeme is out of date. Local version: %s, Latest: %s' % (str(version.__version__), latest))
 
