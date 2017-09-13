@@ -141,16 +141,10 @@ class Config(object):
 
     def _validate_args(self, ap):
         logger = logging.getLogger('changeme')
-        if (not self.subnet and not self.targets and not self.validate and not self.contributors and not self.dump and
-                not self.shodan_query and not self.nmap and not self.target and not self.mkcred):
+        if (not self.validate and not self.contributors and not self.dump and not self.shodan_query
+            and not self.mkcred) and not self.target:
             ap.print_help()
             quit()
-
-        if self.targets:
-            self._file_exists(self.targets)
-
-        if self.nmap:
-            self._file_exists(self.nmap)
 
         if self.proxy and re.match('^https?://[0-9\.]+:[0-9]{1,5}$', self.proxy):
             self.proxy = {'http': self.proxy, 'https': self.proxy}
@@ -207,21 +201,18 @@ def parse_args():
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--mkcred', action='store_true', help='Make cred file', default=False)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
-    ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse', default=None)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
     ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
-    ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key", default='http')
+    ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key. Defaults to http.", default='http')
     ap.add_argument('--resume', '-r', action='store_true', help='Resume previous scan', default=False)
-    ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan', default=None)
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
-    ap.add_argument('--target', type=str, help='Specific target to scan (IP:PORT)', default=None)
-    ap.add_argument('--targets', type=str, help='File of targets to scan', default=None)
     ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
     ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
     ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use", default=None)
     ap.add_argument('--validate', action='store_true', help='Validate creds files', default=False)
     ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output', default=False)
+    ap.add_argument('target', type=str, help='Target to scan. Can be IP, host, file of hosts, proto://host:port', default=None)
     args = ap.parse_args()
     return {'args': args, 'parser': ap}
 

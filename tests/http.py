@@ -1,5 +1,6 @@
 import argparse
 from changeme.scan_engine import ScanEngine
+from changeme.target import Target
 from changeme import core
 from core import cli_args
 from copy import deepcopy
@@ -54,23 +55,30 @@ def test_tomcat_match_nmap(mock_args):
     creds = core.load_creds(config)
     s = ScanEngine(creds, config)
     s._build_targets()
+    print "fp: %i" % s.fingerprints.qsize()
     s.fingerprint_targets(s.fingerprints, s.scanners)
 
     # Queue is not serializeable so we can't copy it using deepcopy
     scanners = list()
-    assert s.scanners.qsize() == 34
+    print "scanners: %s" % s.scanners.qsize()
+    #assert s.scanners.qsize() == 68
+
+    t1 = Target(host='127.0.0.1', port=8080, protocol='http', url='/manager/html')
+    t2 = Target(host='127.0.0.1', port=8080, protocol='http', url='/tomcat/manager/html')
     while s.scanners.qsize() > 0:
         scanner = s.scanners.get()
-        assert scanner.url == 'http://127.0.0.1:8080/manager/html' or scanner.url == 'http://127.0.0.1:8080/tomcat/manager/html'
+        assert scanner.url == t1 or scanner.url == t2
         scanners.append(scanner)
 
     # Load the scanners back into the queue
     for scanner in scanners:
         s.scanners.put(scanner)
+    assert s.scanners.qsize() == 34
 
     responses.reset()
     responses.add(**MockResponses.tomcat_auth)
     s._scan(s.scanners, s.found_q)
+    print s.found_q.qsize()
     assert s.found_q.qsize() == 17
 
 
@@ -126,8 +134,8 @@ def test_jboss_scan_success(mock_args):
 
 
 subnet_args = deepcopy(cli_args)
-subnet_args['subnet'] = '127.0.0.1/32'
-subnet_args['target'] = None
+subnet_args['target'] = '127.0.0.1/32'
+subnet_args['protocols'] = 'http'
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**subnet_args))
 def test_jboss_scan_success_subnet(mock_args):
@@ -161,15 +169,14 @@ def test_idrac_scan_success(mock_args):
 
 
 targets_args = deepcopy(cli_args)
-targets_args['target'] = None
-targets_args['targets'] = '/tmp/targets.txt'
+targets_args['target'] = '/tmp/targets.txt'
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**targets_args))
 def test_targets_scan_success(mock_args):
     responses.reset()
     responses.add(**MockResponses.idrac_fp)
     responses.add(**MockResponses.idrac_auth)
-    with open(targets_args['targets'], 'w') as fout:
+    with open(targets_args['target'], 'w') as fout:
         fout.write('127.0.0.1' + '\n')
 
     reset_handlers()

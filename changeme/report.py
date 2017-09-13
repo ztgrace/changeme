@@ -25,8 +25,15 @@ class Report:
         self.logger.critical("%i credentials written to %s" % (len(self.results), self.output))
 
     def render_json(self):
+        # convert the Target classes to a string so it can be json'd
+        res = list()
+        for r in self.results:
+            t = r['target']
+            r['target'] = str(t)
+            res.append(r)
+
         results = dict()
-        results["results"] = self.results
+        results["results"] = res
         j = json.dumps(results)
         with open(self.output, 'w') as fout:
             fout.write(j)

@@ -2,19 +2,17 @@ from changeme.scanners.http_basic_auth import HTTPBasicAuthScanner
 from changeme.scanners.http_get import HTTPGetScanner
 from changeme.scanners.http_post import HTTPPostScanner
 from changeme.scanners.http_raw_post import HTTPRawPostScanner
+from changeme.target import Target
+from copy import deepcopy
 import logging
 from lxml import html
-from netaddr import *
 import re
 import requests
 
 
 class HttpFingerprint:
-    def __init__(self, target, url, port, ssl, headers, cookies, config, creds):
-        self.target = target
-        self.url = url
-        self.port = port
-        self.ssl = ssl
+    def __init__(self, target, headers, cookies, config, creds):
+        self.target = target # changeme.target.Target()
         self.headers = headers
         self.cookies = cookies
         self.config = config
@@ -31,24 +29,19 @@ class HttpFingerprint:
         self.logger = logging.getLogger('changeme')
 
     def __hash__(self):
-        return hash(str(self.target) + str(self.url) + str(self.port) + str(self.ssl) + str(self.headers) + str(self.cookies))
+        return hash(str(self.target) + str(self.headers) + str(self.cookies))
 
     def __eq__(self, other):
-        if self.target == other.target and self.url == other.url and self.port == other.port and self.ssl == other.ssl and self.headers == other.headers and self.cookies == other.cookies:
-            return True
-
-    def full_URL(self):
-        proto = 'https' if self.ssl else 'http'
-        return '%s://%s:%s%s' % (proto, self.target, self.port, self.url)
+        #if self.target == other.target and self.url == other.url and self.port == other.port and self.ssl == other.ssl and self.headers == other.headers and self.cookies == other.cookies:
+        return self.__dict__ == other.__dict__
 
     def fingerprint(self):
         scanners = list()
         s = requests.Session()
-        url = self.full_URL()
 
         try:
             res = s.get(
-                url,
+                str(self.target),
                 timeout=self.config.timeout,
                 verify=False,
                 proxies=self.config.proxy,
@@ -56,7 +49,7 @@ class HttpFingerprint:
                 cookies=self.cookies
             )
         except Exception as e:
-            self.logger.debug('Failed to connect to %s' % url)
+            self.logger.debug('Failed to connect to %s' % self.target)
             return
 
         for cred in self.creds:
@@ -74,17 +67,18 @@ class HttpFingerprint:
 
                 for pair in cred['auth']['credentials']:
                     for u in cred['auth']['url']:  # pass in the auth url
-                        u = '%s%s' % (HTTPGetScanner.get_base_url(res.url), u)
-                        self.logger.debug('Building %s %s:%s, %s' % (cred['name'], pair['username'], pair['password'], u))
+                        target = deepcopy(self.target)
+                        target.url = u
+                        self.logger.debug('Building %s %s:%s, %s' % (cred['name'], pair['username'], pair['password'], target))
 
                         if cred['auth']['type'] == 'get':
-                            scanners.append(HTTPGetScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies))
+                            scanners.append(HTTPGetScanner(cred, target, pair['username'], pair['password'], self.config, s.cookies))
                         elif cred['auth']['type'] == 'post':
-                            scanners.append(HTTPPostScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies, csrf))
+                            scanners.append(HTTPPostScanner(cred, target, pair['username'], pair['password'], self.config, s.cookies, csrf))
                         elif cred['auth']['type'] == 'raw_post':
-                            scanners.append(HTTPRawPostScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies, csrf, pair['raw']))
+                            scanners.append(HTTPRawPostScanner(cred, target, pair['username'], pair['password'], self.config, s.cookies, csrf, pair['raw']))
                         elif cred['auth']['type'] == 'basic_auth':
-                            scanners.append(HTTPBasicAuthScanner(cred, u, pair['username'], pair['password'], self.config, s.cookies))
+                            scanners.append(HTTPBasicAuthScanner(cred, target, pair['username'], pair['password'], self.config, s.cookies))
 
         return scanners
 
@@ -158,25 +152,25 @@ class HttpFingerprint:
                     continue
                 fp = c['fingerprint']
                 for url in fp.get('url'):
+                    t = Target(host=target.host, port=target.port, protocol=target.protocol)
+                    if c.get('ssl'):
+                        t.protocol = 'https'
+                    else:
+                        t.protocol = 'http'
+
+                    if not t.port:
+                        t.port = c['default_port']
+                    t.url = url
                     logger.debug(url)
-                    if not isinstance(target, IPAddress) and ":" in target and not int(target.split(":")[1]) == int(c.get('default_port')):
-                        # Only scan open ports from an nmap file
-                        continue
-                    elif not isinstance(target, IPAddress) and ":" in target:
-                        # strip port from nmap target
-                        target = target.split(":")[0]
 
                     hfp = HttpFingerprint(
-                        target,
-                        url,
-                        c.get('default_port', 80),
-                        c.get('ssl'),
+                        t,
                         fp.get('headers', None),
                         fp.get('cookie', None),
                         config,
                         creds,
                     )
-                    logger.debug('Adding %s to fingerprint list' % hfp.full_URL())
+                    logger.debug('Adding %s to fingerprint list' % hfp.target)
                     fingerprints.append(hfp)
 
         return fingerprints

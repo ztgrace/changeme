@@ -5,11 +5,10 @@ import ftplib
 class FTP(Scanner):
     def __init__(self, cred, target, username, password, config):
         super(FTP, self).__init__(cred, target, config, username, password)
-        self.port = self.cred['default_port']
 
     def _check(self):
         ftp = ftplib.FTP()
-        ftp.connect(str(self.target), self.port)
+        ftp.connect(str(self.target.host), self.target.port)
 
         ftp.login(self.username, self.password)
         evidence = ftp.retrlines('LIST')

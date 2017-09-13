@@ -1,21 +1,15 @@
 import logging
+from netaddr import IPAddress
 import socket
 
 
 class Scanner(object):
     def __init__(self, cred, target, config, username, password):
-        """
-
-        :param cred:
-        :param target:
-        :param config:
-        """
         self.cred = cred
-        if ":" in target and not "http" in target:
-                self.target = target.split(":")[0]
-                self.port = target.split(":")[1]
+        self.target = target
+        if not self.target.port:
+            self.port = self.target.port
         else:
-            self.target = target
             self.port = self.cred['default_port']
         self.config = config
         self.username = username
@@ -73,3 +67,7 @@ class Scanner(object):
     def __setstate__(self, d):
         self.__dict__ = d
         self.logger = logging.getLogger('changeme')
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+        #return (str(self.target) + self.username + self.password) == (other.target + other.username + other.password)

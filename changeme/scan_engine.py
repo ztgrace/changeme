@@ -1,7 +1,5 @@
-from libnmap.parser import NmapParser as np
 import logging
 import multiprocessing as mp
-from netaddr import *
 from persistqueue import FIFOSQLiteQueue
 from .scanners.ftp import FTP
 from .scanners.http_fingerprint import HttpFingerprint
@@ -12,6 +10,7 @@ from .scanners.snmp import SNMP
 from .scanners.ssh import SSH
 from .scanners.ssh_key import SSHKey
 import shodan
+from .target import Target
 import time
 
 
@@ -55,6 +54,16 @@ class ScanEngine(object):
 
         # Phase II - Scan
         ######################################################################
+        # Unique the queue
+        scanners = list()
+        while self.scanners.qsize() > 0:
+            s = self.scanners.get()
+            if s not in scanners:
+                scanners.append(s)
+
+        for s in scanners:
+            self.scanners.put(s)
+
         if not self.config.fingerprint:
             num_procs = self.config.threads if self.scanners.qsize() > self.config.threads else self.scanners.qsize()
             self.total_scanners = self.scanners.qsize()
@@ -105,32 +114,12 @@ class ScanEngine(object):
                 for result in results:
                     scannerq.put(result)
 
+        self.logger.debug('scanners: %i' % scannerq.qsize())
+
     def _build_targets(self):
         self.logger.debug('Building targets')
 
-        if self.config.subnet:
-            for ip in IPNetwork(self.config.subnet).iter_hosts():
-                self.targets.add(ip)
-
-        if self.config.targets:
-            with open(self.config.targets, 'r') as fin:
-                self.targets = [x.strip('\n') for x in fin.readlines()]
-
-        if self.config.target:
-            self.targets.add(self.config.target)
-
-        if self.config.shodan_query:
-            api = shodan.Shodan(self.config.shodan_key)
-            results = api.search(self.config.shodan_query)
-            for r in results['matches']:
-                self.targets.add(r['ip_str'])
-
-        if self.config.nmap:
-            report = np.parse_fromfile(self.config.nmap)
-            self.logger.info('Loaded %i hosts from %s' % (len(report.hosts), self.config.nmap))
-            for h in report.hosts:
-                for s in h.services:
-                    self.targets.add('%s:%s' % (h.address, s.port))
+        self.targets = Target.parse_target(self.config.target)
 
         # Load set of targets into queue
         self.logger.debug('%i targets' % len(self.targets))
@@ -141,9 +130,21 @@ class ScanEngine(object):
             fingerprints = fingerprints + HttpFingerprint.build_fingerprints(self.targets, self.creds, self.config)
 
         fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
-        # Debug
+
         for f in fingerprints:
-            self.logger.debug(f.url)
+            self.logger.debug("fingerprints: %s" % f.target)
+
+        # If there's only one protocol and the user specified a protocol, override the defaults
+        if len(self.targets) == 1:
+            t = self.targets.pop()
+            if t.protocol:
+                self.config.protocols = t.protocol
+                self.targets.add(t)
+
+        # Add any protocols if they were included in the targets
+        for t in self.targets:
+            if t.protocol and t.protocol not in self.config.protocols:
+                self.config.protocols += ",%s" % t.protocol
 
         self.logger.info('Configured protocols: %s' % self.config.protocols)
         for target in self.targets:
@@ -178,5 +179,5 @@ class ScanEngine(object):
         self.logger.info("Dry run URLs:")
         while self.fingerprints.qsize() > 0:
             fp = self.fingerprints.get()
-            print(fp.full_URL())
+            print(fp.target)
         quit()

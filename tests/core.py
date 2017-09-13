@@ -3,6 +3,7 @@ from changeme import *
 from copy import deepcopy
 import mock
 from nose.tools import *
+from netaddr import IPAddress
 
 
 cli_args = {'all': False,
@@ -18,16 +19,13 @@ cli_args = {'all': False,
             'log': None,
             'mkcred': False,
             'name': None,
-            'nmap': None,
             'output': None,
             'protocols': 'http',
             'resume': False,
             'proxy': None,
-            'subnet': None,
             'shodan_query': None,
             'shodan_key': None,
             'target': '127.0.0.1',
-            'targets': None,
             'threads': 20,
             'timeout': 10,
             'useragent': None,

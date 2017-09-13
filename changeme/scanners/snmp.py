@@ -16,7 +16,7 @@ class SNMP(Scanner):
     def _check(self):
         iterator = getCmd(SnmpEngine(),
                           CommunityData(self.password),
-                          UdpTransportTarget((str(self.target), 161)),
+                          UdpTransportTarget((str(self.target.host), 161)),
                           ContextData(),
                           ObjectType(ObjectIdentity('SNMPv2-MIB', 'sysDescr', 0)))
 
