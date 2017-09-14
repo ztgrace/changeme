@@ -139,7 +139,7 @@ class ScanEngine(object):
             t = self.targets.pop()
             if t.protocol:
                 self.config.protocols = t.protocol
-                self.targets.add(t)
+            self.targets.add(t)
 
         # Add any protocols if they were included in the targets
         for t in self.targets:
@@ -150,24 +150,31 @@ class ScanEngine(object):
         for target in self.targets:
             for cred in self.creds:
                 if cred['protocol'] == 'ssh' and ('ssh' in self.config.protocols or self.config.all):
+                    target.protocol = 'ssh'
                     fingerprints.append(SSH(cred, target, self.config, '', ''))
 
                 if cred['protocol'] == 'ssh_key' and ('ssh_key' in self.config.protocols or self.config.all):
+                    target.protocol = 'ssh_key'
                     fingerprints.append(SSHKey(cred, target, self.config, '', ''))
 
                 if cred['protocol'] == 'postgres' and ('postgres' in self.config.protocols or self.config.all):
+                    target.protocol = 'postgres'
                     fingerprints.append(Postgres(cred, target, self.config, '', ''))
 
                 if cred['protocol'] == 'mysql' and ('mysql' in self.config.protocols or self.config.all):
+                    target.protocol = 'mysql'
                     fingerprints.append(MySQL(cred, target, self.config, '', ''))
 
                 if cred['protocol'] == 'mssql' and ('mssql' in self.config.protocols or self.config.all):
+                    target.protocol = 'mssql'
                     fingerprints.append(MSSQL(cred, target, self.config, '', ''))
 
                 if cred['protocol'] == 'ftp' and ('ftp' in self.config.protocols or self.config.all):
+                    target.protocol = 'ftp'
                     fingerprints.append(FTP(cred, target, self.config, '', ''))
 
                 if cred['protocol'] == 'snmp' and ('snmp' in self.config.protocols or self.config.all):
+                    target.protocol = 'snmp'
                     fingerprints.append(SNMP(cred, target, self.config, '', ''))
 
         for fp in set(fingerprints):

@@ -150,6 +150,9 @@ class HttpFingerprint:
             for c in creds:
                 if not c['protocol'] == 'http':
                     continue
+                if not config.portoverride and not c['default_port'] == target.port:
+                    continue
+
                 fp = c['fingerprint']
                 for url in fp.get('url'):
                     t = Target(host=target.host, port=target.port, protocol=target.protocol)
