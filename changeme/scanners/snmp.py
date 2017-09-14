@@ -35,6 +35,9 @@ class SNMP(Scanner):
             for varBind in varBinds:
                 evidence += ' = '.join([x.prettyPrint() for x in varBind])
 
+        if evidence == "":
+            raise Exception
+
         return evidence
 
     def _mkscanner(self, cred, target, u, p, config):

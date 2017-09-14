@@ -53,7 +53,6 @@ class Scanner(object):
         except Exception as e:
             self.logger.info('Invalid %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
             self.logger.debug('%s Exception: %s' % (type(e).__name__, str(e)))
-            self.logger.debug('%s: %s' % (self.__class__, self.cred))
             return False
 
     def _check(self):
