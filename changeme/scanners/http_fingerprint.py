@@ -150,7 +150,7 @@ class HttpFingerprint:
             for c in creds:
                 if not c['protocol'] == 'http':
                     continue
-                if not config.portoverride and not c['default_port'] == target.port:
+                if not config.portoverride and (target.port and not c['default_port'] == target.port):
                     continue
 
                 fp = c['fingerprint']
