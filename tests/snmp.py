@@ -14,10 +14,17 @@ def reset_handlers():
 snmp_args = deepcopy(cli_args)
 snmp_args['protocols'] = 'snmp'
 snmp_args['name'] = 'apc'
-snmp_args['target'] = '104.236.166.95' # demo.snmplabs.com
+snmp_args['target'] = 'demo.snmplabs.com'
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**snmp_args))
 def test_snmp(mock_args):
     reset_handlers()
     core.main()
 
 
+snmp_args = deepcopy(cli_args)
+snmp_args['name'] = 'apc'
+snmp_args['target'] = 'snmp://demo.snmplabs.com'
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**snmp_args))
+def test_snmp_proto(mock_args):
+    reset_handlers()
+    core.main()

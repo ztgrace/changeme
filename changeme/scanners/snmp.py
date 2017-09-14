@@ -7,6 +7,9 @@ class SNMP(Scanner):
         super(SNMP, self).__init__(cred, target, config, username, password)
         self.port = self.cred['default_port']
 
+    def __hash__(self):
+        return id(self)
+
     def fingerprint(self):
         scanners = list()
         for pair in self.cred['auth']['credentials']:

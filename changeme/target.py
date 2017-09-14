@@ -26,8 +26,6 @@ class Target(object):
 
         if self.host:
             target = self.host
-        else:
-            target = self.ip
 
         if self.port:
             target += ":%s" % self.port

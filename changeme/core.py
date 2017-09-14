@@ -168,7 +168,7 @@ class Config(object):
 
         if self.verbose:
             logger.setLevel(logging.INFO)
-        if self.debug:
+        if self.debug or self.validate:
             logger.setLevel(logging.DEBUG)
 
 
@@ -214,8 +214,19 @@ def parse_args():
     ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use", default=None)
     ap.add_argument('--validate', action='store_true', help='Validate creds files', default=False)
     ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output', default=False)
-    ap.add_argument('target', type=str, help='Target to scan. Can be IP, host, file of hosts, proto://host:port', default=None)
+
+    # Hack to get the help to show up right
+    cli = ' '.join(sys.argv)
+    if "-h" in cli or "--help" in cli:
+        ap.add_argument('target', type=str, help='Target to scan. Can be IP, subnet, hostname, nmap xml file, text file or proto://host:port', default=None)
+
+    # initial parse to see if an option not requiring a target was used
+    args, unknown = ap.parse_known_args()
+    if not args.dump and not args.contributors and not args.mkcred and not args.resume and not args.shodan_query and not args.validate:
+        ap.add_argument('target', type=str, help='Target to scan. Can be IP, subnet, hostname, nmap xml file, text file or proto://host:port', default=None)
+
     args = ap.parse_args()
+
     return {'args': args, 'parser': ap}
 
 
@@ -305,10 +316,15 @@ def in_scope(name, category, cred, protocols):
 def print_contributors(creds):
     contributors = set()
     for cred in creds:
-        contributors.add(cred['contributor'])
+        cred_contributors = cred['contributor'].split(', ')
+        for c in cred_contributors:
+            contributors.add(c)
+
+    for c in version.contributors:
+        contributors.add(c)
 
     print("Thank you to our contributors!")
-    for i in contributors:
+    for i in sorted(contributors, key=str.lower):
         print(i)
     print()
 
