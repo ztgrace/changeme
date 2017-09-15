@@ -67,7 +67,7 @@ def test_tomcat_match_nmap(mock_args):
     t2 = Target(host='127.0.0.1', port=8080, protocol='http', url='/tomcat/manager/html')
     while s.scanners.qsize() > 0:
         scanner = s.scanners.get()
-        assert scanner.url == t1 or scanner.url == t2
+        assert scanner.target == t1 or scanner.target == t2
         scanners.append(scanner)
 
     # Load the scanners back into the queue

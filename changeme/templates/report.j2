@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <title>Changme Default Credential Report</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12 center">
+                    <h1>Changeme</h1>
+                    <strong>Found {{ found|length }} credentials</strong>
+                </div>
+            </div>
+{% for cred in found %}
+            <div class="row">
+                <div class="col-sm-4">
+                    <ul><!-- {{ cred }} -->
+                        <li>Service: {{ cred['name'] }}</li>
+                        <li>username: {{ cred['username'] if cred['username'] != None }}</li>
+                        <li>password: {{ cred['password'] if cred['password'] != None }}</li>
+                        {% if cred['target'].protocol == 'http' or cred['target'].protocol == 'https' %}
+                        <li><a href="{{ cred['url'] }}">{{ cred['target'] }}</a></li>
+                        {% else %}
+                        <li>{{ cred['target'] }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-sm-8">
+                    {% if cred['target'].protocol == 'http' or cred['target'].protocol == 'https' %}
+                    <!--<img alt="{{ cred['url'] }}" src="data:image/png;base64," />-->
+                    {% else %}
+                    {{ cred['evidence'] }}
+                    {% endif %}
+                </div>
+            </div>
+{% endfor %}
+        </div>
+    </body>
+</html>

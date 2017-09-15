@@ -1,7 +1,10 @@
 import base64
+from changeme.report import Report
+import jinja2
 from requests import session
 from .scanner import Scanner
 import re
+from tempfile import NamedTemporaryFile
 from time import sleep
 try:
     # Python 3
@@ -22,7 +25,6 @@ class HTTPGetScanner(Scanner):
         self.headers = dict()
         self.request = session()
         self.response = None
-        self.url = target
 
         headers = self.cred['auth'].get('headers', dict())
         if headers:
@@ -40,7 +42,7 @@ class HTTPGetScanner(Scanner):
         try:
             self._make_request()
         except Exception as e:
-            self.logger.error('Failed to connect to %s' % self.url)
+            self.logger.error('Failed to connect to %s' % self.target)
             self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
             return None
 
@@ -50,7 +52,7 @@ class HTTPGetScanner(Scanner):
             try:
                 self._make_request()
             except Exception as e:
-                self.logger.error('Failed to connect to %s' % self.url)
+                self.logger.error('Failed to connect to %s' % self.target)
 
         return self.check_success()
 
@@ -73,36 +75,37 @@ class HTTPGetScanner(Scanner):
 
         if match:
             self.logger.critical('[+] Found %s default cred %s:%s at %s' %
-                                 (self.cred['name'], self.username, self.password, self.url))
+                                 (self.cred['name'], self.username, self.password, self.target))
 
+            self._screenshot()
             return {'name': self.cred['name'],
                     'username': self.username,
                     'password': self.password,
-                    'target': self.url}
+                    'target': self.target}
         else:
             self.logger.info('Invalid %s default cred %s:%s at %s' %
-                             (self.cred['name'], self.username, self.password, self.url))
+                             (self.cred['name'], self.username, self.password, self.target))
             return False
 
     def _check_fingerprint(self):
         self.logger.debug("_check_fingerprint")
         self.request = session()
-        self.response = self.request.get(self.url,
+        self.response = self.request.get(self.target,
                                          timeout=self.config.timeout,
                                          verify=False,
                                          proxies=self.config.proxy,
                                          cookies=self.fingerprint.cookies,
                                          headers=self.fingerprint.headers)
-        self.logger.debug('_check_fingerprint', '%s - %i' % (self.url, self.response.status_code))
+        self.logger.debug('_check_fingerprint', '%s - %i' % (self.target, self.response.status_code))
         return self.fingerprint.match(self.response)
 
     def _make_request(self):
         self.logger.debug("_make_request")
         data = self.render_creds(self.cred)
         qs = urlencode(data)
-        url = "%s?%s" % (self.url, qs)
+        url = "%s?%s" % (self.target, qs)
         self.logger.debug("url: %s" % url)
-        self.response = self.request.get(self.url,
+        self.response = self.request.get(self.target,
                                          verify=False,
                                          proxies=self.config.proxy,
                                          timeout=self.config.timeout,
@@ -165,3 +168,14 @@ class HTTPGetScanner(Scanner):
         parsed = urlparse(req)
         url = "%s://%s" % (parsed[0], parsed[1])
         return url
+
+    def _screenshot(self):
+        template_loader = jinja2.FileSystemLoader(searchpath=Report.get_template_path())
+        template_env = jinja2.Environment(loader=template_loader)
+        capture_template = template_env.get_template('offline.js.j2')
+        with NamedTemporaryFile(delete=False) as cf:
+            html = self.response.text.replace("'", "\'").replace('\n', '').replace('\r', '')
+            capturejs = capture_template.render({'html': html,
+                                                 'fname': 'foo.png'})
+            print capturejs
+            #cf.write(capturejs)
