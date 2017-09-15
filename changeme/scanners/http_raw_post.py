@@ -12,7 +12,8 @@ class HTTPRawPostScanner(HTTPPostScanner):
 
     def _make_request(self):
         self.logger.debug('_make_request')
-        self.response = self.request.post(self.url,
+        self.logger.debug("target: %s" % self.target)
+        self.response = self.request.post(self.target,
                                           self.raw,
                                           verify=False,
                                           proxies=self.config.proxy,
