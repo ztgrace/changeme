@@ -57,23 +57,27 @@ def main():
         print_creds(creds)
         quit()
 
+    logger = logging.getLogger('changeme')
+
     if not config.validate:
         check_for_interrupted_scan(config)
         s = ScanEngine(creds, config)
         try:
             s.scan()
         except IOError:
-            logging.getLogger('changeme').debug('Caught IOError exception')
+            logger.debug('Caught IOError exception')
 
         report = Report(s.found_q, config.output)
         report.print_results()
 
-        if config.output and config.json:
+        if config.output and ".json" in config.output:
             report.render_json()
-        if config.output and config.full:
+        if config.output and ".csv" in config.output:
+            report.render_csv()
+        elif config.output and ".html" in config.output:
             report.render_html()
         elif config.output:
-            report.render_csv()
+            logger.error('Only JSON, CSV and HTML are the only supported output types.')
 
     return s
 
@@ -201,13 +205,12 @@ def parse_args():
     ap.add_argument('--dryrun', action='store_true', help='Print urls to be scan, but don\'t scan them')
     ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds', default=False)
     ap.add_argument('--fresh', action='store_true', help='Flush any previous scans and start fresh', default=False)
-    ap.add_argument('--full', '-m', action='store_true', help='Output results file in html format', default=False)
-    ap.add_argument('--json', '-j', action='store_true', help='Output results file in json format', default=False)
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--mkcred', action='store_true', help='Make cred file', default=False)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
     ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
+    ap.add_argument('--oa', action='store_true', help='Output results files in csv, html and json formats', default=False)
     ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key. Defaults to http.", default='http')
     ap.add_argument('--portoverride', action='store_true', help='Scan all protocols on all specified ports', default=False)
     ap.add_argument('--resume', '-r', action='store_true', help='Resume previous scan', default=False)

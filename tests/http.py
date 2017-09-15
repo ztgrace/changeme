@@ -78,7 +78,6 @@ def test_tomcat_match_nmap(mock_args):
     responses.reset()
     responses.add(**MockResponses.tomcat_auth)
     s._scan(s.scanners, s.found_q)
-    print(s.found_q.qsize())
     assert s.found_q.qsize() == 17
 
 
@@ -213,7 +212,6 @@ def test_csv_output(mock_args):
 
 json_args = deepcopy(cli_args)
 json_args['output'] = '/tmp/output.json'
-json_args['json'] = True
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**json_args))
 def test_json_output(mock_args):

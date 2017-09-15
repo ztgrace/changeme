@@ -1,4 +1,5 @@
 import csv
+from copy import deepcopy
 import jinja2
 import json
 import logging
@@ -45,24 +46,29 @@ class Report:
 
     def print_results(self):
         if len(self.results) > 0:
+            results = deepcopy(self.results)
+            for r in results:
+                if r['target'].protocol == 'http':
+                    r['evidence'] = ''
+
             print("")
             print("")
             self.logger.critical('Found %i default credentials' % len(self.results))
             print("")
-            print(tabulate(self.results, headers={'name': 'Name',
+            print(tabulate(results, headers={'name': 'Name',
                                                   'username': 'Username',
                                                   'password': 'Password',
                                                   'target': 'Target',
                                                   'evidence': 'Evidence'}))
             print("")
+        else:
+            print("No default credentials found")
 
     def render_html(self):
-        self.logger.debug('templatePATH: %s' % self.get_template_path())
         template_loader = jinja2.FileSystemLoader(searchpath=self.get_template_path())
         template_env = jinja2.Environment(loader=template_loader)
         report_template = template_env.get_template('report.j2')
         report = report_template.render({'found': self.results})
-        print report
 
         with open(self.output, 'w') as fout:
             fout.write(report)

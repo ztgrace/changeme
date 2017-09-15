@@ -13,6 +13,7 @@ python-libnmap
 pyyaml
 requests
 responses
+selenium
 shodan
 sqlalchemy
 tabulate

@@ -16,12 +16,12 @@
 {% for cred in found %}
             <div class="row">
                 <div class="col-sm-4">
-                    <ul><!-- {{ cred }} -->
+                    <ul>
                         <li>Service: {{ cred['name'] }}</li>
                         <li>username: {{ cred['username'] if cred['username'] != None }}</li>
                         <li>password: {{ cred['password'] if cred['password'] != None }}</li>
                         {% if cred['target'].protocol == 'http' or cred['target'].protocol == 'https' %}
-                        <li><a href="{{ cred['url'] }}">{{ cred['target'] }}</a></li>
+                        <li><a href="{{ cred['target'] }}">{{ cred['target'] }}</a></li>
                         {% else %}
                         <li>{{ cred['target'] }}</li>
                         {% endif %}
@@ -29,7 +29,7 @@
                 </div>
                 <div class="col-sm-8">
                     {% if cred['target'].protocol == 'http' or cred['target'].protocol == 'https' %}
-                    <!--<img alt="{{ cred['url'] }}" src="data:image/png;base64," />-->
+                    <img alt="{{ cred['url'] }}" src="data:image/png;base64,{{ cred['evidence'] }}" />
                     {% else %}
                     {{ cred['evidence'] }}
                     {% endif %}

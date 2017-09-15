@@ -4,6 +4,7 @@ import jinja2
 from requests import session
 from .scanner import Scanner
 import re
+from selenium import webdriver
 from tempfile import NamedTemporaryFile
 from time import sleep
 try:
@@ -77,11 +78,12 @@ class HTTPGetScanner(Scanner):
             self.logger.critical('[+] Found %s default cred %s:%s at %s' %
                                  (self.cred['name'], self.username, self.password, self.target))
 
-            self._screenshot()
+            evidence = self._screenshot(self.target)
             return {'name': self.cred['name'],
                     'username': self.username,
                     'password': self.password,
-                    'target': self.target}
+                    'target': self.target,
+                    'evidence': evidence}
         else:
             self.logger.info('Invalid %s default cred %s:%s at %s' %
                              (self.cred['name'], self.username, self.password, self.target))
@@ -169,13 +171,35 @@ class HTTPGetScanner(Scanner):
         url = "%s://%s" % (parsed[0], parsed[1])
         return url
 
-    def _screenshot(self):
-        template_loader = jinja2.FileSystemLoader(searchpath=Report.get_template_path())
-        template_env = jinja2.Environment(loader=template_loader)
-        capture_template = template_env.get_template('offline.js.j2')
-        with NamedTemporaryFile(delete=False) as cf:
-            html = self.response.text.replace("'", "\'").replace('\n', '').replace('\r', '')
-            capturejs = capture_template.render({'html': html,
-                                                 'fname': 'foo.png'})
-            print capturejs
-            #cf.write(capturejs)
+    def _screenshot(self, target):
+        self.logger.debug("Screenshotting %s" % self.target)
+        # Set up the selenium webdriver
+        # This feels like it will have threading issues
+        for key, value in self.response.request.headers.items():
+            capability_key = 'phantomjs.page.customHeaders.{}'.format(key)
+            webdriver.DesiredCapabilities.PHANTOMJS[capability_key] = value
+
+        if self.config.proxy:
+            webdriver.DesiredCapabilities.PHANTOMJS['proxy'] = {
+                    "httpProxy": self.config.proxy['http'].replace('http://', ''),
+                    "ftpProxy": self.config.proxy['http'].replace('http://', ''),
+                    "sslProxy": self.config.proxy['http'].replace('http://', ''),
+                    "noProxy":None,
+                    "proxyType":"MANUAL",
+                    "autodetect":False
+            }
+        driver = webdriver.PhantomJS()
+        driver.set_window_position(0, 0)
+        driver.set_window_size(1024, 768)
+        for cookie in self.response.request._cookies.items():
+            self.logger.debug("Adding cookie: %s:%s" % cookie)
+            driver.add_cookie(cookie)
+        driver.get(str(self.target))
+        driver.save_screenshot('screenshot.png')
+        evidence = driver.get_screenshot_as_base64()
+        driver.quit()
+
+        return evidence
+
+    def _crop_image(self, b64):
+        image = Image.open(io.BytesIO(base64.b64decode(b64)))
