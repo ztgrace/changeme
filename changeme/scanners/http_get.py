@@ -194,12 +194,15 @@ class HTTPGetScanner(Scanner):
         for cookie in self.response.request._cookies.items():
             self.logger.debug("Adding cookie: %s:%s" % cookie)
             driver.add_cookie(cookie)
-        driver.get(str(self.target))
-        driver.save_screenshot('screenshot.png')
-        evidence = driver.get_screenshot_as_base64()
-        driver.quit()
+
+        try:
+            driver.get(str(self.target))
+            driver.save_screenshot('screenshot.png')
+            evidence = driver.get_screenshot_as_base64()
+            driver.quit()
+        except Exception as e:
+            self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
+            evidence = ""
 
         return evidence
 
-    def _crop_image(self, b64):
-        image = Image.open(io.BytesIO(base64.b64decode(b64)))
