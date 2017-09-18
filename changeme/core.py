@@ -142,6 +142,7 @@ class Config(object):
     def __init__(self, args, arg_parser):
         # Convert argparse Namespace to a dict and make the keys + values member variables of the config class
         args = vars(args)
+        self.target = None
         for key in args:
             setattr(self, key, args[key])
 

@@ -25,7 +25,6 @@ class Scanner(object):
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(3)
-            self.logger.error((str(self.target.host), self.target.port))
             result = sock.connect_ex((str(self.target.host), self.target.port))
             sock.shutdown(2)
             if result == 0:

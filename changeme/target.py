@@ -3,6 +3,7 @@ import logging
 from netaddr import IPNetwork
 from netaddr.core import AddrFormatError
 from os.path import isfile
+import shodan
 
 
 class Target(object):
@@ -90,5 +91,15 @@ class Target(object):
                 targets.add(Target(host=host, port=port))
             else:
                 targets.add(Target(host=target))
+
+        return targets
+
+    @staticmethod
+    def get_shodan_targets(config):
+        targets = set()
+        api = shodan.Shodan(config.shodan_key)
+        results = api.search(config.shodan_query)
+        for r in results['matches']:
+            targets.add(Target(host=r['ip_str']))
 
         return targets

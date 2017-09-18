@@ -10,7 +10,6 @@ from .scanners.postgres import Postgres
 from .scanners.snmp import SNMP
 from .scanners.ssh import SSH
 from .scanners.ssh_key import SSHKey
-import shodan
 from .target import Target
 import time
 
@@ -120,7 +119,11 @@ class ScanEngine(object):
     def _build_targets(self):
         self.logger.debug('Building targets')
 
-        self.targets = Target.parse_target(self.config.target)
+        if self.config.target:
+            self.targets = Target.parse_target(self.config.target)
+        else:
+            self.targets = Target.get_shodan_targets(self.config)
+
 
         # Load set of targets into queue
         self.logger.debug('%i targets' % len(self.targets))
