@@ -24,6 +24,8 @@ TODO:
 def reset_handlers():
     logger = logging.getLogger('changeme')
     logger.handlers = []
+    core.remove_queues()
+    
 
 fp_args = deepcopy(cli_args)
 fp_args['nmap'] = 'tests/tomcat_nmap.xml'
@@ -116,14 +118,17 @@ def test_jboss_scan_fail(mock_args):
     se = ScanEngine(creds, config)
     se._build_targets()
     se.fingerprint_targets(se.fingerprints, se.scanners)
-    assert se.scanners.qsize() == 1
+    print se.scanners.qsize()
+    assert se.scanners.qsize() == 2
 
     se._scan(se.scanners, se.found_q)
     assert se.found_q.qsize() == 0
 
 
+jboss_args = deepcopy(cli_args)
+jboss_args['name'] = 'JBoss AS 6 Alt'
 @responses.activate
-@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**cli_args))
+@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**jboss_args))
 def test_jboss_scan_success(mock_args):
     responses.add(**MockResponses.jboss_fp)
     responses.add(**MockResponses.jboss_auth)
@@ -135,6 +140,7 @@ def test_jboss_scan_success(mock_args):
 subnet_args = deepcopy(cli_args)
 subnet_args['target'] = '127.0.0.1/32'
 subnet_args['protocols'] = 'http'
+subnet_args['name'] = 'JBoss AS 6 Alt'
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**subnet_args))
 def test_jboss_scan_success_subnet(mock_args):
@@ -186,6 +192,7 @@ def test_targets_scan_success(mock_args):
 csv_args = deepcopy(cli_args)
 csv_args['log'] = '/tmp/output.log'
 csv_args['output'] = '/tmp/output.csv'
+csv_args['name'] = 'JBoss AS 6 Alt'
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**csv_args))
 def test_csv_output(mock_args):
@@ -201,7 +208,7 @@ def test_csv_output(mock_args):
         reader = csv.reader(csvfile)
         for line in reader:
             if i == 1:
-                assert line[0] == 'JBoss AS 6'
+                assert line[0] == 'JBoss AS 6 Alt'
                 assert line[1] == 'admin'
                 assert line[2] == 'admin'
                 assert line[3] == 'http://127.0.0.1:8080/admin-console/login.seam'
@@ -212,6 +219,7 @@ def test_csv_output(mock_args):
 
 json_args = deepcopy(cli_args)
 json_args['output'] = '/tmp/output.json'
+json_args['name'] = 'JBoss AS 6 Alt'
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**json_args))
 def test_json_output(mock_args):
@@ -225,7 +233,7 @@ def test_json_output(mock_args):
     i = 0
     with open(json_args['output'], 'r') as json_file:
         j = json.loads(json_file.read())
-        assert j["results"][0]['name']      == 'JBoss AS 6'
+        assert j["results"][0]['name']      == 'JBoss AS 6 Alt'
         assert j['results'][0]['username']  == 'admin'
         assert j['results'][0]['password']  == 'admin'
         assert j['results'][0]['target']    == 'http://127.0.0.1:8080/admin-console/login.seam'
