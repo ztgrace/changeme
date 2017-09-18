@@ -5,12 +5,12 @@ from .scanner import Scanner
 class SNMP(Scanner):
     def __init__(self, cred, target, username, password, config):
         super(SNMP, self).__init__(cred, target, config, username, password)
-        self.port = self.cred['default_port']
 
     def __hash__(self):
         return id(self)
 
     def fingerprint(self):
+        # Just build the scanners instead of mess around detecting the UDP service
         scanners = list()
         for pair in self.cred['auth']['credentials']:
             scanners.append(self._mkscanner(self.cred, self.target, None, pair['password'], self.config))

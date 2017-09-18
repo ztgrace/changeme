@@ -20,15 +20,16 @@ class Scanner(object):
         return self.check_success()
 
     def fingerprint(self):
-        port = self.cred['default_port']
+        if self.target.port is None:
+            self.target.port = self.cred['default_port']
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(3)
-            self.logger.error((str(self.target), port))
-            result = sock.connect_ex((str(self.target), port))
+            self.logger.error((str(self.target.host), self.target.port))
+            result = sock.connect_ex((str(self.target.host), self.target.port))
             sock.shutdown(2)
             if result == 0:
-                self.logger.info('Port %i open' % port)
+                self.logger.info('Port %i open' % self.target.port)
                 scanners = list()
                 for pair in self.cred['auth']['credentials']:
                     scanners.append(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))

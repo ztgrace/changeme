@@ -3,6 +3,7 @@ import multiprocessing as mp
 from persistqueue import FIFOSQLiteQueue
 from .scanners.ftp import FTP
 from .scanners.http_fingerprint import HttpFingerprint
+from .scanners.mongo import Mongodb
 from .scanners.mssql import MSSQL
 from .scanners.mysql import MySQL
 from .scanners.postgres import Postgres
@@ -176,6 +177,10 @@ class ScanEngine(object):
                 if cred['protocol'] == 'snmp' and ('snmp' in self.config.protocols or self.config.all):
                     target.protocol = 'snmp'
                     fingerprints.append(SNMP(cred, target, self.config, '', ''))
+
+                if cred['protocol'] == 'mongodb' and ('mongodb' in self.config.protocols or self.config.all):
+                    target.protocol = 'mongodb'
+                    fingerprints.append(Mongodb(cred, target, self.config, '', ''))
 
         for fp in set(fingerprints):
             self.fingerprints.put(fp)

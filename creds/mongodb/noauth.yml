@@ -1,0 +1,8 @@
+auth:
+  credentials:
+  - username: 
+    password:
+category: mongodb
+default_port: 27017
+name: Mongodb noauth
+contributor: ztgrace

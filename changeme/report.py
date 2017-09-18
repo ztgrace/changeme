@@ -48,7 +48,7 @@ class Report:
         if len(self.results) > 0:
             results = deepcopy(self.results)
             for r in results:
-                if r['target'].protocol == 'http':
+                if 'http' in r['target'].protocol:
                     r['evidence'] = ''
 
             print("")
