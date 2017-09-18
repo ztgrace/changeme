@@ -66,9 +66,11 @@ class HTTPGetScanner(Scanner):
             self.password = base64.b64decode(self.cred.password)
 
         if success.get('status') == self.response.status_code:
+            self.logger.debug('%s matched %s success status code %s' % (self.target, self.cred['name'], self.response.status_code))
             if success.get('body'):
                 for string in success.get('body'):
                     if re.search(string, self.response.text, re.IGNORECASE):
+                        self.logger.debug('%s matched %s success body text %s' % (self.target, self.cred['name'], success.get('body')))
                         match = True
                         break
             else:
@@ -77,8 +79,13 @@ class HTTPGetScanner(Scanner):
         if match:
             self.logger.critical('[+] Found %s default cred %s:%s at %s' %
                                  (self.cred['name'], self.username, self.password, self.target))
+            evidence = ''
+            try:
+                evidence = self._screenshot(self.target)
+            except Exception as e:
+                self.logger.error("Error gathering screenshot for %s" % self.target)
+                self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
 
-            evidence = self._screenshot(self.target)
             return {'name': self.cred['name'],
                     'username': self.username,
                     'password': self.password,
@@ -189,11 +196,16 @@ class HTTPGetScanner(Scanner):
                     "autodetect":False
             }
         driver = webdriver.PhantomJS()
+        driver.set_page_load_timeout(int(self.config.timeout) - 0.1)
         driver.set_window_position(0, 0)
         driver.set_window_size(1024, 768)
         for cookie in self.response.request._cookies.items():
             self.logger.debug("Adding cookie: %s:%s" % cookie)
-            driver.add_cookie(cookie)
+            driver.add_cookie({'name': cookie[0],
+                               'value': cookie[1],
+                               'path': '/',
+                               'domain': self.target.host
+            })
 
         try:
             driver.get(str(self.target))
@@ -201,6 +213,7 @@ class HTTPGetScanner(Scanner):
             evidence = driver.get_screenshot_as_base64()
             driver.quit()
         except Exception as e:
+            self.logger.error('Error getting screenshot for %s' % self.target)
             self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
             evidence = ""
 

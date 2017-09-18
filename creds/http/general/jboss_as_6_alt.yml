@@ -1,0 +1,29 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  csrf: javax.faces.ViewState
+  post:
+    login_form: login_form
+    login_form:submit: Login
+    password: login_form:password
+    username: login_form:name
+  sessionid: JSESSIONID
+  success:
+    body: 
+    - Logout</a>
+    status: 200
+  type: post
+  url:
+  - /admin-console/login.seam
+category: web
+contributor: ztgrace
+default_port: 8080
+fingerprint:
+  body:
+    - Welcome to the JBoss AS 6 Admin Console
+  status: 200
+  url:
+  - /admin-console/login.seam
+name: JBoss AS 6 Alt
+ssl: false
