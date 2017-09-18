@@ -136,7 +136,6 @@ class HttpFingerprint:
                         match = True
                         self.logger.info('%s body matched: %s' % (cred['name'], b))
                     elif body:
-                        self.logger.debug('%s body not matched' % cred['name'])
                         match = False
 
         return match

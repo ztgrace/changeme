@@ -58,6 +58,7 @@ class ScanEngine(object):
         scanners = list()
         while self.scanners.qsize() > 0:
             s = self.scanners.get()
+
             if s not in scanners:
                 scanners.append(s)
 
@@ -185,6 +186,7 @@ class ScanEngine(object):
                     target.protocol = 'mongodb'
                     fingerprints.append(Mongodb(cred, target, self.config, '', ''))
 
+        self.logger.info("Loading creds into queue")
         for fp in set(fingerprints):
             self.fingerprints.put(fp)
         self.total_fps = self.fingerprints.qsize()
