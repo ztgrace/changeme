@@ -381,8 +381,12 @@ def check_for_interrupted_scan(config):
             logger.error('A previous scan was interrupted. Type R to resume or F to start a fresh scan')
             answer = ''
             while not (answer == 'R' or answer == 'F'):
-                prompt = getattr(__builtins__, 'raw_input', input)
-                answer = prompt('(R/F) > ')
+                prompt = '(R/F)> '
+                answer = ''
+                try:
+                    answer = raw_input(prompt)
+                except NameError:
+                    answer = input(prompt)
 
                 if answer.upper() == 'F':
                     logger.debug("Forcing a fresh scan")
