@@ -1,11 +1,12 @@
 import csv
 from copy import deepcopy
+from datetime import datetime
 import jinja2
 import json
 import logging
 import os
+import sys
 from tabulate import tabulate
-from tempfile import NamedTemporaryFile
 
 
 class Report:
@@ -68,7 +69,9 @@ class Report:
         template_loader = jinja2.FileSystemLoader(searchpath=self.get_template_path())
         template_env = jinja2.Environment(loader=template_loader)
         report_template = template_env.get_template('report.j2')
-        report = report_template.render({'found': self.results})
+        cli = ' '.join(sys.argv)
+        timestamp = datetime.now()
+        report = report_template.render({'found': self.results, 'cli': cli, 'timestamp': timestamp})
 
         with open(self.output, 'w') as fout:
             fout.write(report)

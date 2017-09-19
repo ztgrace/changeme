@@ -198,7 +198,7 @@ class HTTPGetScanner(Scanner):
         driver = webdriver.PhantomJS()
         driver.set_page_load_timeout(int(self.config.timeout) - 0.1)
         driver.set_window_position(0, 0)
-        driver.set_window_size(1024, 768)
+        driver.set_window_size(850, 637.5)
         for cookie in self.response.request._cookies.items():
             self.logger.debug("Adding cookie: %s:%s" % cookie)
             driver.add_cookie({'name': cookie[0],
