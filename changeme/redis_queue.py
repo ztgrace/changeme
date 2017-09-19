@@ -45,3 +45,4 @@ class RedisQueue(object):
 
     def delete(self):
         self.__db.delete(self.key)
+        self.__db.flushdb()
