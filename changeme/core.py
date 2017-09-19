@@ -178,7 +178,6 @@ class Config(object):
         if self.debug or self.validate:
             logger.setLevel(logging.DEBUG)
 
-
         self.useragent = {'User-Agent': self.useragent if self.useragent else get_useragent()}
 
         if ',' in self.protocols:
@@ -188,6 +187,10 @@ class Config(object):
             self.protocols = 'all'
 
         logger.debug(self.protocols)
+
+        if self.output and which('phantomjs') is None:
+            logger.warning('phantomjs is not in your path, screenshots will not work')
+
 
     def _file_exists(self, f):
         if not os.path.isfile(f):
@@ -414,3 +417,23 @@ def check_version():
     if not version.__version__ == latest:
         logger.warning('Your version of changeme is out of date. Local version: %s, Latest: %s' % (str(version.__version__), latest))
 
+
+# copied from https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
+def which(program):
+    import os
+
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
