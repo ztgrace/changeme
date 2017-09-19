@@ -57,12 +57,12 @@ def test_tomcat_match_nmap(mock_args):
     creds = core.load_creds(config)
     s = ScanEngine(creds, config)
     s._build_targets()
-    print("fp: %i" % s.fingerprints.qsize())
+    print(("fp: %i" % s.fingerprints.qsize()))
     s.fingerprint_targets(s.fingerprints, s.scanners)
 
     # Queue is not serializeable so we can't copy it using deepcopy
     scanners = list()
-    print("scanners: %s" % s.scanners.qsize())
+    print(("scanners: %s" % s.scanners.qsize()))
     #assert s.scanners.qsize() == 68
 
     t1 = Target(host='127.0.0.1', port=8080, protocol='http', url='/manager/html')
@@ -118,7 +118,7 @@ def test_jboss_scan_fail(mock_args):
     se = ScanEngine(creds, config)
     se._build_targets()
     se.fingerprint_targets(se.fingerprints, se.scanners)
-    print se.scanners.qsize()
+    print(se.scanners.qsize())
     assert se.scanners.qsize() == 2
 
     se._scan(se.scanners, se.found_q)
