@@ -94,7 +94,7 @@ def test_tomcat_fingerprint(mock_args):
     se = core.main()
     print(("Scanners:",se.scanners.qsize()))
     assert se.scanners.qsize() == 34
-    os.remove(core.PERSISTENT_QUEUE)
+    core.remove_queues()
 
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**cli_args))

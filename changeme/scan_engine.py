@@ -1,6 +1,9 @@
 import logging
 import multiprocessing as mp
 from persistqueue import FIFOSQLiteQueue
+import redis
+from changeme.redis_queue import RedisQueue
+import pickle
 from .scanners.ftp import FTP
 from .scanners.http_fingerprint import HttpFingerprint
 from .scanners.mongo import Mongodb
@@ -24,12 +27,12 @@ class ScanEngine(object):
         self.creds = creds
         self.config = config
         self.logger = logging.getLogger('changeme')
-        self.scanners = FIFOSQLiteQueue(path=".", multithreading=True, name="scanners")
+        self.scanners = self._get_queue('scanners')
         self.total_scanners = 0
         self.targets = set()
-        self.fingerprints = FIFOSQLiteQueue(path=".", multithreading=True, name="fingerprints")
+        self.fingerprints = self._get_queue('fingerprints')
         self.total_fps = 0
-        self.found_q = FIFOSQLiteQueue(path=".", multithreading=True, name="found")
+        self.found_q = self._get_queue('found_q')
 
     def scan(self):
 
@@ -104,10 +107,13 @@ class ScanEngine(object):
 
             try:
                 fp = fpq.get()
+                if type(fp) == bytes:
+                    fp = pickle.loads(fp)
                 if fp is None:
                     return
             except Exception as e:
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
+                self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
                 return
 
             results = fp.fingerprint()
@@ -198,3 +204,16 @@ class ScanEngine(object):
             fp = self.fingerprints.get()
             print(fp.target)
         quit()
+
+    def _get_queue(self, name):
+        try:
+            # Try for redis
+            r = RedisQueue(name)
+            r.ping()
+            self.logger.debug('Using RedisQueue for %s' % name)
+            return r
+
+        except redis.ConnectionError:
+            # Fall back to sqlite persistent queue
+            self.logger.debug('Using FIFOSQLiteQueue for %s' % name)
+            return FIFOSQLiteQueue(path=".", multithreading=True, name=name)

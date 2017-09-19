@@ -1,11 +1,13 @@
 import argparse
 from cerberus import Validator
+from changeme.redis_queue import RedisQueue
 import logging
 from logutils import colorize
 import os
 from persistqueue import FIFOSQLiteQueue
 import random
 import re
+import redis
 from .report import Report
 import requests
 from requests import ConnectionError
@@ -378,24 +380,46 @@ def check_for_interrupted_scan(config):
         fingerprints = FIFOSQLiteQueue(path=".", multithreading=True, name="fingerprints")
         logger.debug("scanners: %i, fp: %i" % (scanners.qsize(), fingerprints.qsize()))
         if scanners.qsize() > 0 or fingerprints.qsize() > 0:
-            logger.error('A previous scan was interrupted. Type R to resume or F to start a fresh scan')
-            answer = ''
-            while not (answer == 'R' or answer == 'F'):
-                prompt = '(R/F)> '
-                answer = ''
-                try:
-                    answer = raw_input(prompt)
-                except NameError:
-                    answer = input(prompt)
+            if not prompt_for_resume(config):
+                remove_queues()
 
-                if answer.upper() == 'F':
-                    logger.debug("Forcing a fresh scan")
-                    remove_queues()
-                elif answer.upper() == 'R':
-                    logger.debug("Resuming previous scan")
-                    config.resume = True
-        else:
+    fp = RedisQueue('fingerprint')
+    scanners = RedisQueue('scanners')
+    fp_qsize = 0
+    scanners_qsize = 0
+    try:
+        fp_qsize = fp.qsize()
+    except redis.exceptions.ConnectionError:
+        pass
+    try:
+        scanners_qsize = scanners.qsize()
+    except redis.exceptions.ConnectionError:
+        pass
+
+    if fp_qsize > 0 or scanners_qsize > 0:
+        if not prompt_for_resume(config):
             remove_queues()
+
+
+def prompt_for_resume(config):
+    logger = logging.getLogger('changeme')
+    logger.error('A previous scan was interrupted. Type R to resume or F to start a fresh scan')
+    answer = ''
+    while not (answer == 'R' or answer == 'F'):
+        prompt = '(R/F)> '
+        answer = ''
+        try:
+            answer = raw_input(prompt)
+        except NameError:
+            answer = input(prompt)
+
+        if answer.upper() == 'F':
+            logger.debug("Forcing a fresh scan")
+        elif answer.upper() == 'R':
+            logger.debug("Resuming previous scan")
+            config.resume = True
+
+    return config.resume
 
 
 def remove_queues():
@@ -406,6 +430,16 @@ def remove_queues():
     except OSError:
         logger.debug("%s didn't exist" % PERSISTENT_QUEUE)
         pass
+
+        # Clear Redis
+        queues = ['fingerprint', 'scanners', 'found_q']
+        for q in queues:
+            r = RedisQueue(q)
+            try:
+                r.delete()
+                logger.debug("%s Redis queue removed" % PERSISTENT_QUEUE)
+            except:
+                pass
 
 
 def check_version():
