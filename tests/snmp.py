@@ -10,6 +10,7 @@ import mock
 def reset_handlers():
     logger = logging.getLogger('changeme')
     logger.handlers = []
+    core.remove_queues()
 
 snmp_args = deepcopy(cli_args)
 snmp_args['protocols'] = 'snmp'

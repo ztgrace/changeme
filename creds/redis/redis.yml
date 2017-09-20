@@ -1,0 +1,8 @@
+auth:
+  credentials:
+  - username: 
+    password:
+category: redis
+default_port: 6379
+name: Redis
+contributor: ztgrace

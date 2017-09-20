@@ -42,7 +42,7 @@ class Scanner(object):
     def check_success(self):
         try:
             evidence = self._check()
-            self.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
+            self.logger.critical('[+] Found %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, self.target))
             self.logger.debug('%s %s:%s evidence: %s' % (self.target, self.username, self.password, evidence))
             return {'name': self.cred['name'],
                     'username': self.username,

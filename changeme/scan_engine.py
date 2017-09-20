@@ -10,6 +10,7 @@ from .scanners.mongo import Mongodb
 from .scanners.mssql import MSSQL
 from .scanners.mysql import MySQL
 from .scanners.postgres import Postgres
+from .scanners.redis_scanner import RedisScanner
 from .scanners.snmp import SNMP
 from .scanners.ssh import SSH
 from .scanners.ssh_key import SSHKey
@@ -135,6 +136,13 @@ class ScanEngine(object):
         # Load set of targets into queue
         self.logger.debug('%i targets' % len(self.targets))
 
+        # If there's only one protocol and the user specified a protocol, override the defaults
+        if len(self.targets) == 1:
+            t = self.targets.pop()
+            if t.protocol:
+                self.config.protocols = t.protocol
+            self.targets.add(t)
+
         fingerprints = list()
         # Build a set of unique fingerprints
         if 'http' in self.config.protocols or self.config.all:
@@ -144,13 +152,6 @@ class ScanEngine(object):
 
         for f in fingerprints:
             self.logger.debug("fingerprints: %s" % f.target)
-
-        # If there's only one protocol and the user specified a protocol, override the defaults
-        if len(self.targets) == 1:
-            t = self.targets.pop()
-            if t.protocol:
-                self.config.protocols = t.protocol
-            self.targets.add(t)
 
         # Add any protocols if they were included in the targets
         for t in self.targets:
@@ -191,6 +192,10 @@ class ScanEngine(object):
                 if cred['protocol'] == 'mongodb' and ('mongodb' in self.config.protocols or self.config.all):
                     target.protocol = 'mongodb'
                     fingerprints.append(Mongodb(cred, target, self.config, '', ''))
+
+                if cred['protocol'] == 'redis' and ('redis' in self.config.protocols or self.config.all):
+                    target.protocol = 'redis'
+                    fingerprints.append(RedisScanner(cred, target, self.config, '', ''))
 
         self.logger.info("Loading creds into queue")
         for fp in set(fingerprints):

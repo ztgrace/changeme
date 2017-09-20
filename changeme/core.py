@@ -432,15 +432,16 @@ def remove_queues():
         logger.debug("%s didn't exist" % PERSISTENT_QUEUE)
         pass
 
-        # Clear Redis
-        queues = ['fingerprint', 'scanners', 'found_q']
-        for q in queues:
-            r = RedisQueue(q)
-            try:
-                r.delete()
-                logger.debug("%s Redis queue removed" % PERSISTENT_QUEUE)
-            except:
-                pass
+    # Clear Redis
+    queues = ['fingerprint', 'scanners', 'found_q']
+    for q in queues:
+        r = RedisQueue(q)
+        try:
+            r.delete()
+            logger.debug("%s Redis queue removed" % q)
+        except:
+            logger.debug("%s Redis queue exception" % q)
+            pass
 
 
 def check_version():
