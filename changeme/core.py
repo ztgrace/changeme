@@ -300,7 +300,7 @@ def parse_yaml(f):
         raw = fin.read()
         try:
             parsed = yaml.load(raw)
-        except(yaml.parser.ParserError):
+        except (yaml.parser.ParserError, IOError) as e:
             logger.error("[parse_yaml] %s is not a valid yaml file" % f)
             return None
     return parsed
