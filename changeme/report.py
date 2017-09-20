@@ -12,7 +12,6 @@ from tabulate import tabulate
 class Report:
     def __init__(self, queue, output):
         self.results = self._convert_q2list(queue)
-        self._drain_queue(queue)
         self.output = output
         self.logger = logging.getLogger('changeme')
 
@@ -77,10 +76,6 @@ class Report:
 
         with open(self.output, 'w') as fout:
             fout.write(report)
-
-    def _drain_queue(self, q):
-        while not q.qsize() == 0:
-            q.get()
 
     @staticmethod
     def get_template_path():

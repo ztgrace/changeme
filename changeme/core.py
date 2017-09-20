@@ -81,6 +81,7 @@ def main():
         elif config.output:
             logger.error('Only JSON, CSV and HTML are the only supported output types.')
 
+
     return s
 
 
@@ -400,6 +401,14 @@ def check_for_interrupted_scan(config):
     if fp_qsize > 0 or scanners_qsize > 0:
         if not prompt_for_resume(config):
             remove_queues()
+    else:
+        # Clear the found queue if there's no fingerprints or scanners in the queues
+        try:
+            found_q = RedisQueue('found_q')
+            found_q.delete()
+        except:
+            pass
+
 
 
 def prompt_for_resume(config):
@@ -477,3 +486,4 @@ def which(program):
                 return exe_file
 
     return None
+
