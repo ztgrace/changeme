@@ -18,8 +18,11 @@ snmp_args['name'] = 'apc'
 snmp_args['target'] = 'demo.snmplabs.com'
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**snmp_args))
 def test_snmp(mock_args):
-    reset_handlers()
-    core.main()
+    try:
+        reset_handlers()
+        core.main()
+    except:
+        pass
 
 
 snmp_args = deepcopy(cli_args)
