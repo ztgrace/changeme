@@ -72,11 +72,11 @@ def main():
         report = Report(s.found_q, config.output)
         report.print_results()
 
-        if config.output and ".json" in config.output:
+        if config.output and ".json" in config.output or config.output and config.oa:
             report.render_json()
-        if config.output and ".csv" in config.output:
+        if config.output and ".csv" in config.output or config.output and config.oa:
             report.render_csv()
-        elif config.output and ".html" in config.output:
+        elif config.output and ".html" in config.output or config.output and config.oa:
             report.render_html()
         elif config.output:
             logger.error('Only JSON, CSV and HTML are the only supported output types.')
@@ -457,7 +457,7 @@ def check_version():
     logger = logging.getLogger('changeme')
 
     try:
-        res = requests.get('https://raw.githubusercontent.com/ztgrace/changeme/master/changeme/version.py')
+        res = requests.get('https://raw.githubusercontent.com/ztgrace/changeme/master/changeme/version.py', timeout=2)
     except ConnectionError:
         logger.debug("Unable to retrieve latest changeme version.")
         return

@@ -5,6 +5,7 @@ import jinja2
 import json
 import logging
 import os
+import re
 import sys
 from tabulate import tabulate
 
@@ -16,6 +17,10 @@ class Report:
         self.logger = logging.getLogger('changeme')
 
     def render_csv(self,):
+        fname = self.output
+        if not re.match(r'.*\.csv$', fname):
+            fname += ".csv"
+
         with open(self.output, 'w') as fout:
             fieldnames = ["name", "username", "password", "target"]
             writer = csv.DictWriter(
@@ -40,6 +45,10 @@ class Report:
         results = dict()
         results["results"] = res
         j = json.dumps(results)
+        fname = self.output
+        if not re.match(r'.*\.json$', fname):
+            fname += ".json"
+
         with open(self.output, 'w') as fout:
             fout.write(j)
 
@@ -73,6 +82,10 @@ class Report:
         cli = ' '.join(sys.argv)
         timestamp = datetime.now()
         report = report_template.render({'found': self.results, 'cli': cli, 'timestamp': timestamp})
+
+        fname = self.output
+        if not re.match(r'.*\.html$', fname):
+            fname += ".html"
 
         with open(self.output, 'w') as fout:
             fout.write(report)

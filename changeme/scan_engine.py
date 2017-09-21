@@ -162,40 +162,40 @@ class ScanEngine(object):
         for target in self.targets:
             for cred in self.creds:
                 if cred['protocol'] == 'ssh' and ('ssh' in self.config.protocols or self.config.all):
-                    target.protocol = 'ssh'
-                    fingerprints.append(SSH(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='ssh')
+                    fingerprints.append(SSH(cred, t, self.config, '', ''))
 
                 if cred['protocol'] == 'ssh_key' and ('ssh_key' in self.config.protocols or self.config.all):
-                    target.protocol = 'ssh_key'
-                    fingerprints.append(SSHKey(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='ssh_key')
+                    fingerprints.append(SSHKey(cred, t, self.config, '', ''))
 
                 if cred['protocol'] == 'postgres' and ('postgres' in self.config.protocols or self.config.all):
-                    target.protocol = 'postgres'
-                    fingerprints.append(Postgres(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='postgres')
+                    fingerprints.append(Postgres(cred, t, self.config, '', ''))
 
                 if cred['protocol'] == 'mysql' and ('mysql' in self.config.protocols or self.config.all):
-                    target.protocol = 'mysql'
-                    fingerprints.append(MySQL(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='mysql')
+                    fingerprints.append(MySQL(cred, t, self.config, '', ''))
 
                 if cred['protocol'] == 'mssql' and ('mssql' in self.config.protocols or self.config.all):
-                    target.protocol = 'mssql'
-                    fingerprints.append(MSSQL(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='mssql')
+                    fingerprints.append(MSSQL(cred, t, self.config, '', ''))
 
                 if cred['protocol'] == 'ftp' and ('ftp' in self.config.protocols or self.config.all):
-                    target.protocol = 'ftp'
-                    fingerprints.append(FTP(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='ftp')
+                    fingerprints.append(FTP(cred, t, self.config, '', ''))
 
                 if cred['protocol'] == 'snmp' and ('snmp' in self.config.protocols or self.config.all):
-                    target.protocol = 'snmp'
-                    fingerprints.append(SNMP(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='snmp')
+                    fingerprints.append(SNMP(cred, t, self.config, '', ''))
 
                 if cred['protocol'] == 'mongodb' and ('mongodb' in self.config.protocols or self.config.all):
-                    target.protocol = 'mongodb'
-                    fingerprints.append(Mongodb(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='mongodb')
+                    fingerprints.append(Mongodb(cred, t, self.config, '', ''))
 
                 if cred['protocol'] == 'redis' and ('redis' in self.config.protocols or self.config.all):
-                    target.protocol = 'redis'
-                    fingerprints.append(RedisScanner(cred, target, self.config, '', ''))
+                    t = Target(host=target.host, port=target.port, protocol='redis')
+                    fingerprints.append(RedisScanner(cred, t, self.config, '', ''))
 
         self.logger.info("Loading creds into queue")
         for fp in set(fingerprints):
@@ -204,7 +204,7 @@ class ScanEngine(object):
         self.logger.debug('%i fingerprints' % self.fingerprints.qsize())
 
     def dry_run(self):
-        self.logger.info("Dry run URLs:")
+        self.logger.info("Dry run targets:")
         while self.fingerprints.qsize() > 0:
             fp = self.fingerprints.get()
             print(fp.target)

@@ -16,6 +16,9 @@ class Scanner(object):
         self.password = password
         self.logger = logging.getLogger('changeme')
 
+    def __hash__(self):
+        return id(self)
+
     def scan(self):
         return self.check_success()
 

@@ -271,7 +271,7 @@ def mkcred():
     auth['headers'] = headers
 
     success = dict()
-    success['status'] = int(input('HTTP status code of success (200, 302): '))
+    success['status'] = 200
     success['body'] = list()
     success['body'].append(input('Unique string in page of a successful login (Logout</a>): '))
 

@@ -6,9 +6,6 @@ class SNMP(Scanner):
     def __init__(self, cred, target, username, password, config):
         super(SNMP, self).__init__(cred, target, config, username, password)
 
-    def __hash__(self):
-        return id(self)
-
     def fingerprint(self):
         # Just build the scanners instead of mess around detecting the UDP service
         scanners = list()
