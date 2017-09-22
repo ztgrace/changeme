@@ -21,7 +21,7 @@ class Report:
         if not re.match(r'.*\.csv$', fname):
             fname += ".csv"
 
-        with open(self.output, 'w') as fout:
+        with open(fname, 'w') as fout:
             fieldnames = ["name", "username", "password", "target"]
             writer = csv.DictWriter(
                 fout,
@@ -32,15 +32,14 @@ class Report:
             writer.writeheader()
             writer.writerows(self.results)
 
-        self.logger.critical("%i credentials written to %s" % (len(self.results), self.output))
+        self.logger.critical("%i credentials written to %s" % (len(self.results), fname))
 
     def render_json(self):
         # convert the Target classes to a string so it can be json'd
-        res = list()
-        for r in self.results:
+        res = deepcopy(self.results)
+        for r in res:
             t = r['target']
             r['target'] = str(t)
-            res.append(r)
 
         results = dict()
         results["results"] = res
@@ -49,10 +48,10 @@ class Report:
         if not re.match(r'.*\.json$', fname):
             fname += ".json"
 
-        with open(self.output, 'w') as fout:
+        with open(fname, 'w') as fout:
             fout.write(j)
 
-        self.logger.critical("%i credentials written to %s" % (len(self.results), self.output))
+        self.logger.critical("%i credentials written to %s" % (len(self.results), fname))
 
     def print_results(self):
         if len(self.results) > 0:
@@ -66,10 +65,10 @@ class Report:
             self.logger.critical('Found %i default credentials' % len(self.results))
             print("")
             print(tabulate(results, headers={'name': 'Name',
-                                                  'username': 'Username',
-                                                  'password': 'Password',
-                                                  'target': 'Target',
-                                                  'evidence': 'Evidence'}))
+                                             'username': 'Username',
+                                             'password': 'Password',
+                                             'target': 'Target',
+                                             'evidence': 'Evidence'}))
 
             print("")
         else:
@@ -87,8 +86,10 @@ class Report:
         if not re.match(r'.*\.html$', fname):
             fname += ".html"
 
-        with open(self.output, 'w') as fout:
+        with open(fname, 'w') as fout:
             fout.write(report)
+
+        self.logger.critical("%i credentials written to %s" % (len(self.results), fname))
 
     @staticmethod
     def get_template_path():

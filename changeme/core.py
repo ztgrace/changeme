@@ -42,8 +42,9 @@ def main():
 
     args = parse_args()
     init_logging(args['args'].verbose, args['args'].debug, args['args'].log)
-    check_version()
     config = Config(args['args'], args['parser'])
+    if not config.noversion:
+        check_version()
     creds = load_creds(config)
     s = None
 
@@ -76,9 +77,9 @@ def main():
             report.render_json()
         if config.output and ".csv" in config.output or config.output and config.oa:
             report.render_csv()
-        elif config.output and ".html" in config.output or config.output and config.oa:
+        if config.output and ".html" in config.output or config.output and config.oa:
             report.render_html()
-        elif config.output:
+        if config.output and not config.oa:
             logger.error('Only JSON, CSV and HTML are the only supported output types.')
 
 
@@ -215,6 +216,7 @@ def parse_args():
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--mkcred', action='store_true', help='Make cred file', default=False)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
+    ap.add_argument('--noversion', action='store_true', help='Don\'t perform a version check', default=False)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
     ap.add_argument('--output', '-o', type=str, help='Name of result file. File extension determines type (csv, html, json).', default=None)
     ap.add_argument('--oa', action='store_true', help='Output results files in csv, html and json formats', default=False)

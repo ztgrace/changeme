@@ -30,7 +30,7 @@
                         <li>Service: {{ cred['name'] }}</li>
                         <li>Username: {{ cred['username'] if cred['username'] != None }}</li>
                         <li>Password: {{ cred['password'] if cred['password'] != None }}</li>
-                        {% if cred['target'].protocol == 'http' or cred['target'].protocol == 'https' %}
+                        {% if 'http' in cred['target'].protocol %}
                         <li><a href="{{ cred['target'] }}">{{ cred['target'] }}</a></li>
                         {% else %}
                         <li>{{ cred['target'] }}</li>
@@ -38,7 +38,7 @@
                     </ul>
                 </div>
                 <div class="col-sm-9">
-                    {% if cred['target'].protocol == 'http' or cred['target'].protocol == 'https' %}
+                    {% if 'http' in cred['target'].protocol %}
                     <img alt="{{ cred['url'] }}" src="data:image/png;base64,{{ cred['evidence'] }}" />
                     {% else %}
                     {{ cred['evidence'] }}

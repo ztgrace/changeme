@@ -22,6 +22,9 @@ class Target(object):
     def __hash__(self):
         return id(self)
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         target = self
 

@@ -86,6 +86,7 @@ def test_tomcat_match_nmap(mock_args):
 fp_args = deepcopy(cli_args)
 fp_args['fingerprint'] = True
 fp_args['name'] = 'Tomcat'
+fp_args['noversion'] = False
 @responses.activate
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**fp_args))
 def test_tomcat_fingerprint(mock_args):
