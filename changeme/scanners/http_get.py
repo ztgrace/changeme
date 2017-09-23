@@ -80,11 +80,12 @@ class HTTPGetScanner(Scanner):
             self.logger.critical('[+] Found %s default cred %s:%s at %s' %
                                  (self.cred['name'], self.username, self.password, self.target))
             evidence = ''
-            try:
-                evidence = self._screenshot(self.target)
-            except Exception as e:
-                self.logger.error("Error gathering screenshot for %s" % self.target)
-                self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
+            if self.config.output:
+                try:
+                    evidence = self._screenshot(self.target)
+                except Exception as e:
+                    self.logger.error("Error gathering screenshot for %s" % self.target)
+                    self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
 
             return {'name': self.cred['name'],
                     'username': self.username,
