@@ -10,6 +10,12 @@ except ImportError:
     from urllib import unquote_plus
 import yaml
 
+cli_prompt = input
+try:
+    cli_prompt = raw_input
+except NameError:
+    pass
+
 http_schema = {
     'auth': {
         'type': 'dict',
@@ -154,7 +160,7 @@ def mkcred():
     auth_types = ['post', 'basic_auth', 'get', 'raw_post']
 
     def get_data(field, prompt, boolean=False, integer=False):
-        result = input(prompt).strip()
+        result = cli_prompt(prompt).strip()
         if boolean and result.lower() == 'y':
             result = True
         elif boolean:
@@ -177,15 +183,15 @@ def mkcred():
     fp = dict()
 
     # Fingerprint url is confiured as a list so we can have more than one path
-    path = input('Path to the fingerprint page (/index.php): ')
+    path = cli_prompt('Path to the fingerprint page (/index.php): ')
     path_list = list()
     path_list.append(path)
     fp['url'] = path_list
 
-    fp_status = input('HTTP status code of fingerprint (401, 200): ')
-    fp_body = input('Unique string in the fingerprint page (Welcome to ***): ')
-    server_header = input('Server header (if unique): ')
-    basic_auth_realm = input('Basic Auth Realm: ')
+    fp_status = cli_prompt('HTTP status code of fingerprint (401, 200): ')
+    fp_body = cli_prompt('Unique string in the fingerprint page (Welcome to ***): ')
+    server_header = cli_prompt('Server header (if unique): ')
+    basic_auth_realm = cli_prompt('Basic Auth Realm: ')
 
     fp['status'] = int(fp_status)
     if fp_body:
@@ -204,12 +210,12 @@ def mkcred():
     auth = dict()
     headers = list()
     auth_urls = list()
-    url = input('Authentication URL (/login.php): ')
+    url = cli_prompt('Authentication URL (/login.php): ')
     auth_urls.append(url)
     auth['url'] = auth_urls
 
     while True:
-        t = input('Type of authentication method (post, basic_auth, get, raw_post): ')
+        t = cli_prompt('Type of authentication method (post, basic_auth, get, raw_post): ')
         if t in auth_types:
             auth['type'] = t
             break
@@ -218,9 +224,9 @@ def mkcred():
 
     if auth['type'] == 'post' or auth['type'] == 'get':
         form = dict()
-        form['username'] = input('Name of username field: ')
-        form['password'] = input('Name of password field: ')
-        form_params = input('Post parameters, query string or raw post (json, xml): ')
+        form['username'] = cli_prompt('Name of username field: ')
+        form['password'] = cli_prompt('Name of password field: ')
+        form_params = cli_prompt('Post parameters, query string or raw post (json, xml): ')
 
         if form_params:
             form_params = unquote_plus(form_params)  # decode the parameters
@@ -237,7 +243,7 @@ def mkcred():
 
         auth[auth['type']] = form
     while True:
-        header = input('Pleae enter any custom header needed. Hit enter if done or not needed \n Example: Content-Type: application/json: ')
+        header = cli_prompt('Pleae enter any custom header needed. Hit enter if done or not needed \n Example: Content-Type: application/json: ')
         if len(header) > 0:
             if len(header.split(':')) == 2:
                 h = header.split(':')
@@ -247,22 +253,22 @@ def mkcred():
                 print('Invalid header.  Headers must be in the format "Header_name: header_value"\n')
         else:
             break
-    csrf = input('Name of csrf field: ')
+    csrf = cli_prompt('Name of csrf field: ')
     if csrf:
         auth['csrf'] = csrf
 
-    sessionid = input('Name of session cookie: ')
+    sessionid = cli_prompt('Name of session cookie: ')
     if sessionid:
         auth['sessionid'] = sessionid
 
     creds = list()
-    num_creds = input('How many default creds for this service (1, 2, 3): ')
+    num_creds = cli_prompt('How many default creds for this service (1, 2, 3): ')
     for i in range(0, int(num_creds)):
-        user = input('Username %i: ' % (i + 1))
-        passwd = input('Password %i: ' % (i + 1))
+        user = cli_prompt('Username %i: ' % (i + 1))
+        passwd = cli_prompt('Password %i: ' % (i + 1))
 
         if auth['type'] == 'raw_post':
-            raw = input('Raw post %i: ' % (i + 1))
+            raw = cli_prompt('Raw post %i: ' % (i + 1))
             creds.append({'username': user, 'password': passwd, 'raw': raw})
         else:
             creds.append({'username': user, 'password': passwd})
@@ -273,7 +279,7 @@ def mkcred():
     success = dict()
     success['status'] = 200
     success['body'] = list()
-    success['body'].append(input('Unique string in page of a successful login (Logout</a>): '))
+    success['body'].append(cli_prompt('Unique string in page of a successful login (Logout</a>): '))
 
     auth['success'] = success
     parameters['auth'] = auth
