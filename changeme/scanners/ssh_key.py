@@ -1,7 +1,7 @@
 import logging
 import paramiko
-from ssh import SSH
-from StringIO import StringIO
+from .ssh import SSH
+from io import StringIO
 
 
 class SSHKey(SSH):

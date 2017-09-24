@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE nmaprun>
 <?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
-<!-- Nmap 7.30 scan initiated Tue Jan 17 21:26:24 2017 as: nmap -p 8080 -oX tests/tomcat_nmap -sV -v -n 192.168.59.103 -->
-<nmaprun scanner="nmap" args="nmap -p 8080 -oX tests/tomcat_nmap -sV -v -n 192.168.59.103" start="1484709984" startstr="Tue Jan 17 21:26:24 2017" version="7.30" xmloutputversion="1.04">
+<!-- Nmap 7.30 scan initiated Tue Jan 17 21:26:24 2017 as: nmap -p 8080 -oX tests/tomcat_nmap -sV -v -n 127.0.0.1 -->
+<nmaprun scanner="nmap" args="nmap -p 8080 -oX tests/tomcat_nmap -sV -v -n 127.0.0.1" start="1484709984" startstr="Tue Jan 17 21:26:24 2017" version="7.30" xmloutputversion="1.04">
 <scaninfo type="syn" protocol="tcp" numservices="1" services="8080"/>
 <verbose level="1"/>
 <debugging level="0"/>
@@ -17,7 +17,7 @@
 <taskbegin task="NSE" time="1484709990"/>
 <taskend task="NSE" time="1484709990"/>
 <host starttime="1484709984" endtime="1484709990"><status state="up" reason="arp-response" reason_ttl="0"/>
-<address addr="192.168.59.103" addrtype="ipv4"/>
+<address addr="127.0.0.1" addrtype="ipv4"/>
 <address addr="08:00:27:F7:00:F2" addrtype="mac" vendor="Oracle VirtualBox virtual NIC"/>
 <hostnames>
 </hostnames>

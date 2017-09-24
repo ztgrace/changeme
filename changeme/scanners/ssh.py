@@ -1,5 +1,5 @@
 import paramiko
-from scanner import Scanner
+from .scanner import Scanner
 import socket
 
 
@@ -7,7 +7,6 @@ class SSH(Scanner):
 
     def __init__(self, cred, target, username, password, config):
         super(SSH, self).__init__(cred, target, config, username, password)
-        self.port = self.cred['default_port']
 
     def _check(self):
         c = paramiko.SSHClient()

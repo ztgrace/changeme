@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username:
+    password: TENmanUFactOryPOWER
+category: snmp
+default_port: 161
+name: APC SmartSlot
+contributor: ztgrace
+references:
+  - http://www.securityfocus.com/archive/1/354230

@@ -1,19 +1,24 @@
 import argparse
 from cerberus import Validator
+from changeme.redis_queue import RedisQueue
 import logging
 from logutils import colorize
 import os
+from persistqueue import FIFOSQLiteQueue
 import random
 import re
-from report import Report
+import redis
+from .report import Report
 import requests
+from requests import ConnectionError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from scan_engine import ScanEngine
-import schema
+from .scan_engine import ScanEngine
+from . import schema
 import sys
-import version
+from . import version
 import yaml
 
+PERSISTENT_QUEUE = "data.db" # Instantiated in the scan_engine class
 
 def banner(version):
     b = """
@@ -33,11 +38,13 @@ def banner(version):
 
 
 def main():
-    print banner(version.__version__)
+    print(banner(version.__version__))
 
     args = parse_args()
     init_logging(args['args'].verbose, args['args'].debug, args['args'].log)
     config = Config(args['args'], args['parser'])
+    if not config.noversion:
+        check_version()
     creds = load_creds(config)
     s = None
 
@@ -53,18 +60,28 @@ def main():
         print_creds(creds)
         quit()
 
+    logger = logging.getLogger('changeme')
+
     if not config.validate:
+        check_for_interrupted_scan(config)
         s = ScanEngine(creds, config)
         try:
             s.scan()
         except IOError:
-            logging.getLogger('changeme').debug('Caught IOError exception')
+            logger.debug('Caught IOError exception')
 
         report = Report(s.found_q, config.output)
         report.print_results()
 
-        if config.output:
+        if config.output and ".json" in config.output or config.output and config.oa:
+            report.render_json()
+        if config.output and ".csv" in config.output or config.output and config.oa:
             report.render_csv()
+        if config.output and ".html" in config.output or config.output and config.oa:
+            report.render_html()
+        if (config.output and not ('json' in config.output or 'csv' in config.output or 'html' in config.output)) and not config.oa:
+            logger.error('Only JSON, CSV and HTML are the only supported output types.')
+
 
     return s
 
@@ -129,6 +146,7 @@ class Config(object):
     def __init__(self, args, arg_parser):
         # Convert argparse Namespace to a dict and make the keys + values member variables of the config class
         args = vars(args)
+        self.target = None
         for key in args:
             setattr(self, key, args[key])
 
@@ -136,16 +154,10 @@ class Config(object):
 
     def _validate_args(self, ap):
         logger = logging.getLogger('changeme')
-        if (not self.subnet and not self.targets and not self.validate and not self.contributors and not self.dump and
-                not self.shodan_query and not self.nmap and not self.target and not self.mkcred):
+        if (not self.validate and not self.contributors and not self.dump and not self.shodan_query
+            and not self.mkcred and not self.resume) and not self.target:
             ap.print_help()
             quit()
-
-        if self.targets:
-            self._file_exists(self.targets)
-
-        if self.nmap:
-            self._file_exists(self.nmap)
 
         if self.proxy and re.match('^https?://[0-9\.]+:[0-9]{1,5}$', self.proxy):
             self.proxy = {'http': self.proxy, 'https': self.proxy}
@@ -161,14 +173,14 @@ class Config(object):
                 logger.error('Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s' %
                              type(self.delay))
 
-        if self.verbose:
-            logger.setLevel(logging.INFO)
-        if self.debug:
-            logger.setLevel(logging.DEBUG)
-
         # Drop logging level to INFO to see the fingerprint messages
         if self.fingerprint:
             logger.setLevel(logging.INFO)
+
+        if self.verbose:
+            logger.setLevel(logging.INFO)
+        if self.debug or self.validate:
+            logger.setLevel(logging.DEBUG)
 
         self.useragent = {'User-Agent': self.useragent if self.useragent else get_useragent()}
 
@@ -179,6 +191,10 @@ class Config(object):
             self.protocols = 'all'
 
         logger.debug(self.protocols)
+
+        if self.output and which('phantomjs') is None:
+            logger.warning('phantomjs is not in your path, screenshots will not work')
+
 
     def _file_exists(self, f):
         if not os.path.isfile(f):
@@ -194,26 +210,39 @@ def parse_args():
     ap.add_argument('--debug', '-d', action='store_true', help='Debug output')
     ap.add_argument('--delay', '-dl', type=int, help="Specify a delay in milliseconds to avoid 429 status codes default=500", default=500)
     ap.add_argument('--dump', action='store_true', help='Print all of the loaded credentials')
-    ap.add_argument('--dryrun', '-r', action='store_true', help='Print urls to be scan, but don\'t scan them')
+    ap.add_argument('--dryrun', action='store_true', help='Print urls to be scan, but don\'t scan them')
     ap.add_argument('--fingerprint', '-f', action='store_true', help='Fingerprint targets, but don\'t check creds', default=False)
+    ap.add_argument('--fresh', action='store_true', help='Flush any previous scans and start fresh', default=False)
     ap.add_argument('--log', '-l', type=str, help='Write logs to logfile', default=None)
     ap.add_argument('--mkcred', action='store_true', help='Make cred file', default=False)
     ap.add_argument('--name', '-n', type=str, help='Narrow testing to the supplied credential name', default=None)
-    ap.add_argument('--nmap', '-x', type=str, help='Nmap XML file to parse', default=None)
+    ap.add_argument('--noversion', action='store_true', help='Don\'t perform a version check', default=False)
     ap.add_argument('--proxy', '-p', type=str, help='HTTP(S) Proxy', default=None)
-    ap.add_argument('--output', '-o', type=str, help='Name of file to write CSV results', default=None)
-    ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key", default='http')
-    ap.add_argument('--subnet', '-s', type=str, help='Subnet or IP to scan', default=None)
+    ap.add_argument('--output', '-o', type=str, help='Name of result file. File extension determines type (csv, html, json).', default=None)
+    ap.add_argument('--oa', action='store_true', help='Output results files in csv, html and json formats', default=False)
+    ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key. Defaults to http.", default='http')
+    ap.add_argument('--portoverride', action='store_true', help='Scan all protocols on all specified ports', default=False)
+    ap.add_argument('--resume', '-r', action='store_true', help='Resume previous scan', default=False)
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
-    ap.add_argument('--target', type=str, help='Specific target to scan (IP:PORT)', default=None)
-    ap.add_argument('--targets', type=str, help='File of targets to scan', default=None)
     ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
     ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
     ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use", default=None)
     ap.add_argument('--validate', action='store_true', help='Validate creds files', default=False)
     ap.add_argument('--verbose', '-v', action='store_true', help='Verbose output', default=False)
+
+    # Hack to get the help to show up right
+    cli = ' '.join(sys.argv)
+    if "-h" in cli or "--help" in cli:
+        ap.add_argument('target', type=str, help='Target to scan. Can be IP, subnet, hostname, nmap xml file, text file or proto://host:port', default=None)
+
+    # initial parse to see if an option not requiring a target was used
+    args, unknown = ap.parse_known_args()
+    if not args.dump and not args.contributors and not args.mkcred and not args.resume and not args.shodan_query and not args.validate:
+        ap.add_argument('target', type=str, help='Target to scan. Can be IP, subnet, hostname, nmap xml file, text file or proto://host:port', default=None)
+
     args = ap.parse_args()
+
     return {'args': args, 'parser': ap}
 
 
@@ -237,7 +266,8 @@ def load_creds(config):
                 parsed = parse_yaml(f)
                 if parsed:
                     if parsed['name'] in cred_names:
-                        logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
+                        #logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
+                        pass
                     elif validate_cred(parsed, f, protocol):
                         parsed['protocol'] = protocol  # Add the protocol after the schema validation
                         if in_scope(config.name, config.category, parsed, protocols):
@@ -246,8 +276,8 @@ def load_creds(config):
                             cred_names.append(parsed['name'])
                             logger.debug('Loaded %s' % parsed['name'])
 
-    print('Loaded %i default credential profiles' % len(creds))
-    print('Loaded %i default credentials\n' % total_creds)
+    print(('Loaded %i default credential profiles' % len(creds)))
+    print(('Loaded %i default credentials\n' % total_creds))
 
     return creds
 
@@ -266,12 +296,13 @@ def validate_cred(cred, f, protocol):
 
 
 def parse_yaml(f):
-    global logger
+    logger = logging.getLogger('changeme')
+    logger.debug('Parsing %s' % f)
     with open(f, 'r') as fin:
         raw = fin.read()
         try:
             parsed = yaml.load(raw)
-        except(yaml.parser.ParserError):
+        except Exception as e:
             logger.error("[parse_yaml] %s is not a valid yaml file" % f)
             return None
     return parsed
@@ -302,19 +333,24 @@ def in_scope(name, category, cred, protocols):
 def print_contributors(creds):
     contributors = set()
     for cred in creds:
-        contributors.add(cred['contributor'])
+        cred_contributors = cred['contributor'].split(', ')
+        for c in cred_contributors:
+            contributors.add(c)
 
-    print "Thank you to our contributors!"
-    for i in contributors:
-        print i
-    print
+    for c in version.contributors:
+        contributors.add(c)
+
+    print("Thank you to our contributors!")
+    for i in sorted(contributors, key=str.lower):
+        print(i)
+    print()
 
 
 def print_creds(creds):
     for cred in creds:
-        print "\n%s (%s)" % (cred['name'], cred['category'])
+        print("\n%s (%s)" % (cred['name'], cred['category']))
         for i in cred['auth']['credentials']:
-            print "  - %s:%s" % (i['username'], i['password'])
+            print("  - %s:%s" % (i['username'], i['password']))
 
 
 def get_useragent():
@@ -332,3 +368,126 @@ def get_useragent():
         'Opera/9.80 (Windows NT 5.2; U; ru) Presto/2.5.22 Version/10.51'
     ]
     return random.choice(headers_useragents)
+
+
+def check_for_interrupted_scan(config):
+    logger = logging.getLogger('changeme')
+    if config.fresh:
+        logger.debug("Forcing a fresh scan")
+        remove_queues()
+    elif config.resume:
+        logger.debug("Resuming previous scan")
+        return
+
+    if os.path.isfile(PERSISTENT_QUEUE):
+        scanners = FIFOSQLiteQueue(path=".", multithreading=True, name="scanners")
+        fingerprints = FIFOSQLiteQueue(path=".", multithreading=True, name="fingerprints")
+        logger.debug("scanners: %i, fp: %i" % (scanners.qsize(), fingerprints.qsize()))
+        if scanners.qsize() > 0 or fingerprints.qsize() > 0:
+            if not prompt_for_resume(config):
+                remove_queues()
+
+    fp = RedisQueue('fingerprint')
+    scanners = RedisQueue('scanners')
+    fp_qsize = 0
+    scanners_qsize = 0
+    try:
+        fp_qsize = fp.qsize()
+    except redis.exceptions.ConnectionError:
+        pass
+    try:
+        scanners_qsize = scanners.qsize()
+    except redis.exceptions.ConnectionError:
+        pass
+
+    if fp_qsize > 0 or scanners_qsize > 0:
+        if not prompt_for_resume(config):
+            remove_queues()
+    else:
+        # Clear the found queue if there's no fingerprints or scanners in the queues
+        try:
+            logger.debug('Clearing found_q')
+            found_q = RedisQueue('found_q')
+            found_q.delete()
+        except:
+            pass
+
+
+
+def prompt_for_resume(config):
+    logger = logging.getLogger('changeme')
+    logger.error('A previous scan was interrupted. Type R to resume or F to start a fresh scan')
+    answer = ''
+    while not (answer == 'R' or answer == 'F'):
+        prompt = '(R/F)> '
+        answer = ''
+        try:
+            answer = raw_input(prompt)
+        except NameError:
+            answer = input(prompt)
+
+        if answer.upper() == 'F':
+            logger.debug("Forcing a fresh scan")
+        elif answer.upper() == 'R':
+            logger.debug("Resuming previous scan")
+            config.resume = True
+
+    return config.resume
+
+
+def remove_queues():
+    logger = logging.getLogger('changeme')
+    try:
+        os.remove(PERSISTENT_QUEUE)
+        logger.debug("%s removed" % PERSISTENT_QUEUE)
+    except OSError:
+        logger.debug("%s didn't exist" % PERSISTENT_QUEUE)
+        pass
+
+    # Clear Redis
+    queues = ['fingerprint', 'scanners', 'found_q']
+    for q in queues:
+        logger.debug('Removing %s RedisQueue' % q)
+        r = RedisQueue(q)
+        try:
+            r.delete()
+            logger.debug("%s Redis queue removed" % q)
+        except:
+            logger.debug("%s Redis queue exception" % q)
+            pass
+
+
+def check_version():
+    logger = logging.getLogger('changeme')
+
+    try:
+        res = requests.get('https://raw.githubusercontent.com/ztgrace/changeme/master/changeme/version.py', timeout=2)
+    except ConnectionError:
+        logger.debug("Unable to retrieve latest changeme version.")
+        return
+
+    latest = res.text.split(' = ')[1].replace("'", '')
+    if not version.__version__ == latest:
+        logger.warning('Your version of changeme is out of date. Local version: %s, Latest: %s' % (str(version.__version__), latest))
+
+
+# copied from https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
+def which(program):
+    import os
+
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+

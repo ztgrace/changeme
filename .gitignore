@@ -2,3 +2,4 @@
 *.swo
 *.pyc
 .coverage
+data.db

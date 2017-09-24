@@ -1,12 +1,19 @@
 import base64
-import logging
-import os
+from changeme.report import Report
+import jinja2
 from requests import session
-from scanner import Scanner
+from .scanner import Scanner
 import re
+from selenium import webdriver
+from tempfile import NamedTemporaryFile
 from time import sleep
-import urllib
-from urlparse import urlparse
+try:
+    # Python 3
+    from urllib.parse import urlencode, urlparse
+except ImportError:
+    # Python 2
+    from urllib import urlencode
+    from urlparse import urlparse
 
 
 class HTTPGetScanner(Scanner):
@@ -19,7 +26,6 @@ class HTTPGetScanner(Scanner):
         self.headers = dict()
         self.request = session()
         self.response = None
-        self.url = target
 
         headers = self.cred['auth'].get('headers', dict())
         if headers:
@@ -37,7 +43,7 @@ class HTTPGetScanner(Scanner):
         try:
             self._make_request()
         except Exception as e:
-            self.logger.error('Failed to connect to %s' % self.url)
+            self.logger.error('Failed to connect to %s' % self.target)
             self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
             return None
 
@@ -47,7 +53,7 @@ class HTTPGetScanner(Scanner):
             try:
                 self._make_request()
             except Exception as e:
-                self.logger.error('Failed to connect to %s' % self.url)
+                self.logger.error('Failed to connect to %s' % self.target)
 
         return self.check_success()
 
@@ -60,9 +66,11 @@ class HTTPGetScanner(Scanner):
             self.password = base64.b64decode(self.cred.password)
 
         if success.get('status') == self.response.status_code:
+            self.logger.debug('%s matched %s success status code %s' % (self.target, self.cred['name'], self.response.status_code))
             if success.get('body'):
                 for string in success.get('body'):
                     if re.search(string, self.response.text, re.IGNORECASE):
+                        self.logger.debug('%s matched %s success body text %s' % (self.target, self.cred['name'], success.get('body')))
                         match = True
                         break
             else:
@@ -70,36 +78,44 @@ class HTTPGetScanner(Scanner):
 
         if match:
             self.logger.critical('[+] Found %s default cred %s:%s at %s' %
-                                 (self.cred['name'], self.username, self.password, self.url))
+                                 (self.cred['name'], self.username, self.password, self.target))
+            evidence = ''
+            if self.config.output:
+                try:
+                    evidence = self._screenshot(self.target)
+                except Exception as e:
+                    self.logger.error("Error gathering screenshot for %s" % self.target)
+                    self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
 
             return {'name': self.cred['name'],
                     'username': self.username,
                     'password': self.password,
-                    'target': self.url}
+                    'target': self.target,
+                    'evidence': evidence}
         else:
             self.logger.info('Invalid %s default cred %s:%s at %s' %
-                             (self.cred['name'], self.username, self.password, self.url))
+                             (self.cred['name'], self.username, self.password, self.target))
             return False
 
     def _check_fingerprint(self):
         self.logger.debug("_check_fingerprint")
         self.request = session()
-        self.response = self.request.get(self.url,
+        self.response = self.request.get(self.target,
                                          timeout=self.config.timeout,
                                          verify=False,
                                          proxies=self.config.proxy,
                                          cookies=self.fingerprint.cookies,
                                          headers=self.fingerprint.headers)
-        self.logger.debug('_check_fingerprint', '%s - %i' % (self.url, self.response.status_code))
+        self.logger.debug('_check_fingerprint', '%s - %i' % (self.target, self.response.status_code))
         return self.fingerprint.match(self.response)
 
     def _make_request(self):
         self.logger.debug("_make_request")
         data = self.render_creds(self.cred)
-        qs = urllib.urlencode(data)
-        url = "%s?%s" % (self.url, qs)
+        qs = urlencode(data)
+        url = "%s?%s" % (self.target, qs)
         self.logger.debug("url: %s" % url)
-        self.response = self.request.get(self.url,
+        self.response = self.request.get(self.target,
                                          verify=False,
                                          proxies=self.config.proxy,
                                          timeout=self.config.timeout,
@@ -143,7 +159,7 @@ class HTTPGetScanner(Scanner):
                 cred_data[config['username']] = username
                 cred_data[config['password']] = password
 
-                data_to_send = dict(data.items() + cred_data.items())
+                data_to_send = dict(list(data.items()) + list(cred_data.items()))
                 return data_to_send
         else:  # raw post
             return None
@@ -151,7 +167,7 @@ class HTTPGetScanner(Scanner):
     def _get_parameter_dict(self, auth):
         params = dict()
         data = auth.get('post', auth.get('get', None))
-        for k in data.keys():
+        for k in list(data.keys()):
             if k not in ('username', 'password', 'url'):
                 params[k] = data[k]
 
@@ -162,3 +178,45 @@ class HTTPGetScanner(Scanner):
         parsed = urlparse(req)
         url = "%s://%s" % (parsed[0], parsed[1])
         return url
+
+    def _screenshot(self, target):
+        self.logger.debug("Screenshotting %s" % self.target)
+        # Set up the selenium webdriver
+        # This feels like it will have threading issues
+        for key, value in self.response.request.headers.items():
+            capability_key = 'phantomjs.page.customHeaders.{}'.format(key)
+            webdriver.DesiredCapabilities.PHANTOMJS[capability_key] = value
+
+        if self.config.proxy:
+            webdriver.DesiredCapabilities.PHANTOMJS['proxy'] = {
+                    "httpProxy": self.config.proxy['http'].replace('http://', ''),
+                    "ftpProxy": self.config.proxy['http'].replace('http://', ''),
+                    "sslProxy": self.config.proxy['http'].replace('http://', ''),
+                    "noProxy":None,
+                    "proxyType":"MANUAL",
+                    "autodetect":False
+            }
+        driver = webdriver.PhantomJS()
+        driver.set_page_load_timeout(int(self.config.timeout) - 0.1)
+        driver.set_window_position(0, 0)
+        driver.set_window_size(850, 637.5)
+        for cookie in self.response.request._cookies.items():
+            self.logger.debug("Adding cookie: %s:%s" % cookie)
+            driver.add_cookie({'name': cookie[0],
+                               'value': cookie[1],
+                               'path': '/',
+                               'domain': self.target.host
+            })
+
+        try:
+            driver.get(str(self.target))
+            driver.save_screenshot('screenshot.png')
+            evidence = driver.get_screenshot_as_base64()
+            driver.quit()
+        except Exception as e:
+            self.logger.error('Error getting screenshot for %s' % self.target)
+            self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
+            evidence = ""
+
+        return evidence
+

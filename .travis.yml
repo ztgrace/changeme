@@ -1,6 +1,9 @@
 language: python
 python:
   - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
 addons:
   apt:
     sources:
@@ -12,4 +15,6 @@ addons:
 install: 
   - pip install -r requirements.txt
   - pip install coverage
+services:
+  - redis-server
 script: nosetests --nologcapture -v -s --with-coverage --cover-erase --cover-package=changeme tests/*.py
