@@ -79,7 +79,7 @@ def main():
             report.render_csv()
         if config.output and ".html" in config.output or config.output and config.oa:
             report.render_html()
-        if config.output and not config.oa:
+        if (config.output and not ('json' in config.output or 'csv' in config.output or 'html' in config.output)) and not config.oa:
             logger.error('Only JSON, CSV and HTML are the only supported output types.')
 
 
@@ -155,7 +155,7 @@ class Config(object):
     def _validate_args(self, ap):
         logger = logging.getLogger('changeme')
         if (not self.validate and not self.contributors and not self.dump and not self.shodan_query
-            and not self.mkcred) and not self.target:
+            and not self.mkcred and not self.resume) and not self.target:
             ap.print_help()
             quit()
 
@@ -406,6 +406,7 @@ def check_for_interrupted_scan(config):
     else:
         # Clear the found queue if there's no fingerprints or scanners in the queues
         try:
+            logger.debug('Clearing found_q')
             found_q = RedisQueue('found_q')
             found_q.delete()
         except:
@@ -446,6 +447,7 @@ def remove_queues():
     # Clear Redis
     queues = ['fingerprint', 'scanners', 'found_q']
     for q in queues:
+        logger.debug('Removing %s RedisQueue' % q)
         r = RedisQueue(q)
         try:
             r.delete()
