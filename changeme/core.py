@@ -386,11 +386,14 @@ def check_for_interrupted_scan(config):
         if scanners.qsize() > 0 or fingerprints.qsize() > 0:
             if not prompt_for_resume(config):
                 remove_queues()
+        else:
+            remove_queues()
 
     fp = RedisQueue('fingerprint')
     scanners = RedisQueue('scanners')
     fp_qsize = 0
     scanners_qsize = 0
+    logger.warning('scanners: %s, fp: %s' % (scanners_qsize, fp_qsize))
     try:
         fp_qsize = fp.qsize()
     except redis.exceptions.ConnectionError:
@@ -403,13 +406,15 @@ def check_for_interrupted_scan(config):
     if fp_qsize > 0 or scanners_qsize > 0:
         if not prompt_for_resume(config):
             remove_queues()
-    else:
+
+    if fp_qsize == 0 and scanners_qsize == 0:
         # Clear the found queue if there's no fingerprints or scanners in the queues
         try:
             logger.debug('Clearing found_q')
             found_q = RedisQueue('found_q')
             found_q.delete()
-        except:
+        except Exception as e:
+            logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
             pass
 
 
