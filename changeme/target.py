@@ -13,6 +13,9 @@ class Target(object):
             port = re.sub(r'\D','',str(port))
             if 0 < int(port) < 65535:
                 self.port = int(port)
+            else:
+                #just disregard the port for now.
+                self.port = None
         else:
             self.port = None
         self.protocol = protocol
