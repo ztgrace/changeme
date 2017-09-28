@@ -31,8 +31,6 @@ auth:
   - username:
     password: all
   - username:
-    password: public
-  - username:
     password: ANYCOM
   - username:
     password: apc
@@ -124,8 +122,6 @@ auth:
     password: password
   - username:
     password: pr1v4t3
-  - username:
-    password: private
   - username:
     password: Private
   - username:

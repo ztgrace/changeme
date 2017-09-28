@@ -14,21 +14,21 @@ def reset_handlers():
 
 snmp_args = deepcopy(cli_args)
 snmp_args['protocols'] = 'snmp'
-snmp_args['name'] = 'apc'
+snmp_args['name'] = 'publicprivate'
 snmp_args['target'] = 'demo.snmplabs.com'
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**snmp_args))
 def test_snmp(mock_args):
-    try:
-        reset_handlers()
-        core.main()
-    except:
-        pass
+    reset_handlers()
+    se = core.main()
+    assert se.found_q.qsize() == 2
 
 
 snmp_args = deepcopy(cli_args)
-snmp_args['name'] = 'apc'
+snmp_args['name'] = 'publicprivate'
 snmp_args['target'] = 'snmp://demo.snmplabs.com'
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**snmp_args))
 def test_snmp_proto(mock_args):
     reset_handlers()
-    core.main()
+    se = core.main()
+    assert se.found_q.qsize() == 2
+    

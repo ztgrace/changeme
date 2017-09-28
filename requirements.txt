@@ -14,7 +14,6 @@ python-libnmap
 pyyaml
 redis
 requests
-responses
 selenium
 shodan
 sqlalchemy

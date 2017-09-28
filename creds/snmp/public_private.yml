@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username:
+    password: public
+  - username:
+    password: private
+category: snmp
+default_port: 161
+name: publicprivate
+contributor: ztgrace
