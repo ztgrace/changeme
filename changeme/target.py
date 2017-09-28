@@ -12,7 +12,12 @@ class Target(object):
     def __init__(self, host=None, port=None, protocol=None, url=None):
         self.host = host
         if port:
-            self.port = int(port)
+            port = re.sub(r'\D','',str(port))
+            if 0 < int(port) < 65535:
+                self.port = int(port)
+            else:
+                #just disregard the port for now.
+                self.port = None
         else:
             self.port = None
         self.protocol = protocol
