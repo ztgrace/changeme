@@ -393,7 +393,7 @@ def check_for_interrupted_scan(config):
     scanners = RedisQueue('scanners')
     fp_qsize = 0
     scanners_qsize = 0
-    logger.warning('scanners: %s, fp: %s' % (scanners_qsize, fp_qsize))
+    logger.debug('scanners: %s, fp: %s' % (scanners_qsize, fp_qsize))
     try:
         fp_qsize = fp.qsize()
     except redis.exceptions.ConnectionError:
@@ -471,7 +471,7 @@ def check_version():
         logger.debug("Unable to retrieve latest changeme version.")
         return
 
-    latest = res.text.split(' = ')[1].replace("'", '')
+    latest = res.text.split('\n')[0].split(' = ')[1].replace("'", '')
     if not version.__version__ == latest:
         logger.warning('Your version of changeme is out of date. Local version: %s, Latest: %s' % (str(version.__version__), latest))
 

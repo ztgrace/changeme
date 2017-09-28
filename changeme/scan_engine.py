@@ -150,9 +150,6 @@ class ScanEngine(object):
 
         fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
 
-        for f in fingerprints:
-            self.logger.debug("fingerprints: %s" % f.target)
-
         # Add any protocols if they were included in the targets
         for t in self.targets:
             if t.protocol and t.protocol not in self.config.protocols:

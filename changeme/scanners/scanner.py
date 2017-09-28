@@ -5,16 +5,14 @@ import socket
 
 class Scanner(object):
     def __init__(self, cred, target, config, username, password):
+        self.logger = logging.getLogger('changeme')
         self.cred = cred
         self.target = target
-        if not self.target.port:
-            self.port = self.target.port
-        else:
-            self.port = self.cred['default_port']
+        if self.target.port is None:
+            self.target.port = self.cred['default_port']
         self.config = config
         self.username = username
         self.password = password
-        self.logger = logging.getLogger('changeme')
 
     def __hash__(self):
         return id(self)
@@ -54,7 +52,7 @@ class Scanner(object):
                     'evidence': evidence}
 
         except Exception as e:
-            self.logger.info('Invalid %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, '%s:%s' % (self.target, str(self.port))))
+            self.logger.info('Invalid %s default cred %s:%s at %s' % (self.cred['name'], self.username, self.password, str(self.target)))
             self.logger.debug('%s Exception: %s' % (type(e).__name__, str(e)))
             return False
 

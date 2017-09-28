@@ -8,7 +8,7 @@ class FTP(Scanner):
 
     def _check(self):
         ftp = ftplib.FTP()
-        ftp.connect(str(self.target.host), self.target.port)
+        ftp.connect(self.target.host, self.target.port)
 
         ftp.login(self.username, self.password)
         evidence = ftp.retrlines('LIST')

@@ -32,7 +32,6 @@ class HttpFingerprint:
         return hash(str(self.target) + str(self.headers) + str(self.cookies))
 
     def __eq__(self, other):
-        #if self.target == other.target and self.url == other.url and self.port == other.port and self.ssl == other.ssl and self.headers == other.headers and self.cookies == other.cookies:
         return self.__dict__ == other.__dict__
 
     def fingerprint(self):
@@ -163,7 +162,6 @@ class HttpFingerprint:
                     if not t.port:
                         t.port = c['default_port']
                     t.url = url
-                    logger.debug(url)
 
                     hfp = HttpFingerprint(
                         t,

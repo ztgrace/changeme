@@ -19,7 +19,7 @@ class SSHKey(SSH):
 
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.MissingHostKeyPolicy())  # ignore unknown hosts
-        c.connect(hostname=str(self.target), username=self.username, pkey=key)
+        c.connect(hostname=self.target.host, port=self.target.port, username=self.username, pkey=key)
         stdin, stdout, stderr = c.exec_command('uname -a')
         evidence = stdout.readlines()[0]
         c.close()

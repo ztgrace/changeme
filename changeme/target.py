@@ -2,8 +2,10 @@ from libnmap.parser import NmapParser as np
 import logging
 from netaddr import IPNetwork
 from netaddr.core import AddrFormatError
+import re
 from os.path import isfile
 import shodan
+import socket
 
 
 class Target(object):
@@ -15,6 +17,7 @@ class Target(object):
             self.port = None
         self.protocol = protocol
         self.url = url
+        self.ip = None
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -41,6 +44,17 @@ class Target(object):
             target += self.url
 
         return str(target)
+
+    def get_ip(self):
+        if self.ip is None:
+            regex = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
+            result = regex.match(self.host)
+            if not result:
+                self.ip = socket.gethostbyname(self.host)
+            else:
+                self.ip = self.host
+
+        return self.ip
 
     @staticmethod
     def parse_target(target):
