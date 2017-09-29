@@ -11,6 +11,7 @@ pymongo
 pyodbc
 pysnmp
 python-libnmap
+python-memcached
 pyyaml
 redis
 requests

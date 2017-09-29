@@ -6,6 +6,7 @@ from changeme.redis_queue import RedisQueue
 import pickle
 from .scanners.ftp import FTP
 from .scanners.http_fingerprint import HttpFingerprint
+from .scanners.memcached import MemcachedScanner
 from .scanners.mongo import Mongodb
 from .scanners.mssql import MSSQL
 from .scanners.mysql import MySQL
@@ -193,6 +194,10 @@ class ScanEngine(object):
                 if cred['protocol'] == 'redis' and ('redis' in self.config.protocols or self.config.all):
                     t = Target(host=target.host, port=target.port, protocol='redis')
                     fingerprints.append(RedisScanner(cred, t, self.config, '', ''))
+
+                if cred['protocol'] == 'memcached' and ('memcached' in self.config.protocols or self.config.all):
+                    t = Target(host=target.host, port=target.port, protocol='memcached')
+                    fingerprints.append(MemcachedScanner(cred, t, self.config, '', ''))
 
         self.logger.info("Loading creds into queue")
         for fp in set(fingerprints):

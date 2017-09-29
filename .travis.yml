@@ -15,7 +15,7 @@ addons:
 install: 
   - pip install -r requirements.txt
   - pip install -r dev-requirements.txt
-  - pip install coverage
 services:
   - redis-server
-script: nosetests --nologcapture -v -s --with-coverage --cover-erase --cover-package=changeme tests/*.py
+  - memcached
+script: nosetests --nologcapture -v -s --with-coverage --cover-erase --cover-package=changeme changeme/tests/*.py
