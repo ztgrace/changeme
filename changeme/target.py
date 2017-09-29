@@ -7,7 +7,6 @@ from os.path import isfile
 import shodan
 import socket
 
-
 class Target(object):
     def __init__(self, host=None, port=None, protocol=None, url=None):
         self.host = host
