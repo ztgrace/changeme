@@ -88,7 +88,7 @@ class Target(object):
     def _parse_target_string(target):
         logger = logging.getLogger('changeme')
         logger.debug('Parsing target %s' % target)
-        target = target.strip()
+        target = target.strip().rstrip('/')
         targets = set()
         try:
             for ip in IPNetwork(target).iter_hosts(): #(covers IP or cidr) #3,4
