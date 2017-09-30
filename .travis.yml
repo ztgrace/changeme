@@ -18,4 +18,5 @@ install:
 services:
   - redis-server
   - memcached
+  - mongodb
 script: nosetests --nologcapture -v -s --with-coverage --cover-erase --cover-package=changeme changeme/tests/*.py
