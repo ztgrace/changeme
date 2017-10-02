@@ -157,47 +157,27 @@ class ScanEngine(object):
                 self.config.protocols += ",%s" % t.protocol
 
         self.logger.info('Configured protocols: %s' % self.config.protocols)
+
+        # scanner_map maps the friendly proto:// name to the actual class name
+        scanner_map = {
+            'ssh': 'SSH',
+            'ssh_key': 'SSHKey',
+            'ftp': 'FTP',
+            'memcached': 'MemcachedScanner',
+            'mongodb': 'Mongodb',
+            'mssql': 'MSSQL',
+            'mysql': 'MySQL',
+            'postgres': 'Postgres',
+            'redis': 'RedisScanner',
+            'snmp': 'SNMP',
+        }
+
         for target in self.targets:
             for cred in self.creds:
-                if cred['protocol'] == 'ssh' and ('ssh' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='ssh')
-                    fingerprints.append(SSH(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'ssh_key' and ('ssh_key' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='ssh_key')
-                    fingerprints.append(SSHKey(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'postgres' and ('postgres' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='postgres')
-                    fingerprints.append(Postgres(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'mysql' and ('mysql' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='mysql')
-                    fingerprints.append(MySQL(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'mssql' and ('mssql' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='mssql')
-                    fingerprints.append(MSSQL(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'ftp' and ('ftp' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='ftp')
-                    fingerprints.append(FTP(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'snmp' and ('snmp' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='snmp')
-                    fingerprints.append(SNMP(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'mongodb' and ('mongodb' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='mongodb')
-                    fingerprints.append(Mongodb(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'redis' and ('redis' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='redis')
-                    fingerprints.append(RedisScanner(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'memcached' and ('memcached' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='memcached')
-                    fingerprints.append(MemcachedScanner(cred, t, self.config, '', ''))
+                for proto, classname in scanner_map.iteritems():
+                    if cred['protocol'] == proto and (proto in self.config.protocols or self.config.all):
+                        t = Target(host=target.host, port=target.port, protocol=proto)
+                        fingerprints.append(globals()[classname](cred, t, self.config, '', ''))
 
         self.logger.info("Loading creds into queue")
         for fp in set(fingerprints):

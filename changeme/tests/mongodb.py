@@ -4,8 +4,10 @@ from .core import cli_args
 from copy import deepcopy
 import logging
 import mock
+import os
 
 
+logger = logging.getLogger('changeme')
 
 def reset_handlers():
     logger = logging.getLogger('changeme')
@@ -27,5 +29,5 @@ def test_mongodb(mock_args):
             raise e
         # Warn if we're not Travis CI
         else:
-            logger.warning('memcached failed')
+            logger.warning('mongodb failed')
 
