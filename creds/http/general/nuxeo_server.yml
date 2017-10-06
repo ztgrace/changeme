@@ -21,7 +21,7 @@ auth:
   - /nuxeo/startup
 category: general
 contributor: ztgrace
-default_port: 443
+default_port: 8080
 fingerprint:
   body:
   - Nuxeo Enterprise Platform
@@ -30,4 +30,6 @@ fingerprint:
   - /nuxeo/login.jsp
 name: Nuxeo Server
 protocol: http
-ssl: true
+ssl: false
+references:
+  - https://doc.nuxeo.com/nxdoc/authentication-and-user-management/
