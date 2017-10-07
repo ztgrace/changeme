@@ -257,7 +257,7 @@ def load_creds(config):
     creds = list()
     total_creds = 0
     cred_names = list()
-    protocols = next(os.walk('creds'))[1]
+    protocols = [ proto for proto in os.walk('creds')][0][1]
     for root, dirs, files in os.walk('creds'):
         for fname in files:
             f = os.path.join(root, fname)
