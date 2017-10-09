@@ -17,7 +17,7 @@ memcached_args = deepcopy(cli_args)
 memcached_args['protocols'] = 'memcached'
 memcached_args['target'] = '127.0.0.1'
 @mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**memcached_args))
-def test_memcached(mock_args):
+def memcached(mock_args):
     reset_handlers()
     se = core.main()
     try:
