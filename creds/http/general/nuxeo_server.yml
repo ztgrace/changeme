@@ -1,0 +1,35 @@
+auth:
+  credentials:
+  - password: Administrator
+    username: Administrator
+  headers: []
+  post:
+    Submit: Log In
+    forceAnonymousLogin: ''
+    form_submitted_marker: ''
+    language: en
+    password: user_password
+    requestedUrl: ''
+    username: user_name
+  sessionid: JSESSIONID
+  success:
+    body:
+    - '>Log Out</span>'
+    status: 200
+  type: post
+  url:
+  - /nuxeo/startup
+category: general
+contributor: ztgrace
+default_port: 8080
+fingerprint:
+  body:
+  - Nuxeo Enterprise Platform
+  status: 200
+  url:
+  - /nuxeo/login.jsp
+name: Nuxeo Server
+protocol: http
+ssl: false
+references:
+  - https://doc.nuxeo.com/nxdoc/authentication-and-user-management/

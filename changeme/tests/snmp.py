@@ -1,6 +1,6 @@
 import argparse
 from changeme import core
-from core import cli_args
+from .core import cli_args
 from copy import deepcopy
 import logging
 import mock

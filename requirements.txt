@@ -5,12 +5,13 @@ lxml
 netaddr
 nose
 paramiko
-persist-queue
+persist-queue==0.3.0
 psycopg2
 pymongo
 pyodbc
 pysnmp
 python-libnmap
+python-memcached
 pyyaml
 redis
 requests

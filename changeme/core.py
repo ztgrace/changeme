@@ -20,6 +20,7 @@ import yaml
 
 PERSISTENT_QUEUE = "data.db" # Instantiated in the scan_engine class
 
+
 def banner(version):
     b = """
  #####################################################
@@ -247,7 +248,15 @@ def parse_args():
 
 
 def get_protocol(filename):
-    return filename.split(os.path.sep)[1]
+    parts = filename.split(os.path.sep)
+    cred_index = 0
+    for p in parts:
+        if p == 'creds':
+            break
+        cred_index += 1
+
+    return parts[cred_index + 1]
+
 
 
 def load_creds(config):
@@ -257,8 +266,10 @@ def load_creds(config):
     creds = list()
     total_creds = 0
     cred_names = list()
-    protocols = next(os.walk('creds'))[1]
-    for root, dirs, files in os.walk('creds'):
+    cred_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'creds')
+    logger.debug('cred_path: %s' % cred_path)
+    protocols = [proto for proto in os.walk(cred_path)][0][1]
+    for root, dirs, files in os.walk(cred_path):
         for fname in files:
             f = os.path.join(root, fname)
             protocol = get_protocol(f)
@@ -266,19 +277,19 @@ def load_creds(config):
                 parsed = parse_yaml(f)
                 if parsed:
                     if parsed['name'] in cred_names:
-                        #logger.error("[load_creds] %s: duplicate name %s" % (f, parsed['name']))
                         pass
                     elif validate_cred(parsed, f, protocol):
                         parsed['protocol'] = protocol  # Add the protocol after the schema validation
                         if in_scope(config.name, config.category, parsed, protocols):
-                            total_creds += len(parsed["auth"]["credentials"])
+                            total_creds += len(parsed['auth']['credentials'])
                             creds.append(parsed)
                             cred_names.append(parsed['name'])
                             logger.debug('Loaded %s' % parsed['name'])
 
-    print(('Loaded %i default credential profiles' % len(creds)))
-    print(('Loaded %i default credentials\n' % total_creds))
+    print('Loaded %i default credential profiles' % len(creds))
+    print('Loaded %i default credentials\n' % total_creds)
 
+    creds
     return creds
 
 

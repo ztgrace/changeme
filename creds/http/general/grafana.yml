@@ -1,0 +1,27 @@
+auth:
+  credentials:
+  - password: admin
+    raw: '{"user":"admin","email":"","password":"admin"}'
+    username: admin
+  headers:
+  - Content-Type: application/json;charset=utf-8
+  sessionid: grafana_sess
+  success:
+    body:
+    - '{"message":"Logged in"}'
+    status: 200
+  type: raw_post
+  url:
+  - /login
+category: general
+contributor: ztgrace
+default_port: 3000
+fingerprint:
+  body:
+  - <title>Grafana</title>
+  status: 200
+  url:
+  - /login
+name: Grafana
+protocol: http
+ssl: false

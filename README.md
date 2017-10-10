@@ -45,10 +45,12 @@ Below are some common usage examples.
 * Scan a single host: `./changeme.py 192.168.59.100`
 * Scan a subnet for default creds: `./changeme.py 192.168.59.0/24`
 * Scan using an nmap file `./changeme.py subnet.xml`
-* Scan a subnet for Tomcat default creds and set the timeout to 5 seconds: `./changeme.py -s 192.168.59.0/24 -n "Apache Tomcat" --timeout 5`
+* Scan a subnet for Tomcat default creds and set the timeout to 5 seconds: `./changeme.py -n "Apache Tomcat" --timeout 5 192.168.59.0/24`
 * Use [Shodan](https://www.shodan.io/) to populate a targets list and check them for default credentials: `./changeme.py --shodan_query "Server: SQ-WEBCAM" --shodan_key keygoeshere -c camera`
-* Scan for SSH and known SSH keys: `./changeme.py 192.168.59.0/24 --protocols ssh,ssh_key`
+* Scan for SSH and known SSH keys: `./changeme.py --protocols ssh,ssh_key 192.168.59.0/24`
 * Scan a host for SNMP creds using the protocol syntax: `./changeme.py snmp://192.168.1.20`
+
+See [Wiki Examples](https://github.com/ztgrace/changeme/wiki/Examples) for more detailed examples.
 
 ## Known Issues
 

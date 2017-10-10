@@ -6,6 +6,7 @@ from changeme.redis_queue import RedisQueue
 import pickle
 from .scanners.ftp import FTP
 from .scanners.http_fingerprint import HttpFingerprint
+from .scanners.memcached import MemcachedScanner
 from .scanners.mongo import Mongodb
 from .scanners.mssql import MSSQL
 from .scanners.mysql import MySQL
@@ -14,6 +15,7 @@ from .scanners.redis_scanner import RedisScanner
 from .scanners.snmp import SNMP
 from .scanners.ssh import SSH
 from .scanners.ssh_key import SSHKey
+from .scanners.http_fingerprint import HttpFingerprint
 from .target import Target
 import time
 
@@ -61,7 +63,7 @@ class ScanEngine(object):
         # Unique the queue
         scanners = list()
         while self.scanners.qsize() > 0:
-            s = self.scanners.get()
+            s = self.scanners.get(block=True)
 
             if s not in scanners:
                 scanners.append(s)
@@ -90,7 +92,7 @@ class ScanEngine(object):
             self.logger.debug('%i scanners remaining' % remaining)
 
             try:
-                scanner = scanq.get()
+                scanner = scanq.get(block=True)
                 if scanner is None:
                     return
             except Exception as e:
@@ -156,43 +158,27 @@ class ScanEngine(object):
                 self.config.protocols += ",%s" % t.protocol
 
         self.logger.info('Configured protocols: %s' % self.config.protocols)
+
+        # scanner_map maps the friendly proto:// name to the actual class name
+        scanner_map = {
+            'ssh': 'SSH',
+            'ssh_key': 'SSHKey',
+            'ftp': 'FTP',
+            'memcached': 'MemcachedScanner',
+            'mongodb': 'Mongodb',
+            'mssql': 'MSSQL',
+            'mysql': 'MySQL',
+            'postgres': 'Postgres',
+            'redis': 'RedisScanner',
+            'snmp': 'SNMP',
+        }
+
         for target in self.targets:
             for cred in self.creds:
-                if cred['protocol'] == 'ssh' and ('ssh' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='ssh')
-                    fingerprints.append(SSH(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'ssh_key' and ('ssh_key' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='ssh_key')
-                    fingerprints.append(SSHKey(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'postgres' and ('postgres' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='postgres')
-                    fingerprints.append(Postgres(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'mysql' and ('mysql' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='mysql')
-                    fingerprints.append(MySQL(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'mssql' and ('mssql' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='mssql')
-                    fingerprints.append(MSSQL(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'ftp' and ('ftp' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='ftp')
-                    fingerprints.append(FTP(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'snmp' and ('snmp' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='snmp')
-                    fingerprints.append(SNMP(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'mongodb' and ('mongodb' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='mongodb')
-                    fingerprints.append(Mongodb(cred, t, self.config, '', ''))
-
-                if cred['protocol'] == 'redis' and ('redis' in self.config.protocols or self.config.all):
-                    t = Target(host=target.host, port=target.port, protocol='redis')
-                    fingerprints.append(RedisScanner(cred, t, self.config, '', ''))
+                for proto, classname in scanner_map.items():
+                    if cred['protocol'] == proto and (proto in self.config.protocols or self.config.all):
+                        t = Target(host=target.host, port=target.port, protocol=proto)
+                        fingerprints.append(globals()[classname](cred, t, self.config, '', ''))
 
         self.logger.info("Loading creds into queue")
         for fp in set(fingerprints):
@@ -218,4 +204,4 @@ class ScanEngine(object):
         except redis.ConnectionError:
             # Fall back to sqlite persistent queue
             self.logger.debug('Using FIFOSQLiteQueue for %s' % name)
-            return FIFOSQLiteQueue(path=".", multithreading=True, name=name)
+            return FIFOSQLiteQueue(path='.', multithreading=True, name=name)

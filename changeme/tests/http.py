@@ -2,13 +2,13 @@ import argparse
 from changeme.scan_engine import ScanEngine
 from changeme.target import Target
 from changeme import core
-from core import cli_args
+from .core import cli_args
 from copy import deepcopy
 import csv
 import json
 import logging
 import mock
-from mock_responses import MockResponses
+from .mock_responses import MockResponses
 from nose.tools import *
 import os
 import responses

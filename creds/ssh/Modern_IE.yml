@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: IEUser
+    password: D@rj33l1ng
+category: ssh
+default_port: 22
+name: modern.ie
+contributor: ztgrace
+references:
+  - https://twitter.com/0rbz_/status/914171719652401152

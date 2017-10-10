@@ -1,5 +1,5 @@
 from changeme.target import Target
-from os import remove
+import os
 
 """
 1. nmap.xml
@@ -12,10 +12,13 @@ from os import remove
 """
 
 def test_nmap():
-    nmap = "tests/tomcat_nmap.xml"
+    path = os.path.dirname(os.path.abspath(__file__))
+    nmap = os.path.join(path, "tomcat_nmap.xml")
     targets = Target.parse_target(nmap)
     assert len(targets) == 1
     t = targets.pop()
+    path = os.path.dirname(os.path.abspath(__file__))
+    print("target: %s" % t)
     assert t == Target(host='127.0.0.1', port='8080')
 
 
@@ -34,7 +37,7 @@ def test_targets_file():
         else:
             t2(t)
 
-    remove(target)
+    os.remove(target)
 
 
 def t1(t):

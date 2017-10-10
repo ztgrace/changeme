@@ -288,7 +288,7 @@ def mkcred():
     fname = parameters['name'].lower().replace(' ', '_').replace('/', '_') + '.yml'
     print('Writing config to %s' % fname)
 
-    cdir = os.path.join('creds', parameters['protocol'], parameters['category'], fname)
+    cdir = os.path.join('creds', parameters['protocol'], parameters['category'])
     if not os.path.isdir(cdir):
         os.makedirs(cdir)
 
