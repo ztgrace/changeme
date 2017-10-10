@@ -1,11 +1,8 @@
 import base64
-from changeme.report import Report
-import jinja2
 from requests import session
 from .scanner import Scanner
 import re
 from selenium import webdriver
-from tempfile import NamedTemporaryFile
 from time import sleep
 try:
     # Python 3
@@ -37,7 +34,7 @@ class HTTPGetScanner(Scanner):
         self.cred['auth']['credentials'] = [{'username': self.username, 'password': self.password}]
 
     def __reduce__(self):
-        return (self.__class__, (self.cred, self.target, self.username, self.password, self.config, self.cookies))
+        return self.__class__, (self.cred, self.target, self.username, self.password, self.config, self.cookies)
 
     def scan(self):
         try:
@@ -80,7 +77,7 @@ class HTTPGetScanner(Scanner):
             self.logger.critical('[+] Found %s default cred %s:%s at %s' %
                                  (self.cred['name'], self.username, self.password, self.target))
             evidence = ''
-            if self.config.output:
+            if self.config.output is not None:
                 try:
                     evidence = self._screenshot(self.target)
                 except Exception as e:
