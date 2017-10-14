@@ -7,11 +7,8 @@ class SNMP(Scanner):
         super(SNMP, self).__init__(cred, target, config, username, password)
 
     def fingerprint(self):
-        # Just build the scanners instead of mess around detecting the UDP service
-        scanners = list()
-        for pair in self.cred['auth']['credentials']:
-            scanners.append(self._mkscanner(self.cred, self.target, None, pair['password'], self.config))
-        return scanners
+        # Don't fingerprint since it's UDP
+        return True
 
     def _check(self):
         iterator = getCmd(SnmpEngine(),

@@ -22,11 +22,6 @@ import time
 
 class ScanEngine(object):
     def __init__(self, creds, config):
-        """
-
-        :param creds:
-        :param config:
-        """
         self.creds = creds
         self.config = config
         self.logger = logging.getLogger('changeme')
@@ -63,7 +58,7 @@ class ScanEngine(object):
         # Unique the queue
         scanners = list()
         while self.scanners.qsize() > 0:
-            s = self.scanners.get(block=True)
+            s = self.scanners.get()
 
             if s not in scanners:
                 scanners.append(s)
@@ -119,10 +114,13 @@ class ScanEngine(object):
                 self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
                 return
 
-            results = fp.fingerprint()
-            if results:
-                for result in results:
-                    scannerq.put(result)
+            if fp.fingerprint():
+                results = fp.get_scanners(self.creds)
+                if results:
+                    for result in results:
+                        scannerq.put(result)
+            else:
+                self.logger.debug('failed fingerprint')
 
         self.logger.debug('scanners: %i' % scannerq.qsize())
 
@@ -204,4 +202,4 @@ class ScanEngine(object):
         except redis.ConnectionError:
             # Fall back to sqlite persistent queue
             self.logger.debug('Using FIFOSQLiteQueue for %s' % name)
-            return FIFOSQLiteQueue(path='.', multithreading=True, name=name)
+            return FIFOSQLiteQueue(path=':memory:', multithreading=True, name=name)

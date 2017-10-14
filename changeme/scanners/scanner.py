@@ -29,16 +29,22 @@ class Scanner(object):
             result = sock.connect_ex((str(self.target.host), self.target.port))
             sock.shutdown(2)
             if result == 0:
+                return True
                 self.logger.info('Port %i open' % self.target.port)
-                scanners = list()
-                for pair in self.cred['auth']['credentials']:
-                    scanners.append(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))
-                return scanners
             else:
                 return False
         except Exception as e:
             self.logger.debug(str(e))
             return False
+
+    def get_scanners(self, creds):
+        scanners = list()
+        for pair in self.cred['auth']['credentials']:
+
+            scanners.append(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))
+            self.logger.warning(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))
+        return scanners
+
 
     def check_success(self):
         try:
