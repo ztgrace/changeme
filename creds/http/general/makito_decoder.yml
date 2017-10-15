@@ -1,0 +1,28 @@
+auth:
+  credentials:
+  - password: "%89%F0%01%8F%D0%01%80%F0%01%85%D0%01%83%F0%01%83%E0%01%84%F0%01"
+    username: admin
+    ref: http://media.extron.com/download/files/drivers/haiv_44_7036_3.pdf
+  post:
+    action: login
+    md5encrypted: 'no'
+    password: password
+    username: username
+  success:
+    body: 
+    - '>Logout</a'
+    status: 200
+  type: post
+  url:
+  - /cgi-bin/web.cgi
+category: web
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body: 
+  - <title>MAKITO Login</title>
+  status: 200
+  url:
+  - /cgi-bin/web.cgi
+name: Makito Decoder
+ssl: false

@@ -5,7 +5,7 @@ lxml
 netaddr
 nose
 paramiko
-persist-queue==0.3.0
+persist-queue==0.3.1
 psycopg2
 pymongo
 pyodbc

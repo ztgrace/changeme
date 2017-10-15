@@ -120,7 +120,21 @@ def test_jboss_scan_fail(mock_args):
     se._build_targets()
     se.fingerprint_targets(se.fingerprints, se.scanners)
     print(se.scanners.qsize())
-    assert se.scanners.qsize() == 2
+    scanners = list()
+    while se.scanners.qsize() > 0:
+        s = se.scanners.get()
+        print(s.cred['name'])
+        print(s.target)
+        print(s.username)
+        print(s.password)
+        scanners.append(s)
+
+    print("num scanners: %i" % len(scanners))
+    assert len(scanners) == 2
+
+    # put scanners back in queue
+    for s in scanners:
+        se.scanners.put(s)
 
     se._scan(se.scanners, se.found_q)
     assert se.found_q.qsize() == 0

@@ -11,13 +11,14 @@ import requests
 
 
 class HttpFingerprint:
-    def __init__(self, target, headers, cookies, config, creds):
+    def __init__(self, target, headers, cookies, config):
         self.target = target # changeme.target.Target()
         self.headers = headers
         self.cookies = cookies
         self.config = config
-        self.creds = creds
         self.logger = logging.getLogger('changeme')
+        self.res = None
+        self.req = requests.Session()
 
     def __getstate__(self):
         state = self.__dict__
@@ -32,14 +33,12 @@ class HttpFingerprint:
         return hash(str(self.target) + str(self.headers) + str(self.cookies))
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        return self.target == other.target
 
     def fingerprint(self):
-        scanners = list()
-        s = requests.Session()
 
         try:
-            res = s.get(
+            self.res = self.req.get(
                 str(self.target),
                 timeout=self.config.timeout,
                 verify=False,
@@ -49,37 +48,9 @@ class HttpFingerprint:
             )
         except Exception as e:
             self.logger.debug('Failed to connect to %s' % self.target)
-            return
+            return False
 
-        for cred in self.creds:
-            if self.ismatch(cred, res):
-
-                csrf = self._get_csrf_token(res, cred)
-                if cred['auth'].get('csrf', False) and not csrf:
-                    self.logger.error('Missing required CSRF token')
-                    return
-
-                sessionid = self._get_session_id(res, cred)
-                if cred['auth'].get('sessionid') and not sessionid:
-                    self.logger.error("Missing session cookie %s for %s" % (cred['auth'].get('sessionid'), res.url))
-                    return
-
-                for pair in cred['auth']['credentials']:
-                    for u in cred['auth']['url']:  # pass in the auth url
-                        target = deepcopy(self.target)
-                        target.url = u
-                        self.logger.debug('Building %s %s:%s, %s' % (cred['name'], pair['username'], pair['password'], target))
-
-                        if cred['auth']['type'] == 'get':
-                            scanners.append(HTTPGetScanner(cred, target, pair['username'], pair['password'], self.config, s.cookies))
-                        elif cred['auth']['type'] == 'post':
-                            scanners.append(HTTPPostScanner(cred, target, pair['username'], pair['password'], self.config, s.cookies, csrf))
-                        elif cred['auth']['type'] == 'raw_post':
-                            scanners.append(HTTPRawPostScanner(cred, target, pair['username'], pair['password'], self.config, s.cookies, csrf, pair['raw']))
-                        elif cred['auth']['type'] == 'basic_auth':
-                            scanners.append(HTTPBasicAuthScanner(cred, target, pair['username'], pair['password'], self.config, s.cookies))
-
-        return scanners
+        return True
 
     def _get_csrf_token(self, res, cred):
         name = cred['auth'].get('csrf', False)
@@ -139,6 +110,38 @@ class HttpFingerprint:
 
         return match
 
+    def get_scanners(self, creds):
+        scanners = list()
+        for cred in creds:
+            if self.ismatch(cred, self.res):
+
+                csrf = self._get_csrf_token(self.res, cred)
+                if cred['auth'].get('csrf', False) and not csrf:
+                    self.logger.error('Missing required CSRF token')
+                    return
+
+                sessionid = self._get_session_id(self.res, cred)
+                if cred['auth'].get('sessionid') and not sessionid:
+                    self.logger.error("Missing session cookie %s for %s" % (cred['auth'].get('sessionid'), self.res.url))
+                    return
+
+                for pair in cred['auth']['credentials']:
+                    for u in cred['auth']['url']:  # pass in the auth url
+                        target = deepcopy(self.target)
+                        target.url = u
+                        self.logger.debug('Building %s %s:%s, %s' % (cred['name'], pair['username'], pair['password'], target))
+
+                        if cred['auth']['type'] == 'get':
+                            scanners.append(HTTPGetScanner(cred, target, pair['username'], pair['password'], self.config, self.req.cookies))
+                        elif cred['auth']['type'] == 'post':
+                            scanners.append(HTTPPostScanner(cred, target, pair['username'], pair['password'], self.config, self.req.cookies, csrf))
+                        elif cred['auth']['type'] == 'raw_post':
+                            scanners.append(HTTPRawPostScanner(cred, target, pair['username'], pair['password'], self.config, self.req.cookies, csrf, pair['raw']))
+                        elif cred['auth']['type'] == 'basic_auth':
+                            scanners.append(HTTPBasicAuthScanner(cred, target, pair['username'], pair['password'], self.config, self.req.cookies))
+
+        return scanners
+
     @staticmethod
     def build_fingerprints(targets, creds, config):
         fingerprints = list()
@@ -163,13 +166,7 @@ class HttpFingerprint:
                         t.port = c['default_port']
                     t.url = url
 
-                    hfp = HttpFingerprint(
-                        t,
-                        fp.get('headers', None),
-                        fp.get('cookie', None),
-                        config,
-                        creds,
-                    )
+                    hfp = HttpFingerprint(t, fp.get('headers', None), fp.get('cookie', None), config)
                     logger.debug('Adding %s to fingerprint list' % hfp.target)
                     fingerprints.append(hfp)
 
