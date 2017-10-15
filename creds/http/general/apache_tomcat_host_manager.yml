@@ -1,0 +1,51 @@
+auth:
+  credentials:
+  - username: tomcat
+    password: tomcat
+  - username: admin
+    password: admin
+  - username: ovwebusr
+    password: OvW*busr1
+  - username: j2deployer
+    password: j2deployer
+  - username: cxsdk
+    password: kdsxc
+  - username: ADMIN
+    password: ADMIN
+  - username: xampp
+    password: xampp
+  - username: tomcat
+    password: s3cret
+  - username: QCC
+    password: QLogic66
+  - username: admin
+    password:
+  - username: admin
+    password: tomcat
+  - username: root
+    password: root
+  - username: role1
+    password: role1
+  - username: role
+    password: changethis
+  - username: tomcat
+    password: changethis
+  - username: admin
+    password: j5Brn9
+  - username: role1
+    password: tomcat
+  success:
+    status: 200
+  type: basic_auth
+  url:
+  - /host-manager/html
+category: web
+contributor: anshumanbh
+default_port: 8080
+fingerprint:
+  basic_auth_realm: Tomcat Host Manager Application
+  status: 401
+  url:
+  - /host-manager/html
+name: Apache Tomcat Host Manager
+ssl: false

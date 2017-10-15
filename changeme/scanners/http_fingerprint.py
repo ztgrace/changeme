@@ -33,7 +33,7 @@ class HttpFingerprint:
         return hash(str(self.target) + str(self.headers) + str(self.cookies))
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        return self.target == other.target
 
     def fingerprint(self):
 

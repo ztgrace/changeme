@@ -4,9 +4,9 @@ A default credential scanner.
 
 ## About
 
-I wrote changeme out of frustration with commercial vulnerability scanners missing common default credentials. Getting default credentials added to commercial scanners is often difficult and slow. changeme is designed to be simple to add new credentials without having to write any code or modules.
+changeme picks up where commercial scanners leave off. It focuses on detecting default and backdoor credentials and not necessarily common credentials. It's default mode is to scan HTTP default credentials, but has support for other credentials.
 
-changeme keeps credential data separate from code. All credentials are stored in [yaml](http://yaml.org/) files so they can be both easily read by humans and processed by changeme. Credential files can be created by using the `./changeme.py --mkcred` tool and answering a few questions.
+changeme is designed to be simple to add new credentials without having to write any code or modules. changeme keeps credential data separate from code. All credentials are stored in [yaml](http://yaml.org/) files so they can be both easily read by humans and processed by changeme. Credential files can be created by using the `./changeme.py --mkcred` tool and answering a few questions.
 
 changeme supports the http/https, mssql, mysql, postgres, ssh, ssh w/key, snmp, mongodb and ftp protocols. Use `./changeme.py --dump` to output all of the currently available credentials.
 
@@ -14,7 +14,7 @@ You can load your targets using a variety of methods, single ip address/host, su
 
 ## Installation
 
-changeme has only been tested on Linux and has known issues on Windows and OS X/macOS. Use docker to run changeme on the unsupported platforms.
+changeme has only been tested on Linux and has known issues on Windows and OS X/macOS. Use docker to run changeme on the unsupported platforms. It supports either a redis-backed queue (most stable) or an in-memory backed queue.
 
 Stable versions of changeme can be found on the [releases](https://github.com/ztgrace/changeme/releases) page.
 
