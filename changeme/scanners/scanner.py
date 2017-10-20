@@ -42,7 +42,6 @@ class Scanner(object):
         for pair in self.cred['auth']['credentials']:
 
             scanners.append(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))
-            self.logger.warning(self._mkscanner(self.cred, self.target, pair['username'], pair['password'], self.config))
         return scanners
 
 

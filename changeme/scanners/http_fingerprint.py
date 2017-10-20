@@ -33,7 +33,15 @@ class HttpFingerprint:
         return hash(str(self.target) + str(self.headers) + str(self.cookies))
 
     def __eq__(self, other):
-        return self.target == other.target
+        s = dict()
+        o = dict()
+        s['target'] = self.target
+        s['headers'] = self.headers
+        s['cookies'] = self.cookies
+        o['target'] = other.target
+        o['headers'] = other.headers
+        o['cookies'] = other.cookies
+        return s == o
 
     def fingerprint(self):
 
