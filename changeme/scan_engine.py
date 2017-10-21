@@ -1,6 +1,5 @@
 import logging
 import multiprocessing as mp
-from persistqueue import FIFOSQLiteQueue
 import redis
 from changeme.redis_queue import RedisQueue
 import pickle
@@ -18,6 +17,12 @@ from .scanners.ssh_key import SSHKey
 from .scanners.http_fingerprint import HttpFingerprint
 from .target import Target
 import time
+try:
+    # Python 2
+    from Queue import Queue
+except:
+    # Python 3
+    from queue import Queue
 
 
 class ScanEngine(object):
@@ -46,7 +51,7 @@ class ScanEngine(object):
 
         self.logger.debug('Number of procs: %i' % num_procs)
         self.total_fps = self.fingerprints.qsize()
-        procs = [mp.Process(target=self.fingerprint_targets, args=(self.fingerprints, self.scanners)) for i in range(num_procs)]
+        procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
         for proc in procs:
             proc.start()
             proc.join(timeout=30)
@@ -98,13 +103,13 @@ class ScanEngine(object):
             if result:
                 foundq.put(result)
 
-    def fingerprint_targets(self, fpq, scannerq):
-        while fpq.qsize() != 0:
-            remaining = fpq.qsize()
+    def fingerprint_targets(self):
+        while self.fingerprints.qsize() != 0:
+            remaining = self.fingerprints.qsize()
             self.logger.debug('%i fingerprints remaining' % remaining)
 
             try:
-                fp = fpq.get()
+                fp = self.fingerprints.get()
                 if type(fp) == bytes:
                     fp = pickle.loads(fp)
                 if fp is None:
@@ -118,11 +123,11 @@ class ScanEngine(object):
                 results = fp.get_scanners(self.creds)
                 if results:
                     for result in results:
-                        scannerq.put(result)
+                        self.scanners.put(result)
             else:
                 self.logger.debug('failed fingerprint')
 
-        self.logger.debug('scanners: %i' % scannerq.qsize())
+        self.logger.debug('scanners: %i, %s' % (self.scanners.qsize(), id(self.scanners)))
 
     def _build_targets(self):
         self.logger.debug('Building targets')
@@ -202,4 +207,6 @@ class ScanEngine(object):
         except redis.ConnectionError:
             # Fall back to sqlite persistent queue
             self.logger.debug('Using FIFOSQLiteQueue for %s' % name)
-            return FIFOSQLiteQueue(path=':memory:', multithreading=True, name=name)
+            m = mp.Manager()
+            q = m.Queue()
+            return q

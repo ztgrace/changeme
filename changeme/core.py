@@ -4,7 +4,6 @@ from changeme.redis_queue import RedisQueue
 import logging
 from logutils import colorize
 import os
-from persistqueue import FIFOSQLiteQueue
 import random
 import re
 import redis
@@ -389,16 +388,6 @@ def check_for_interrupted_scan(config):
     elif config.resume:
         logger.debug("Resuming previous scan")
         return
-
-    if os.path.isfile(PERSISTENT_QUEUE):
-        scanners = FIFOSQLiteQueue(path=".", multithreading=True, name="scanners")
-        fingerprints = FIFOSQLiteQueue(path=".", multithreading=True, name="fingerprints")
-        logger.debug("scanners: %i, fp: %i" % (scanners.qsize(), fingerprints.qsize()))
-        if scanners.qsize() > 0 or fingerprints.qsize() > 0:
-            if not prompt_for_resume(config):
-                remove_queues()
-        else:
-            remove_queues()
 
     fp = RedisQueue('fingerprint')
     scanners = RedisQueue('scanners')
