@@ -330,9 +330,17 @@ def is_yaml(f):
 def in_scope(name, category, cred, protocols):
     add = True
 
-    if name and not name.lower() in cred['name'].lower():
-        add = False
-    elif category and not cred['category'] == category:
+    if name:
+        names = name.split(',')
+        found = False
+        for n in names:
+            if n.lower() in cred['name'].lower():
+                found = True
+
+        if found is False:
+            add = False
+
+    if category and not cred['category'] == category:
         add = False
     elif cred['protocol'] not in protocols:
         add = False
