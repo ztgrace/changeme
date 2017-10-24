@@ -206,7 +206,7 @@ class ScanEngine(object):
 
         except redis.ConnectionError:
             # Fall back to sqlite persistent queue
-            self.logger.debug('Using FIFOSQLiteQueue for %s' % name)
+            self.logger.debug('Using in-memory queue for %s' % name)
             m = mp.Manager()
             q = m.Queue()
             return q
