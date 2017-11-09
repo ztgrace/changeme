@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: admin
+    password: hipchat
+category: ssh
+default_port: 22
+name: HipChat Server
+contributor: ztgrace
+references:
+  - https://confluence.atlassian.com/hipchatkb/how-to-change-the-username-and-the-ssh-password-for-the-admin-user-875608217.html

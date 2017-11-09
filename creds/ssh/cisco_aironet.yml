@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: Cisco
+    password: Cisco
+category: ssh
+default_port: 22
+name: Cisco Aironet
+contributor: ztgrace
+references:
+  - https://www.cisco.com/c/en/us/td/docs/wireless/access_point/1300/quick/guide/br13qsg.html

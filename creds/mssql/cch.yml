@@ -4,7 +4,7 @@ auth:
     password: PracticeUser1
 category: mssql
 default_port: 1433
-name: MSSQL
+name: CCH
 contributor: ztgrace
 references:
   - https://support.cch.com/kb/solution.aspx/sw29540

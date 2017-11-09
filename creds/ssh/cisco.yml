@@ -1,0 +1,12 @@
+auth:
+  credentials:
+  - username: cisco
+    password: cisco
+  - username: pix
+    password: cisco
+category: ssh
+default_port: 22
+name: Cisco
+contributor: ztgrace
+references:
+  - https://www.tunnelsup.com/default-password-cisco-firewall/

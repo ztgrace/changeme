@@ -1,0 +1,14 @@
+auth:
+  credentials:
+  - username: admin
+    password: admin0001
+  - username: superuser
+    password: passw0rd
+  - username: root
+    password: Passw0rd
+category: ssh
+default_port: 22
+name: IBM Storwize V7000 Unified
+contributor: ztgrace
+references:
+  - https://www.ibm.com/support/knowledgecenter/ST5Q4U_1.6.2/com.ibm.storwize.v7000.unified.162.doc/ifs_132_changedefaultpasswords11142011.html
