@@ -1,0 +1,23 @@
+auth:
+  credentials:
+  - password: '1234'
+    username: admin
+  headers: []
+  success:
+    body:
+    - <TITLE>Network Camera Viewer</TITLE>
+    status: 200
+  type: basic_auth
+  url:
+  - /
+category: camera
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  basic_auth_realm: SuperNova
+  status: 401
+  url:
+  - /
+name: Speco Technologies IP Camera
+protocol: http
+ssl: false

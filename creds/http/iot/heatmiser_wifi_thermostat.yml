@@ -1,0 +1,28 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  headers:
+  - Content-Type: application/x-www-form-urlencoded
+  post:
+    password: lgpw
+    username: lgnm
+  success:
+    body:
+    - document.logfm.lgst.value
+    status: 200
+  type: post
+  url:
+  - /
+category: iot
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body:
+  - <title>Heatmiser Wifi Thermostat</title>
+  status: 200
+  url:
+  - /
+name: Heatmiser Wifi Thermostat
+protocol: http
+ssl: false

@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: msf
+    password: msf
+  - username: msfdev
+    password: msfdev
+category: ssh
+default_port: 5432
+name: metasploit
+contributor: ztgrace

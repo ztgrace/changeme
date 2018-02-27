@@ -1,0 +1,9 @@
+auth:
+  credentials:
+  - username: ambari
+    password: bigdata
+category: postgres
+default_port: 5432
+name: postgres
+contributor: ztgrace
+ref: https://discuss.pivotal.io/hc/en-us/articles/217649658-How-to-connect-to-Ambari-s-PostgreSQL-database-
