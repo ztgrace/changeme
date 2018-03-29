@@ -222,6 +222,8 @@ def parse_args():
     ap.add_argument('--oa', action='store_true', help='Output results files in csv, html and json formats', default=False)
     ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key. Defaults to http.", default='http')
     ap.add_argument('--portoverride', action='store_true', help='Scan all protocols on all specified ports', default=False)
+    ap.add_argument('--redishost', type=str, help='Redis server', default='localhost')
+    ap.add_argument('--redisport', type=str, help='Redis server', default='6379')
     ap.add_argument('--resume', '-r', action='store_true', help='Resume previous scan', default=False)
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)

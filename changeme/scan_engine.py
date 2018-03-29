@@ -54,8 +54,6 @@ class ScanEngine(object):
         procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
         for proc in procs:
             proc.start()
-
-        for proc in procs:
             proc.join()
 
         self.logger.info('Fingerprinting completed')
@@ -81,8 +79,6 @@ class ScanEngine(object):
             procs = [mp.Process(target=self._scan, args=(self.scanners, self.found_q)) for i in range(num_procs)]
             for proc in procs:
                 proc.start()
-
-            for proc in procs:
                 proc.join()
 
             self.logger.info('Scanning Completed')
