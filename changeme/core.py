@@ -225,6 +225,7 @@ def parse_args():
     ap.add_argument('--resume', '-r', action='store_true', help='Resume previous scan', default=False)
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
+    ap.add_argument('--ssl', action='store_true', help='Force cred to SSL and fall back to non-SSL if an SSLError occurs', default=False)
     ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
     ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
     ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use", default=None)

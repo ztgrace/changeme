@@ -11,7 +11,7 @@ auth:
   url:
   - /
 category: general
-contributor: ztgrace
+contributor: ztgrace, madtownliz
 default_port: 80
 fingerprint:
   basic_auth_realm: level_15_access

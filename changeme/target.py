@@ -117,9 +117,11 @@ class Target(object):
 
     @staticmethod
     def get_shodan_targets(config):
+        logger = logging.getLogger('changeme')
         targets = set()
         api = shodan.Shodan(config.shodan_key)
         results = api.search(config.shodan_query)
+        logger.debug("shodan results: %s" % results)
         for r in results['matches']:
             targets.add(Target(host=r['ip_str']))
 

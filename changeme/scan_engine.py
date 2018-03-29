@@ -135,6 +135,7 @@ class ScanEngine(object):
         if self.config.target:
             self.targets = Target.parse_target(self.config.target)
         else:
+            self.logger.warning('shodan')
             self.targets = Target.get_shodan_targets(self.config)
 
 
