@@ -57,13 +57,14 @@ def test_tomcat_match_nmap(mock_args):
     creds = core.load_creds(config)
     s = ScanEngine(creds, config)
     s._build_targets()
+    s._add_terminators(s.fingerprints)
+
     print(("fp: %i" % s.fingerprints.qsize()))
     s.fingerprint_targets()
 
     # Queue is not serializeable so we can't copy it using deepcopy
     scanners = list()
     print(("scanners: %s" % s.scanners.qsize()))
-    #assert s.scanners.qsize() == 68
 
     t1 = Target(host='127.0.0.1', port=8080, protocol='http', url='/manager/html')
     t2 = Target(host='127.0.0.1', port=8080, protocol='http', url='/tomcat/manager/html')
@@ -76,6 +77,7 @@ def test_tomcat_match_nmap(mock_args):
     for scanner in scanners:
         s.scanners.put(scanner)
     assert s.scanners.qsize() == 34
+    s._add_terminators(s.scanners)
 
     responses.reset()
     responses.add(**MockResponses.tomcat_auth)
@@ -118,6 +120,7 @@ def test_jboss_scan_fail(mock_args):
     creds = core.load_creds(config)
     se = ScanEngine(creds, config)
     se._build_targets()
+    se._add_terminators(se.fingerprints)
     se.fingerprint_targets()
     print(se.scanners.qsize())
     scanners = list()
@@ -136,6 +139,7 @@ def test_jboss_scan_fail(mock_args):
     for s in scanners:
         se.scanners.put(s)
 
+    se._add_terminators(se.scanners)
     se._scan(se.scanners, se.found_q)
     assert se.found_q.qsize() == 0
 
@@ -215,6 +219,7 @@ def test_csv_output(mock_args):
     responses.add(**MockResponses.jboss_auth)
     reset_handlers()
     se = core.main()
+    print(se.found_q.qsize())
     assert se.found_q.qsize() == 1
 
     assert os.path.isfile(csv_args['output'])

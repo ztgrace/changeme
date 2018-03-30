@@ -1,0 +1,23 @@
+auth:
+  credentials:
+  - password: cisco
+    username: cisco
+  headers: []
+  success:
+    body:
+    - Cisco Systems
+    status: 200
+  type: basic_auth
+  url:
+  - /
+category: general
+contributor: ztgrace, madtownliz
+default_port: 80
+fingerprint:
+  basic_auth_realm: level_15_access
+  status: 401
+  url:
+  - /
+name: Cisco Systems
+protocol: http
+ssl: false

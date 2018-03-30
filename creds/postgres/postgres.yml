@@ -1,0 +1,8 @@
+auth:
+  credentials:
+  - username: postgres
+    password: postgres
+category: postgres
+default_port: 5432
+name: postgres
+contributor: ztgrace

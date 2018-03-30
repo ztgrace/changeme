@@ -1,0 +1,26 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  - password: ''
+    username: ''
+  headers: []
+  success:
+    body:
+    - '<title>localhost : ActiveMQ Console</title>'
+    status: 200
+  type: basic_auth
+  url:
+  - /admin
+category: general
+contributor: sil3ntcor3
+default_port: 8161
+fingerprint:
+  body:
+  - <title>Apache ActiveMQ</title>
+  status: 200
+  url:
+  - /
+name: ActiveMQ
+protocol: http
+ssl: false

@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username:
+    password: riverhead
+category: snmp
+default_port: 161
+name: Cisco Guard
+contributor: ztgrace
+references:
+  - https://www.cisco.com/en/US/products/ps5888/prod_release_note09186a0080237333.html

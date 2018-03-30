@@ -1,0 +1,12 @@
+auth:
+  credentials:
+  - username: root
+    password: alpine
+  - username: root
+    password: dottie
+category: ssh
+default_port: 22
+name: Apple Jailbroken Device
+contributor: ztgrace
+references:
+  - https://www.cultofmac.com/20871/how-to-change-your-iphones-default-ssh-password/

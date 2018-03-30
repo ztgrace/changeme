@@ -2,6 +2,8 @@
 
 A default credential scanner.
 
+![Basic Scan](https://raw.githubusercontent.com/wiki/ztgrace/changeme/images/basic.gif)
+
 ## About
 
 changeme picks up where commercial scanners leave off. It focuses on detecting default and backdoor credentials and not necessarily common credentials. It's default mode is to scan HTTP default credentials, but has support for other credentials.

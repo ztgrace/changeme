@@ -1,0 +1,8 @@
+auth:
+  credentials:
+  - username: root
+    password: root
+category: ssh
+default_port: 3306
+name: MySQL
+contributor: ztgrace

@@ -52,9 +52,14 @@ class ScanEngine(object):
         self.logger.debug('Number of procs: %i' % num_procs)
         self.total_fps = self.fingerprints.qsize()
         procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
+
+        self._add_terminators(self.fingerprints)
+
         for proc in procs:
             proc.start()
-            proc.join(timeout=30)
+
+        for proc in procs:
+            proc.join()
 
         self.logger.info('Fingerprinting completed')
 
@@ -77,17 +82,28 @@ class ScanEngine(object):
 
             self.logger.debug('Starting %i scanner procs' % num_procs)
             procs = [mp.Process(target=self._scan, args=(self.scanners, self.found_q)) for i in range(num_procs)]
+
+            self._add_terminators(self.scanners)
+
             for proc in procs:
+                self.logger.debug('Starting scanner proc')
                 proc.start()
-                proc.join(timeout=30)
+
+            for proc in procs:
+                proc.join()
 
             self.logger.info('Scanning Completed')
 
             # Hack to address a broken pipe IOError per https://stackoverflow.com/questions/36359528/broken-pipe-error-with-multiprocessing-queue
             time.sleep(0.1)
 
+    def _add_terminators(self, q):
+        # Add poison pills
+        for i in range(self.config.threads):
+            q.put(None)
+
     def _scan(self, scanq, foundq):
-        while scanq.qsize() != 0:
+        while True:
             remaining = self.scanners.qsize()
             self.logger.debug('%i scanners remaining' % remaining)
 
@@ -97,14 +113,14 @@ class ScanEngine(object):
                     return
             except Exception as e:
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
-                break
+                continue
 
             result = scanner.scan()
             if result:
                 foundq.put(result)
 
     def fingerprint_targets(self):
-        while self.fingerprints.qsize() != 0:
+        while True:
             remaining = self.fingerprints.qsize()
             self.logger.debug('%i fingerprints remaining' % remaining)
 
@@ -112,8 +128,11 @@ class ScanEngine(object):
                 fp = self.fingerprints.get()
                 if type(fp) == bytes:
                     fp = pickle.loads(fp)
+
+                # Exit process
                 if fp is None:
                     return
+
             except Exception as e:
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
                 self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
@@ -135,6 +154,7 @@ class ScanEngine(object):
         if self.config.target:
             self.targets = Target.parse_target(self.config.target)
         else:
+            self.logger.warning('shodan')
             self.targets = Target.get_shodan_targets(self.config)
 
 
@@ -188,6 +208,7 @@ class ScanEngine(object):
             self.fingerprints.put(fp)
         self.total_fps = self.fingerprints.qsize()
         self.logger.debug('%i fingerprints' % self.fingerprints.qsize())
+
 
     def dry_run(self):
         self.logger.info("Dry run targets:")

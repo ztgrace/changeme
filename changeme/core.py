@@ -222,9 +222,12 @@ def parse_args():
     ap.add_argument('--oa', action='store_true', help='Output results files in csv, html and json formats', default=False)
     ap.add_argument('--protocols', type=str, help="Comma separated list of protocols to test: http,ssh,ssh_key. Defaults to http.", default='http')
     ap.add_argument('--portoverride', action='store_true', help='Scan all protocols on all specified ports', default=False)
+    ap.add_argument('--redishost', type=str, help='Redis server', default='localhost')
+    ap.add_argument('--redisport', type=str, help='Redis server', default='6379')
     ap.add_argument('--resume', '-r', action='store_true', help='Resume previous scan', default=False)
     ap.add_argument('--shodan_query', '-q', type=str, help='Shodan query', default=None)
     ap.add_argument('--shodan_key', '-k', type=str, help='Shodan API key', default=None)
+    ap.add_argument('--ssl', action='store_true', help='Force cred to SSL and fall back to non-SSL if an SSLError occurs', default=False)
     ap.add_argument('--threads', '-t', type=int, help='Number of threads, default=10', default=10)
     ap.add_argument('--timeout', type=int, help='Timeout in seconds for a request, default=10', default=10)
     ap.add_argument('--useragent', '-ua', type=str, help="User agent string to use", default=None)
@@ -307,7 +310,6 @@ def validate_cred(cred, f, protocol):
 
 def parse_yaml(f):
     logger = logging.getLogger('changeme')
-    logger.debug('Parsing %s' % f)
     with open(f, 'r') as fin:
         raw = fin.read()
         try:

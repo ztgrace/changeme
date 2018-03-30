@@ -46,19 +46,29 @@ class HttpFingerprint:
     def fingerprint(self):
 
         try:
-            self.res = self.req.get(
-                str(self.target),
-                timeout=self.config.timeout,
-                verify=False,
-                proxies=self.config.proxy,
-                headers=self.headers,
-                cookies=self.cookies
-            )
+            self._fp()
         except Exception as e:
-            self.logger.debug('Failed to connect to %s' % self.target)
+            if self.config.ssl and e.__class__ == requests.exceptions.SSLError:
+                self.target.protocol = 'http'
+                self.logger.debug('Retrying with non-SSL target: %s' % self.target)
+                try:
+                    self._fp()
+                except Exception as e:
+                    self.logger.debug('Failed to connect to %s' % self.target)
+
             return False
 
         return True
+
+    def _fp(self):
+        self.res = self.req.get(
+            str(self.target),
+            timeout=self.config.timeout,
+            verify=False,
+            proxies=self.config.proxy,
+            headers=self.headers,
+            cookies=self.cookies
+        )
 
     def _get_csrf_token(self, res, cred):
         name = cred['auth'].get('csrf', False)
@@ -165,7 +175,7 @@ class HttpFingerprint:
                 fp = c['fingerprint']
                 for url in fp.get('url'):
                     t = Target(host=target.host, port=target.port, protocol=target.protocol)
-                    if c.get('ssl'):
+                    if c.get('ssl') or config.ssl:
                         t.protocol = 'https'
                     else:
                         t.protocol = 'http'

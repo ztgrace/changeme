@@ -1,0 +1,25 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  headers: []
+  success:
+    body:
+    - <title>Thermostat
+    status: 200
+  type: basic_auth
+  url:
+  - /index.shtml
+category: iot
+contributor: ztgrace
+default_port: 8086
+fingerprint:
+  basic_auth_realm: tstat
+  status: 401
+  url:
+  - /index.shtml
+name: Proliphix Thermostat
+protocol: http
+ssl: false
+references:
+  - http://www.proliphix.com/Collateral/Documents/English-US/Thermostat%20Installation%20Guide.pdf

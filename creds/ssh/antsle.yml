@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: root
+    password: antsle
+category: ssh
+default_port: 22
+name: antsle
+contributor: ztgrace
+references:
+  - http://docs.antsle.com/defaultpw/
