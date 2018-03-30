@@ -52,9 +52,16 @@ class ScanEngine(object):
         self.logger.debug('Number of procs: %i' % num_procs)
         self.total_fps = self.fingerprints.qsize()
         procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
+
+        # Add poison pills
+        for i in range(self.config.threads):
+            self.fingerprints.put(None)
+
         for proc in procs:
             proc.start()
-            proc.join(timeout=self.config.timeout)
+
+        for proc in procs:
+            proc.join()
 
         self.logger.info('Fingerprinting completed')
 
@@ -77,8 +84,16 @@ class ScanEngine(object):
 
             self.logger.debug('Starting %i scanner procs' % num_procs)
             procs = [mp.Process(target=self._scan, args=(self.scanners, self.found_q)) for i in range(num_procs)]
+
+            # Add poison pills
+            for i in range(self.config.threads):
+                self.scanners.put(None)
+
             for proc in procs:
+                self.logger.debug('Starting scanner proc')
                 proc.start()
+
+            for proc in procs:
                 proc.join(timeout=self.config.timeout)
 
             self.logger.info('Scanning Completed')
@@ -87,7 +102,7 @@ class ScanEngine(object):
             time.sleep(0.1)
 
     def _scan(self, scanq, foundq):
-        while scanq.qsize() != 0:
+        while True:
             remaining = self.scanners.qsize()
             self.logger.debug('%i scanners remaining' % remaining)
 
@@ -97,16 +112,21 @@ class ScanEngine(object):
                     return
             except Exception as e:
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
-                break
+                continue
 
             result = scanner.scan()
             if result:
                 foundq.put(result)
 
     def fingerprint_targets(self):
-        while self.fingerprints.qsize() != 0:
+        while True:
             remaining = self.fingerprints.qsize()
             self.logger.debug('%i fingerprints remaining' % remaining)
+            fp = self.fingerprints.get()
+
+            # Exit process
+            if fp is None:
+                return
 
             try:
                 fp = self.fingerprints.get()
@@ -189,6 +209,7 @@ class ScanEngine(object):
             self.fingerprints.put(fp)
         self.total_fps = self.fingerprints.qsize()
         self.logger.debug('%i fingerprints' % self.fingerprints.qsize())
+
 
     def dry_run(self):
         self.logger.info("Dry run targets:")
