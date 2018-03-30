@@ -219,7 +219,7 @@ def test_csv_output(mock_args):
     responses.add(**MockResponses.jboss_auth)
     reset_handlers()
     se = core.main()
-    print se.found_q.qsize()
+    print(se.found_q.qsize())
     assert se.found_q.qsize() == 1
 
     assert os.path.isfile(csv_args['output'])
