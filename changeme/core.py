@@ -310,7 +310,6 @@ def validate_cred(cred, f, protocol):
 
 def parse_yaml(f):
     logger = logging.getLogger('changeme')
-    logger.debug('Parsing %s' % f)
     with open(f, 'r') as fin:
         raw = fin.read()
         try:

@@ -53,9 +53,7 @@ class ScanEngine(object):
         self.total_fps = self.fingerprints.qsize()
         procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
 
-        # Add poison pills
-        for i in range(self.config.threads):
-            self.fingerprints.put(None)
+        self._add_terminators(self.fingerprints)
 
         for proc in procs:
             proc.start()
@@ -85,21 +83,24 @@ class ScanEngine(object):
             self.logger.debug('Starting %i scanner procs' % num_procs)
             procs = [mp.Process(target=self._scan, args=(self.scanners, self.found_q)) for i in range(num_procs)]
 
-            # Add poison pills
-            for i in range(self.config.threads):
-                self.scanners.put(None)
+            self._add_terminators(self.scanners)
 
             for proc in procs:
                 self.logger.debug('Starting scanner proc')
                 proc.start()
 
             for proc in procs:
-                proc.join(timeout=self.config.timeout)
+                proc.join()
 
             self.logger.info('Scanning Completed')
 
             # Hack to address a broken pipe IOError per https://stackoverflow.com/questions/36359528/broken-pipe-error-with-multiprocessing-queue
             time.sleep(0.1)
+
+    def _add_terminators(self, q):
+        # Add poison pills
+        for i in range(self.config.threads):
+            q.put(None)
 
     def _scan(self, scanq, foundq):
         while True:
@@ -122,18 +123,16 @@ class ScanEngine(object):
         while True:
             remaining = self.fingerprints.qsize()
             self.logger.debug('%i fingerprints remaining' % remaining)
-            fp = self.fingerprints.get()
-
-            # Exit process
-            if fp is None:
-                return
 
             try:
                 fp = self.fingerprints.get()
                 if type(fp) == bytes:
                     fp = pickle.loads(fp)
+
+                # Exit process
                 if fp is None:
                     return
+
             except Exception as e:
                 self.logger.debug('Caught exception: %s' % type(e).__name__)
                 self.logger.debug('Exception: %s: %s' % (type(e).__name__, e.__str__().replace('\n', '|')))
