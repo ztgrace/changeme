@@ -4,7 +4,11 @@ auth:
     password: password
   - username: root
     password: root
+  - username: admin
+    password: password
+  - username: admin
+    password: admin
 category: ssh
 default_port: 22
 name: ssh
-contributor: AlessandroZ
+contributor: AlessandroZ, Joe Testa
