@@ -32,8 +32,15 @@ A convenient way of running changeme is to do so inside a Docker container. You 
 
 ### Run changeme in Docker
 
-1. Download the container: `docker pull ztgrace/changeme`
-2. Run the container: `docker run -it ztgrace/changeme /bin/bash`
+Docker runs best in conjunction with Redis as a queue back end. Here's how to get a linked container setup working with Redis.
+
+Get the latest containers: `docker pull redis && docker pull ztgrace/changeme`
+
+Launch redis in the background: `docker run -d --name redis1 redis`
+
+Start changeme linking the redis container by name and mounting a local directory into the container's `/mnt` directory: `docker run -it -v /tmp/results:/mnt --link redis1:redis ztgrace/changeme:latest /bin/sh`
+
+Run changeme with a `--redishost` of `redis` and `--output` file in our mounted volume: `./changeme.py --redishost redis --output /tmp/mnt/results.csv --protocols ssh --threads 20 -d 192.168.1.0/24`
 
 ### Build from Dockerfile
 
