@@ -14,6 +14,7 @@ from .scanners.redis_scanner import RedisScanner
 from .scanners.snmp import SNMP
 from .scanners.ssh import SSH
 from .scanners.ssh_key import SSHKey
+from .scanners.telnet import Telnet
 from .scanners.http_fingerprint import HttpFingerprint
 from .target import Target
 import time
@@ -194,6 +195,7 @@ class ScanEngine(object):
             'postgres': 'Postgres',
             'redis': 'RedisScanner',
             'snmp': 'SNMP',
+            'telnet': 'Telnet',
         }
 
         for target in self.targets:
