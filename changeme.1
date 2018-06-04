@@ -1,0 +1,126 @@
+.TH CHANGEME "1" "June 2018" "changeme 1.1.1" "User Commands"
+.SH NAME
+changeme \- Default Credential Scanner
+.SH DESCRIPTION
+A default Credential Scanner with support for various protocols
+.PP
+.SH SYNOPSIS
+.B changeme [options] <target>
+.IP
+.SH OPTIONS
+.SS "required arguments:"
+.TP
+\fBtarget\fR
+Target to scan. Can be IP, subnet, hostname, nmap xml
+file, text file or proto://host:port
+.SS "optional arguments:"
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-\-all\fR, \fB\-a\fR
+Scan for all protocols
+.TP
+\fB\-\-category\fR, \fB\-c\fR CATEGORY
+Category of default creds to scan for
+.TP
+\fB\-\-contributors\fR
+Display cred file contributors
+.TP
+\fB\-\-debug\fR, \fB\-d\fR
+Debug output
+.TP
+\fB\-\-delay\fR, \fB\-dl\fR DELAY
+Specify a delay in milliseconds to avoid 429 status
+codes default=500
+.TP
+\fB\-\-dump\fR
+Print all of the loaded credentials
+.TP
+\fB\-\-dryrun\fR
+Print urls to be scan, but don't scan them
+.TP
+\fB\-\-fingerprint\fR, \fB\-f\fR
+Fingerprint targets, but don't check creds
+.TP
+\fB\-\-fresh\fR
+Flush any previous scans and start fresh
+.TP
+\fB\-\-log\fR, \fB\-l\fR LOG
+Write logs to logfile
+.TP
+\fB\-\-mkcred\fR
+Make cred file
+.TP
+\fB\-\-name\fR, \fB\-n\fR NAME
+Narrow testing to the supplied credential name
+.TP
+\fB\-\-noversion\fR
+Don't perform a version check
+.TP
+\fB\-\-proxy\fR, \fB\-p\fR PROXY
+HTTP(S) Proxy
+.TP
+\fB\-\-output\fR, \fB\-o\fR OUTPUT
+Name of result file. File extension determines type
+(csv, html, json).
+.TP
+\fB\-\-oa\fR
+Output results files in csv, html and json formats
+.TP
+\fB\-\-protocols\fR PROTOCOLS
+Comma separated list of protocols to test:
+http,ssh,ssh_key. Defaults to http.
+.TP
+\fB\-\-portoverride\fR
+Scan all protocols on all specified ports
+.TP
+\fB\-\-redishost\fR REDISHOST
+Redis server
+.TP
+\fB\-\-redisport\fR REDISPORT
+Redis server
+.TP
+\fB\-\-resume\fR, \fB\-r\fR
+Resume previous scan
+.TP
+\fB\-\-shodan_query\fR, \fB\-q\fR SHODAN_QUERY
+Shodan query
+.TP
+\fB\-\-shodan_key\fR, \fB\-k\fR SHODAN_KEY
+Shodan API key
+.TP
+\fB\-\-ssl\fR
+Force cred to SSL and fall back to non\-SSL if an
+SSLError occurs
+.TP
+\fB\-\-threads\fR, \fB\-t\fR THREADS
+Number of threads, default=10
+.TP
+\fB\-\-timeout\fR TIMEOUT
+Timeout in seconds for a request, default=10
+.TP
+\fB\-\-useragent\fR, \fB\-ua\fR USERAGENT
+User agent string to use
+.TP
+\fB\-\-validate\fR
+Validate creds files
+.TP
+\fB\-\-verbose\fR, \fB\-v\fR
+Verbose output
+.SH EXAMPLES
+\fBchangeme 192.168.2.100\fR Scan single host
+.TP
+\fBchangeme 192.168.2.0/24\fR Scan subnet
+.TP
+\fBchangeme subnet.xml\fR Scan using a nmap output file
+.TP
+\fBchangeme -n "Apache Tomcat" --timeout 5 192.168.2.0/24\fR Scan a subnet for Tomcat default creds and set the timeout to 5 seconds
+.TP
+\fBchangeme --shodan_query "Server: SQ-WEBCAM" --shodan_key keygoeshere -c camera\fR Use Shodan to populate a targets list and check them for default credentials
+.TP
+\fBchangeme --protocols ssh,ssh_key 192.168.2.0/24\fR Scan subnet for SSH and known SSH keys
+.TP
+\fBchangeme snmp://192.168.2.100\fR Scan a host for SNMP creds using the protocol syntax
+.SH AUTHOR
+changeme was developed by ztgrace, this manpage was made by Samuel Henrique <samueloph@debian.org> based on \fBchangeme --help\fR output and can be used by other projects as well.
