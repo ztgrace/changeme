@@ -1,0 +1,28 @@
+auth:
+  credentials:
+  - password: admin
+    username: admin
+  headers:
+  - Accept: 'application/json'
+  post:
+    password: password
+    username: login
+  success:
+    body:
+    - ''
+    status: 200
+  type: post
+  url:
+  - /api/authentication/login
+category: general
+contributor: ztgrace
+default_port: 80
+fingerprint:
+  body:
+  - SonarQube
+  status: 200
+  url:
+  - /sessions/new
+name: SonarQube 7.x
+protocol: http
+ssl: false
