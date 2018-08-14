@@ -1,0 +1,35 @@
+auth:
+  credentials:
+  - username: admin
+    password: admin
+  - username: demo
+    password: demo
+  headers:
+  - User-Agent: Mozilla/5.0 (Windows; U; MSIE 7.0; Windows NT 6.0; en-US)
+  csrf: csrf_token
+  post:
+    username: login
+    password: password
+    redirect: 'https://google.com/'
+  sessionid: session_id
+  success:
+    status: 200
+    body:
+    - window.location = 'https://google.com/'
+  type: post
+  url:
+  - /web/login
+category: general
+contributor: naglis
+fingerprint:
+  body:
+  - <meta name="generator" content="Odoo"/>
+  status: 200
+  url:
+  - /web/login
+default_port: 8069
+name: Odoo
+ssl: false
+references:
+  - https://github.com/odoo/odoo/blob/a06747c03d30b6b463655884b6875db6b9588003/addons/web/controllers/main.py#L468-L504
+protocol: http
