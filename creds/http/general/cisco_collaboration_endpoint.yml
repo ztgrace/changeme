@@ -1,0 +1,27 @@
+auth:
+  credentials:
+  - password: admin
+    username: cisco
+  post:
+    password: username
+    username: password
+  headers: []
+  success:
+    body:
+    - '"result": "ok"'
+    status: 200
+  type: post
+  url:
+  - /web/signin/open
+category: general
+contributor: AlessandroZ
+default_port: 443
+fingerprint:
+  status: 200
+  body:
+    - Cisco Collaboration Endpoint
+  url:
+  - /web/signin
+name: Cisco Collaboration Endpoint
+protocol: http
+ssl: true
