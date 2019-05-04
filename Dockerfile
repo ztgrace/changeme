@@ -30,4 +30,4 @@ RUN apk update \
 ENV HOME /changeme
 ENV PS1 "\033[00;34mchangeme>\033[0m "
 WORKDIR /changeme
-CMD ./changeme.py
+ENTRYPOINT ["./changeme.py"]
