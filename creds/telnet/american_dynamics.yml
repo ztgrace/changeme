@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: admin
+    password: 9999
+category: telnet
+default_port: 23
+name: American Dynamics EDVR
+contributor: ztgrace
+references:
+  - http://www.americandynamics.net/support/Download/edvr_downloads/8200-0841-00%20A0%20(BK_EDVR_QSG).pdf

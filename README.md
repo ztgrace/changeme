@@ -22,6 +22,8 @@ Stable versions of changeme can be found on the [releases](https://github.com/zt
 
 For mssql support, `unixodbc-dev` needs to be installed prior to installing the `pyodbc`.
 
+For postgres support, `libpq-dev` needs to be installed.
+
 [PhantomJS](http://phantomjs.org/) is required in your PATH for HTML report screenshots.
 
 Use `pip` to install the required python modules: `pip install -r requirements.txt`

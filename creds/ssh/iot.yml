@@ -1,0 +1,15 @@
+auth:
+  credentials:
+  - username: root
+    password: 7ujMko0admin
+    ref: http://www.cctvforum.com/viewtopic.php?t=44381
+  - username: nasadmin
+    password: nasadmin
+    ref: https://community.emc.com/thread/123122?start=0&tstart=0
+  - username: root
+    password: ascend
+    ref: 
+category: ssh
+default_port: 22
+name: ssh
+contributor: ztgrace

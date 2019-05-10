@@ -1,4 +1,4 @@
-__version__ = '1.1'
+__version__ = '1.2'
 contributors = [
     "ztgrace",
     "the-c0d3r",
@@ -8,4 +8,10 @@ contributors = [
     "Alistair Chapman",
     "John Van de Meulebrouck Brendgard",
     "network23",
+    "decidedlygray",
+    "Joe Testa",
+    "Chandrapal",
+    "Naglis Jonaitis",
+    "Samuel Henrique",
+    "sil3ntcor3",
 ]

@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: netscreen
+    password: "<<< %s(un='%s') = %u"
+category: ssh
+default_port: 22
+name: Juniper ScreenOS/Netscreen
+contributor: ztgrace
+references:
+  - https://kb.juniper.net/InfoCenter/index?page=content&id=JSA10713&cat=SIRT_1&actp=LIST
