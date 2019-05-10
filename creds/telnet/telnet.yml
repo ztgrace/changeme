@@ -1,10 +1,133 @@
+# Mirai botnet credentials from: https://github.com/securing/mirai_credentials/blob/master/mirai_creds.txt
 auth:
   credentials:
   - username: root
     password: password
   - username: root
     password: root
+  - username: root
+    password: xc3511
+  - username: root
+    password: vizxv
+  - username: root
+    password: admin
+  - username: admin
+    password: admin
+  - username: root
+    password: 888888
+  - username: root
+    password: xmhdipc
+  - username: root
+    password: default
+  - username: root
+    password: juantech
+  - username: root
+    password: 123456
+  - username: root
+    password: 54321
+  - username: support
+    password: support
+  - username: root
+    password:
+  - username: admin
+    password: password
+  - username: root
+    password: 12345
+  - username: user
+    password: user
+  - username: admin
+    password:
+  - username: root
+    password: pass
+  - username: admin
+    password: admin1234
+  - username: root
+    password: 1111
+  - username: admin
+    password: smcadmin
+  - username: admin
+    password: 1111
+  - username: root
+    password: 666666
+  - username: root
+    password: 1234
+  - username: root
+    password: klv123
+  - username: Administrator
+    password: admin
+  - username: service
+    password: service
+  - username: supervisor
+    password: supervisor
+  - username: guest
+    password: guest
+  - username: guest
+    password: 12345
+  - username: guest
+    password: 12345
+  - username: admin1
+    password: password
+  - username: administrator
+    password: 1234
+  - username: 666666
+    password: 666666
+  - username: 888888
+    password: 888888
+  - username: ubnt
+    password: ubnt
+  - username: root
+    password: klv1234
+  - username: root
+    password: Zte521
+  - username: root
+    password: hi3518
+  - username: root
+    password: jvbzd
+  - username: root
+    password: anko
+  - username: root
+    password: zlxx.
+  - username: root
+    password: 7ujMko0vizxv
+  - username: root
+    password: 7ujMko0admin
+  - username: root
+    password: system
+  - username: root
+    password: ikwb
+  - username: root
+    password: dreambox
+  - username: root
+    password: user
+  - username: root
+    password: realtek
+  - username: root
+    password: 00000000
+  - username: admin
+    password: 1111111
+  - username: admin
+    password: 1234
+  - username: admin
+    password: 12345
+  - username: admin
+    password: 54321
+  - username: admin
+    password: 123456
+  - username: admin
+    password: 7ujMko0admin
+  - username: admin
+    password: 1234
+  - username: admin
+    password: pass
+  - username: admin
+    password: meinsm
+  - username: tech
+    password: tech
+  - username: mother
+    password: fucker
+  blockingio_timeout: 3
+  telnet_read_timeout: 1
 category: telnet
 default_port: 23
 name: telnet
-contributor: AlessandroZ
+contributor: AlessandroZ, decidedlygray

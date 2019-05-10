@@ -1,0 +1,14 @@
+auth:
+  credentials:
+  - username: root
+    password: 7ujMko0admin
+  - username: admin
+    password: 7ujMko0admin
+  - username: root
+    password: vizxv
+category: telnet
+default_port: 23
+name: Duhua
+contributor: ztgrace
+references:
+  - http://www.cctvforum.com/viewtopic.php?t=44381

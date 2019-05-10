@@ -7,7 +7,7 @@ auth:
   headers: []
   success:
     body:
-    - '<title>localhost : ActiveMQ Console</title>'
+    - ActiveMQ Console
     status: 200
   type: basic_auth
   url:
