@@ -1,4 +1,4 @@
-__version__ = '1.2'
+__version__ = '1.2.1'
 contributors = [
     "ztgrace",
     "the-c0d3r",
