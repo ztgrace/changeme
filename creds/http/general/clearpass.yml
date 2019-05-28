@@ -1,0 +1,28 @@
+auth:
+  credentials:
+  - password: eTIPS123
+    username: admin
+  headers: []
+  post:
+    password: password
+    username: username
+  sessionid: JSESSIONID
+  success:
+    body:
+    - ""
+    status: 302
+  type: post
+  url:
+  - /tips/tipsLoginSubmit.action
+category: general
+contributor: mzet
+default_port: 443
+fingerprint:
+  body:
+  - <title>ClearPass Policy Manager - Aruba Networks</title>
+  status: 200
+  url:
+  - /tips/tipsLogin.action
+name: ClearPass
+protocol: http
+ssl: true

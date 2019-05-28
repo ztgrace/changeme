@@ -90,7 +90,7 @@ class HTTPGetScanner(Scanner):
             self.username = base64.b64decode(self.cred.username)
             self.password = base64.b64decode(self.cred.password)
 
-        if success.get('status') == self.response.status_code or res.history and res.history[0].status_code == success.get('status'):
+        if success.get('status') == self.response.status_code or self.response.history and self.response.history[0].status_code == success.get('status'):
             self.logger.debug('%s matched %s success status code %s' % (self.target, self.cred['name'], self.response.status_code))
             if success.get('body'):
                 for string in success.get('body'):
