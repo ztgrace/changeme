@@ -1,0 +1,29 @@
+auth:
+  credentials:
+  - password: epp2011
+    username: root
+  csrf: csrf_token_anon
+  post:
+    password: password
+    username: username
+  form_data: true
+  sessionid: ratool
+  success:
+    body:
+    - Edit Profile</a>
+    status: 200
+  type: post
+  url:
+  - /index.php/login
+category: general
+contributor: ccammilleri
+default_port: 443
+fingerprint:
+  body:
+  - Endpoint Protector - Reporting and Administration Tool
+  status: 200
+  url:
+  - /index.php/login
+name: Endpoint Protector
+protocol: http
+ssl: true
