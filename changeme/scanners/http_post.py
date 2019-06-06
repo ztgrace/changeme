@@ -14,10 +14,24 @@ class HTTPPostScanner(HTTPGetScanner):
         self.logger.debug('_make_request')
         self.logger.debug("target: %s" % self.target)
         data = self.render_creds(self.cred, self.csrf)
-        self.response = self.request.post(self.target,
-                                          data,
-                                          verify=False,
-                                          proxies=self.config.proxy,
-                                          timeout=self.config.timeout,
-                                          headers=self.headers,
-                                          cookies=self.cookies)
+
+        if self.cred.get('form_data'):
+            form_data = {}
+            for k in data:
+                form_data[k] = (None, data[k])
+
+            self.response = self.request.post(self.target,
+                                            file=form_data,
+                                            verify=False,
+                                            proxies=self.config.proxy,
+                                            timeout=self.config.timeout,
+                                            headers=self.headers,
+                                            cookies=self.cookies)
+        else:
+            self.response = self.request.post(self.target,
+                                            data,
+                                            verify=False,
+                                            proxies=self.config.proxy,
+                                            timeout=self.config.timeout,
+                                            headers=self.headers,
+                                            cookies=self.cookies)

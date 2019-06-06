@@ -146,3 +146,19 @@ class MockResponses:
 }"""
     }
 
+    endpoint_protector_fp = {
+        'method': responses.GET,
+        'url': 'https://127.0.0.1/index.php/login',
+        'status': 200,
+        'body': 'Endpoint Protector - Reporting and Administration Tool <input name="csrf_token_anon" value="foobar" />',
+        'adding_headers': {
+            'Set-Cookie': 'ratool=foobar'
+        }
+    }
+
+    endpoint_protector_auth = {
+        'method': responses.POST,
+        'url': 'http://127.0.0.1:8080/index.php/login',
+        'status': 200,
+        'body': 'Edit Profile</a>',
+    }
