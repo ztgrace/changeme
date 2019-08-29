@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username:
+    password: EyesOfNetwork
+category: snmp
+default_port: 161
+name: EyesOfNetwork
+contributor: @h4knet
+references:
+  - https://www.eyesofnetwork.com/wp-content/uploads/2018/03/FR-Eon-v5-Configuration.pdf
