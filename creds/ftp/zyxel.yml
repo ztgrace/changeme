@@ -1,0 +1,10 @@
+auth:
+  credentials:
+  - username: devicehaecived
+    password: 1234
+category: ftp
+default_port: 21
+name: Zyxel NWA/NAP/WAC wireless access point series
+contributor: @h4knet
+references:
+  - https://www.zyxel.com/support/hardcoded-FTP-credential-vulnerability-of-access-points.shtml
