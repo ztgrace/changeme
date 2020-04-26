@@ -312,9 +312,10 @@ def parse_yaml(f):
     with open(f, 'r') as fin:
         raw = fin.read()
         try:
-            parsed = yaml.safe_load(raw, Loader=yaml.FullLoader)
+            parsed = yaml.safe_load(raw)
         except Exception as e:
             logger.error("[parse_yaml] %s is not a valid yaml file" % f)
+            logger.debug(e)
             return None
     return parsed
 
