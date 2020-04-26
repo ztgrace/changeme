@@ -281,14 +281,3 @@ def test_es_scan_success(mock_args):
     se = core.main()
     assert se.found_q.qsize() == 1
 
-formdata_args = deepcopy(cli_args)
-formdata_args['name'] = "Endpoint Protector"
-@responses.activate
-@mock.patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(**formdata_args))
-def test_endpoint_protector_success(mock_args):
-    responses.reset()
-    responses.add(**MockResponses.endpoint_protector_fp)
-    responses.add(**MockResponses.endpoint_protector_auth)
-    reset_handlers()
-    se = core.main()
-    assert se.found_q.qsize() == 1
