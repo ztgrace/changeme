@@ -54,6 +54,11 @@ http_schema = {
                 'nullable': True,
                 'required': False,
             },
+            'form_data': {
+                'type': 'boolean',
+                'nullable': False,
+                'required': False,
+            },
             'post': {
                 'type': 'dict',
                 'allow_unknown': True,
