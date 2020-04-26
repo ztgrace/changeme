@@ -1,0 +1,35 @@
+# Shodan dork: http.html_hash:"1640961097"
+#
+# author git://d34db33f-1007 | https://t.me/asleep_cg
+#
+# also check https://github.com/d34db33f-1007/icatch_rce
+# and https://gitlab.com/Reinmar/IPSca
+
+auth:
+  credentials:
+  - password: '123456'
+    username: admin
+  - password: icatch99
+    username: root
+  headers: []
+  success:
+    body:
+    - DVR
+    status: 200
+  type: basic_auth
+  url:
+  - ''
+category: camera
+contributor: 't.me/asleep_cg'
+default_port: 80
+fingerprint:
+  basic_auth_realm: .
+  body:
+  - Unauthorized
+  server_header: mini_httpd/1.19 19dec2003
+  status: 401
+  url:
+  - ''
+name: icatch
+protocol: http
+ssl: false
