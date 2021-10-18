@@ -42,7 +42,7 @@ Launch redis in the background: `docker run -d --name redis1 redis`
 
 Start changeme linking the redis container by name and mounting a local directory into the container's `/mnt` directory: `docker run -it -v /tmp/results:/mnt --link redis1:redis ztgrace/changeme:latest /bin/sh`
 
-Run changeme with a `--redishost` of `redis` and `--output` file in our mounted volume: `./changeme.py --redishost redis --output /tmp/mnt/results.csv --protocols ssh --threads 20 -d 192.168.1.0/24`
+Run changeme with a `--redishost` of `redis` and `--output` file in our mounted volume: `./changeme.py --redishost redis --output /mnt/results.csv --protocols ssh --threads 20 -d 192.168.1.0/24`
 
 ### Build from Dockerfile
 
