@@ -1,0 +1,27 @@
+# Netwave cameras bruter
+#
+# author git://d34db33f-1007 | https://t.me/ju_oj
+
+auth:
+  credentials:
+  - password: '123456'
+    username: admin
+  - password: user
+    username: 123456
+  headers: []
+  success:
+    status: 200
+  type: basic_auth
+  url:
+  - '/get_camera_params.cgi?'
+category: camera
+contributor: 't.me/ju_oj'
+default_port: 80
+fingerprint:
+  title: 'Netwave IP Camera'
+  status: 200
+  url:
+  - ''
+name: netwave
+protocol: http
+ssl: false
